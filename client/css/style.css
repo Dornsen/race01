@@ -1,0 +1,10 @@
+button {
+    background: #e62429; /* Фирменный красный Marvel */
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+button:hover {
+    background: #b11b1f;
+}
+.hidden { display: none; }

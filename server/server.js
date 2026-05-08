@@ -1,30 +1,26 @@
-// Подключаем наши установленные библиотеки
 const express = require('express');
+const path = require('path');
 const app = express();
-const http = require('http').createServer(app);
-const { Server } = require('socket.io');
-const io = new Server(http);
 
-// Настройка порта (по умолчанию 3000)
-const PORT = 3000;
+// Учим сервер понимать JSON от клиента
+app.use(express.json());
+app.use(express.static(path.join(__dirname, '../client')));
 
-// Говорим серверу, что когда кто-то заходит на главную страницу,
-// нужно отправить простое сообщение (позже мы заменим это на отправку твоего HTML-файла)
-app.get('/', (req, res) => {
-    res.send('<h1>Сервер Marvel Nexus Clash запущен и готов к бою!</h1>');
-});
 
-// Слушаем подключения по WebSockets (когда игрок заходит в игру)
-io.on('connection', (socket) => {
-    console.log(`Новый игрок подключился! Его ID: ${socket.id}`);
+const autoInitDatabase = require('./config/initDb');
+const authController = require('./controllers/authController');
 
-    // Если игрок закрыл вкладку
-    socket.on('disconnect', () => {
-        console.log(`Игрок ${socket.id} покинул игру.`);
+
+app.post('/api/register', authController.register);
+app.post('/api/verify', authController.verifyEmail);
+app.post('/api/login', authController.login);
+app.post('/api/forgot-password', authController.forgotPassword);
+app.post('/api/reset-password', authController.resetPassword);
+
+// Запуск сервера
+const PORT = process.env.PORT || 3000;
+autoInitDatabase().then(() => {
+    app.listen(PORT, () => {
+        console.log(`🚀 Сервер игры запущен на http://localhost:${PORT}`);
     });
-});
-
-// Запускаем сервер
-http.listen(PORT, () => {
-    console.log(`🚀 Сервер летит на порту http://localhost:${PORT}`);
 });
