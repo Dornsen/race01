@@ -182,3 +182,13 @@ exports.resetPassword = async (req, res) => {
         res.status(500).json({ error: 'Error resetting password' });
     }
 };
+
+exports.logout = (req, res) => {
+    req.session.destroy((err) => {
+        if (err) {
+            return res.status(500).json({ error: 'Ошибка при выходе' });
+        }
+        res.clearCookie('connect.sid');
+        return res.json({ message: 'Exit successful!' });
+    });
+};

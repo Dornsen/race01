@@ -8,3 +8,31 @@ button:hover {
     background: #b11b1f;
 }
 .hidden { display: none; }
+
+.menu-header {
+    text-align: center;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #ddd;
+    padding-bottom: 10px;
+}
+
+.menu-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.btn-primary {
+    background: #e62429; /* Красный цвет для кнопки "В бой" */
+    font-size: 1.2rem;
+    padding: 15px;
+}
+
+.btn-secondary {
+    background: #3498db;
+}
+
+.btn-danger {
+    background: #7f8c8d;
+    margin-top: 20px;
+}

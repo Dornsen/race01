@@ -26,6 +26,7 @@ app.post('/api/verify', authController.verifyEmail);
 app.post('/api/login', authController.login);
 app.post('/api/forgot-password', authController.forgotPassword);
 app.post('/api/reset-password', authController.resetPassword);
+app.post('/api/logout', authController.logout);
 
 app.get('/api/me', authController.checkAuth);
 

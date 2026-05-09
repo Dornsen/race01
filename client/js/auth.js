@@ -21,19 +21,12 @@ window.onload = async () => {
         const result = await response.json();
         
         if (result.isLoggedIn) {
-            console.log("User is logged in:", result.user.username);
-            
-            // Прячем все формы авторизации
-            document.querySelectorAll('.auth-box').forEach(box => box.classList.add('hidden'));
-            
-            // Показываем сообщение и перекидываем в игру
-            msgBox.style.color = '#2ecc71';
-            msgBox.innerText = `Welcome back, ${result.user.username}! Loading Kiri...`;
-            
-            // Здесь позже добавишь код для показа игрового поля (Battlefield)
+            document.getElementById('user-greeting').innerText = `Привет, ${result.user.username}!`;
+            document.getElementById('user-mmr').innerText = result.user.mmr || 1000;
+            showBox('main-menu');
         }
     } catch (e) { 
-        console.log("Анонимный вход. Ждем логина."); 
+        console.log("An anonymous user. Waiting for login..."); 
     }
 };
 
@@ -64,7 +57,7 @@ async function apiCall(endpoint, data, formId) {
     try {
         // Блокируем кнопку от мульти-кликов
         btn.disabled = true;
-        btn.innerText = 'Загрузка...'; 
+        btn.innerText = 'Loading...'; 
         msgBox.innerText = '';
 
         const response = await fetch(endpoint, {
@@ -81,12 +74,12 @@ async function apiCall(endpoint, data, formId) {
             return { success: true, data: result };
         } else {
             msgBox.style.color = '#e74c3c';
-            msgBox.innerText = result.error || 'Ошибка';
+            msgBox.innerText = result.error || 'Error';
             return { success: false };
         }
     } catch (err) {
         msgBox.style.color = '#e74c3c';
-        msgBox.innerText = 'Ошибка сервера Kiri';
+        msgBox.innerText = 'Server error in Kiri';
         btn.disabled = false;
         btn.innerText = originalBtnText;
         return { success: false };
@@ -95,7 +88,7 @@ async function apiCall(endpoint, data, formId) {
     }
 }
 
-// --- ОБРАБОТЧИКИ (теперь передаем 'ID-формы') ---
+// --- 4. ОБРАБОТЧИКИ ФОРМ АВТОРИЗАЦИИ ---
 
 document.getElementById('register-form').onsubmit = async (e) => {
     e.preventDefault();
@@ -104,7 +97,7 @@ document.getElementById('register-form').onsubmit = async (e) => {
         username: document.getElementById('reg-username').value,
         email: email,
         password: document.getElementById('reg-password').value
-    }, 'register-form'); // Передаем ID
+    }, 'register-form');
     
     if (res.success) {
         document.getElementById('verify-email').value = email;
@@ -119,9 +112,11 @@ document.getElementById('login-form').onsubmit = async (e) => {
         password: document.getElementById('login-password').value
     }, 'login-form');
     if (res.success) {
-        msgBox.innerText = "Вход выполнен! Загружаем Kiri...";
-        // Здесь переход в игру
-    }
+        msgBox.innerText = "Login successful! Loading Kiri...";
+        document.getElementById('user-greeting').innerText = 'Hello,' + res.data.user.username + '!';
+        document.getElementById('user-mmr').innerText = res.data.user.mmr;
+        showBox('main-menu');
+    }   
 };
 
 document.getElementById('forgot-form').onsubmit = async (e) => {
@@ -152,3 +147,17 @@ document.getElementById('verify-form').onsubmit = async (e) => {
     }, 'verify-form');
     if (res.success) setTimeout(() => showBox('login-box'), 1500);
 };
+
+const logoutBtn = document.getElementById('btn-logout');
+if (logoutBtn) {
+    logoutBtn.onclick = async () => {
+        try {
+            await fetch('/api/logout', { method: 'POST' });
+            showBox('login-box');
+            msgBox.style.color = '#2ecc71';
+            msgBox.innerText = 'You have successfully logged out of your account.';
+        } catch (err) {
+            console.error("Error occurred while logging out:", err);
+        }
+    };
+}
