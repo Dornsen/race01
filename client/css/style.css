@@ -7,7 +7,9 @@ button {
 button:hover {
     background: #b11b1f;
 }
-.hidden { display: none; }
+.hidden { 
+    display: none !important; 
+}
 
 .menu-header {
     text-align: center;
@@ -36,3 +38,129 @@ button:hover {
     background: #7f8c8d;
     margin-top: 20px;
 }
+
+/* --- КАРКАС ЛОББИ --- */
+.lobby-container {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: #1a1a1a; /* Темный фон для атмосферы */
+    color: white;
+}
+
+/* ВЕРХНЯЯ ПАНЕЛЬ */
+.lobby-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 15px 30px;
+    background: #2c3e50;
+    border-bottom: 3px solid #34495e;
+}
+
+/* Оранжевая зона (Профиль) */
+.lobby-profile {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+.avatar-placeholder {
+    width: 60px;
+    height: 60px;
+    background: #e67e22; /* Оранжевый, как на рисунке */
+    border-radius: 10px;
+    border: 2px solid white;
+}
+.username { font-size: 1.2rem; font-weight: bold; display: block; }
+.mmr-badge { color: #f1c40f; font-size: 0.9rem; }
+
+/* Серая зона (Навигация) */
+.lobby-nav {
+    display: flex;
+    gap: 20px;
+    margin-top: 10px;
+}
+.nav-btn {
+    background: #7f8c8d; /* Серый */
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    border-bottom: 3px solid transparent;
+}
+.nav-btn:hover { border-bottom: 3px solid white; }
+
+/* Фиолетовая зона (Выход) */
+.logout-btn {
+    background: #8e44ad; /* Фиолетовый */
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+}
+
+/* ОСНОВНАЯ ЗОНА */
+.lobby-main {
+    display: flex;
+    flex: 1;
+    position: relative; /* Чтобы кнопка ИГРАТЬ позиционировалась абсолютно */
+}
+
+/* Зеленая зона (Друзья) */
+.friendlist-sidebar {
+    width: 250px;
+    background: #27ae60; /* Зеленый фон для наглядности (можно потом затемнить) */
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    border-right: 5px solid #2ecc71;
+}
+.friendlist-header { font-weight: bold; margin-bottom: 15px; text-transform: uppercase;}
+.add-friend-box { display: flex; gap: 5px; margin-bottom: 20px; }
+.add-friend-box input { flex: 1; padding: 5px; }
+.add-friend-box button { background: #1a1a1a; color: white; border: none; padding: 5px 10px; cursor: pointer;}
+.friend-list { list-style: none; padding: 0; }
+.empty-friends { opacity: 0.7; font-size: 0.9rem; }
+
+/* Красная зона (ИГРАТЬ) */
+.play-section {
+    position: absolute;
+    bottom: 40px;
+    right: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+}
+.play-modes {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    background: rgba(0,0,0,0.8);
+    padding: 10px;
+    border-radius: 5px;
+}
+.mode-btn {
+    background: transparent;
+    color: white;
+    border: 1px solid #ccc;
+    padding: 10px;
+    cursor: pointer;
+    text-align: right;
+}
+.mode-btn:hover { background: #555; }
+.play-btn-huge {
+    background: #e74c3c; /* Красный */
+    color: white;
+    font-size: 2rem;
+    font-weight: bold;
+    padding: 20px 50px;
+    border: 3px solid #c0392b;
+    border-radius: 5px;
+    cursor: pointer;
+    text-transform: uppercase;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+}
+.play-btn-huge:hover { transform: scale(1.05); }

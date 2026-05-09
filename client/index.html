@@ -61,19 +61,49 @@
         </div>
         
         <div id="message" class="message"></div>
-
-        <div id="main-menu" class="auth-box hidden">
-            <header class="menu-header">
-                <h2 id="user-greeting">Добро пожаловать!</h2>
-                <p>Ваш MMR: <span id="user-mmr">1000</span></p>
-            </header>
+    </div>
+    <div id="main-menu" class="lobby-container hidden">
+        
+        <header class="lobby-header">
             
-            <div class="menu-buttons">
-                <button id="btn-play" class="btn-primary">В бой! (Поиск противника)</button>
-                <button id="btn-collection" class="btn-secondary">Моя колода</button>
-                <button id="btn-logout" class="btn-danger">Выйти из аккаунта</button>
+            <div class="lobby-profile">
+                <div class="avatar-placeholder"></div>
+                <div class="user-info">
+                    <span id="user-greeting" class="username">Игрок</span>
+                    <span class="mmr-badge">MMR: <span id="user-mmr">1000</span></span>
+                </div>
             </div>
-        </div>
+
+            <nav class="lobby-nav">
+                <button id="btn-deck" class="nav-btn">Моя колода</button>
+                <button id="btn-history" class="nav-btn">История матчей</button>
+            </nav>
+
+            <button id="btn-logout" class="logout-btn">Выйти</button>
+        </header>
+
+        <main class="lobby-main">
+            
+            <aside class="friendlist-sidebar">
+                <div class="friendlist-header">Друзья</div>
+                <div class="add-friend-box">
+                    <input type="text" id="add-friend-input" placeholder="Ник друга...">
+                    <button id="btn-add-friend">+</button>
+                </div>
+                <ul id="friend-list" class="friend-list">
+                    <li class="empty-friends">Нет друзей онлайн</li>
+                    </ul>
+            </aside>
+
+            <div class="play-section">
+                <div id="play-modes" class="play-modes hidden">
+                    <button class="mode-btn ranked">Рейтинговая игра</button>
+                    <button class="mode-btn casual">Обычный матч</button>
+                </div>
+                <button id="btn-play-main" class="play-btn-huge">ИГРАТЬ</button>
+            </div>
+
+        </main>
     </div>
     <script src="js/auth.js"></script>
 </body>

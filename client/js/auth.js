@@ -1,20 +1,6 @@
-// Переключение видимости окон
-function showBox(boxId) {
-    document.querySelectorAll('.auth-box').forEach(box => box.classList.add('hidden'));
-    document.getElementById(boxId).classList.remove('hidden');
-    document.getElementById('message').innerText = '';
-}
-
-// Навигация
-document.getElementById('show-register').onclick = () => showBox('register-box');
-document.getElementById('show-login').onclick = () => showBox('login-box');
-document.getElementById('show-forgot').onclick = () => showBox('forgot-box');
-document.querySelectorAll('.back-to-login-link').forEach(link => {
-    link.onclick = () => showBox('login-box');
-});
-
 const msgBox = document.getElementById('message');
 
+// --- 1. ПРОВЕРКА СЕССИИ ПРИ ЗАГРУЗКЕ ---
 window.onload = async () => {
     try {
         const response = await fetch('/api/me');
@@ -26,19 +12,34 @@ window.onload = async () => {
             showBox('main-menu');
         }
     } catch (e) { 
-        console.log("An anonymous user. Waiting for login..."); 
+        console.log("Анонимный вход."); 
     }
 };
 
-// Переключение окон
+// --- 2. ФУНКЦИЯ ПЕРЕКЛЮЧЕНИЯ ОКОН (С АВТО-ОЧИСТКОЙ) ---
 function showBox(boxId) {
+    // 1. Скрываем все окна
     document.querySelectorAll('.auth-box').forEach(box => box.classList.add('hidden'));
+    
+    // 2. ВАЖНО: Сбрасываем поля и размораживаем кнопки во всех формах!
+    document.querySelectorAll('form').forEach(form => {
+        form.reset(); // Очищает введенные логины/пароли
+        const btn = form.querySelector('button[type="submit"]');
+        if (btn) {
+            btn.disabled = false; // Возвращаем кнопку к жизни
+            if (btn.hasAttribute('data-default')) {
+                btn.innerText = btn.getAttribute('data-default'); // Возвращаем старый текст
+            }
+        }
+    });
+
+    // 3. Показываем нужное окно
     const target = document.getElementById(boxId);
     if (target) target.classList.remove('hidden');
     msgBox.innerText = '';
 }
 
-// Навигация (убедись, что ID в HTML совпадают!)
+// Навигация
 document.getElementById('show-register').onclick = () => showBox('register-box');
 document.getElementById('show-login').onclick = () => showBox('login-box');
 document.getElementById('show-forgot').onclick = () => showBox('forgot-box');
@@ -46,18 +47,22 @@ document.querySelectorAll('.back-to-login-link').forEach(link => {
     link.onclick = (e) => { e.preventDefault(); showBox('login-box'); };
 });
 
-// ИСПРАВЛЕННАЯ ФУНКЦИЯ: добавили formId в аргументы
+// --- 3. ПУЛЕНЕПРОБИВАЕМЫЙ ЗАПРОС К СЕРВЕРУ ---
 async function apiCall(endpoint, data, formId) {
     const form = document.getElementById(formId);
     if (!form) return { success: false };
 
     const btn = form.querySelector('button[type="submit"]');
-    const originalBtnText = btn.innerText;
+    
+    // Сохраняем оригинальный текст кнопки один раз
+    if (!btn.hasAttribute('data-default')) {
+        btn.setAttribute('data-default', btn.innerText);
+    }
+    const originalBtnText = btn.getAttribute('data-default');
 
     try {
-        // Блокируем кнопку от мульти-кликов
         btn.disabled = true;
-        btn.innerText = 'Loading...'; 
+        btn.innerText = 'Загрузка...'; 
         msgBox.innerText = '';
 
         const response = await fetch(endpoint, {
@@ -66,30 +71,38 @@ async function apiCall(endpoint, data, formId) {
             body: JSON.stringify(data)
         });
         
-        const result = await response.json();
+        // Читаем ответ как текст, чтобы не сломаться, если сервер упал
+        const text = await response.text();
+        let result;
+        try {
+            result = JSON.parse(text);
+        } catch (e) {
+            throw new Error('Сервер вернул неверный формат (не JSON)');
+        }
         
         if (response.ok) {
             msgBox.style.color = '#2ecc71';
             msgBox.innerText = result.message;
-            return { success: true, data: result };
+            return { success: true, data: result }; 
+            // Кнопка остается отключенной, пока showBox её не разморозит
         } else {
             msgBox.style.color = '#e74c3c';
-            msgBox.innerText = result.error || 'Error';
+            msgBox.innerText = result.error || 'Ошибка';
+            btn.disabled = false;
+            btn.innerText = originalBtnText;
             return { success: false };
         }
     } catch (err) {
+        console.error(err);
         msgBox.style.color = '#e74c3c';
-        msgBox.innerText = 'Server error in Kiri';
+        msgBox.innerText = 'Ошибка соединения с сервером';
         btn.disabled = false;
         btn.innerText = originalBtnText;
         return { success: false };
-    } finally {
-        
     }
 }
 
-// --- 4. ОБРАБОТЧИКИ ФОРМ АВТОРИЗАЦИИ ---
-
+// --- 4. ОБРАБОТЧИКИ ---
 document.getElementById('register-form').onsubmit = async (e) => {
     e.preventDefault();
     const email = document.getElementById('reg-email').value;
@@ -97,7 +110,7 @@ document.getElementById('register-form').onsubmit = async (e) => {
         username: document.getElementById('reg-username').value,
         email: email,
         password: document.getElementById('reg-password').value
-    }, 'register-form');
+    }, 'register-form'); 
     
     if (res.success) {
         document.getElementById('verify-email').value = email;
@@ -111,12 +124,12 @@ document.getElementById('login-form').onsubmit = async (e) => {
         username: document.getElementById('login-username').value,
         password: document.getElementById('login-password').value
     }, 'login-form');
+    
     if (res.success) {
-        msgBox.innerText = "Login successful! Loading Kiri...";
-        document.getElementById('user-greeting').innerText = 'Hello,' + res.data.user.username + '!';
-        document.getElementById('user-mmr').innerText = res.data.user.mmr;
+        document.getElementById('user-greeting').innerText = `Привет, ${res.data.user.username}!`;
+        document.getElementById('user-mmr').innerText = res.data.user.mmr || 1000;
         showBox('main-menu');
-    }   
+    }
 };
 
 document.getElementById('forgot-form').onsubmit = async (e) => {
@@ -148,6 +161,7 @@ document.getElementById('verify-form').onsubmit = async (e) => {
     if (res.success) setTimeout(() => showBox('login-box'), 1500);
 };
 
+// --- 5. ВЫХОД (LOGOUT) ---
 const logoutBtn = document.getElementById('btn-logout');
 if (logoutBtn) {
     logoutBtn.onclick = async () => {
@@ -155,9 +169,20 @@ if (logoutBtn) {
             await fetch('/api/logout', { method: 'POST' });
             showBox('login-box');
             msgBox.style.color = '#2ecc71';
-            msgBox.innerText = 'You have successfully logged out of your account.';
+            msgBox.innerText = 'Вы успешно вышли из аккаунта.';
         } catch (err) {
-            console.error("Error occurred while logging out:", err);
+            console.error("Ошибка при выходе:", err);
         }
+    };
+}
+
+// --- ЛОГИКА ГЛАВНОГО МЕНЮ ---
+const playBtnMain = document.getElementById('btn-play-main');
+const playModes = document.getElementById('play-modes');
+
+if (playBtnMain && playModes) {
+    playBtnMain.onclick = () => {
+        // Переключаем видимость меню режимов при клике на ИГРАТЬ
+        playModes.classList.toggle('hidden');
     };
 }
