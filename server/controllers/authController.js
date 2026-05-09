@@ -192,3 +192,34 @@ exports.logout = (req, res) => {
         return res.json({ message: 'Exit successful!' });
     });
 };
+exports.checkAuth = async (req, res) => {
+    if (req.session.userId) {
+        try {
+            // Достаем свежие данные из базы, включая аватар и MMR
+            const [users] = await db.query(
+                'SELECT username, avatar_url, match_making_rating FROM users WHERE id = ?', 
+                [req.session.userId]
+            );
+            
+            if (users.length > 0) {
+                const user = users[0];
+                res.json({ 
+                    isLoggedIn: true, 
+                    user: { 
+                        id: req.session.userId, 
+                        username: user.username,
+                        avatar: user.avatar_url, // Теперь аватар передается!
+                        mmr: user.match_making_rating
+                    } 
+                });
+            } else {
+                res.json({ isLoggedIn: false });
+            }
+        } catch (e) {
+            console.error(e);
+            res.status(500).json({ isLoggedIn: false });
+        }
+    } else {
+        res.json({ isLoggedIn: false });
+    }
+};

@@ -297,3 +297,56 @@ button:active {
     transform: translateY(2px);
     box-shadow: inset 0 4px 8px rgba(0,0,0,0.4);
 }
+
+/* Модальное окно */
+.modal {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+
+.avatar-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.avatar-item {
+    width: 80px;
+    height: 80px;
+    border-radius: 10px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.avatar-item:hover {
+    border-color: #633D3D;
+    transform: scale(1.1);
+}
+
+/* Сделаем аватарку в лобби кликабельной */
+.avatar-placeholder {
+    width: 56px;
+    height: 56px;
+    background: #1A1C20;
+    border-radius: 12px;
+    border: 2px solid #633D3D;
+    box-shadow: 0 0 15px rgba(99, 61, 61, 0.2);
+    
+    /* ДОБАВЬ ЭТИ СТРОЧКИ: */
+    background-size: cover;
+    background-position: center;
+    cursor: pointer;
+    transition: filter 0.3s;
+}
+
+.avatar-placeholder:hover {
+    filter: brightness(1.2);
+}
