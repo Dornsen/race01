@@ -3,9 +3,9 @@ const crypto = require('crypto');
 const db = require('../config/database');
 const transporter = require('../config/mailer');
 
-// --- РЕГИСТРАЦИЯ ---
+// --- РЕГИСТРАЦИЯ (с выбором аватара) ---
 exports.register = async (req, res) => {
-    const { username, email, password } = req.body;
+    const { username, email, password, avatar_url } = req.body; // Принимаем avatar_url 
 
     if (!username || !email || !password) {
         return res.status(400).json({ error: 'All fields are required' });
@@ -14,14 +14,15 @@ exports.register = async (req, res) => {
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
         const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+        
+        // Используем выбранный аватар или дефолтный [cite: 107, 110]
+        const finalAvatar = avatar_url || 'avatar1.png';
 
-        // Сохраняем юзера (по умолчанию is_verified = FALSE)
         await db.query(
-            'INSERT INTO users (username, email, password, verification_code) VALUES (?, ?, ?, ?)',
-            [username, email, hashedPassword, verificationCode]
+            'INSERT INTO users (username, email, password, verification_code, avatar_url) VALUES (?, ?, ?, ?, ?)',
+            [username, email, hashedPassword, verificationCode, finalAvatar]
         );
 
-        // Отправляем код на почту
         const mailOptions = {
             from: process.env.EMAIL_USER,
             to: email,
@@ -57,13 +58,11 @@ exports.verifyEmail = async (req, res) => {
 
         const userId = users[0].id;
 
-        // Помечаем как подтвержденного
         await db.query(
             'UPDATE users SET is_verified = TRUE, verification_code = NULL WHERE id = ?',
             [userId]
         );
 
-        // ВЫДАЕМ СТАРТОВЫЕ КАРТЫ (is_basic = TRUE из твоего init.sql)
         const [basicCards] = await db.query('SELECT id FROM cards WHERE is_basic = TRUE');
         if (basicCards.length > 0) {
             const inventoryData = basicCards.map(card => [userId, card.id]);
@@ -90,7 +89,6 @@ exports.login = async (req, res) => {
 
         const user = users[0];
 
-        // Проверяем, подтвердил ли он почту
         if (!user.is_verified) {
             return res.status(403).json({ error: 'Please verify your email first' });
         }
@@ -100,7 +98,6 @@ exports.login = async (req, res) => {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
-        // Обновляем статус на online (запятая на месте!)
         await db.query('UPDATE users SET status = "online" WHERE id = ?', [user.id]);
 
         req.session.userId = user.id;
@@ -121,14 +118,54 @@ exports.login = async (req, res) => {
     }
 };
 
-exports.checkAuth = (req, res) => {
+// --- ПРОВЕРКА АВТОРИЗАЦИИ (возвращает данные из БД) ---
+exports.checkAuth = async (req, res) => {
     if (req.session.userId) {
-        res.json({ 
-            isLoggedIn: true, 
-            user: { id: req.session.userId, username: req.session.username } 
-        });
+        try {
+            // Достаем актуальные данные (аватарку и MMR) из базы 
+            const [users] = await db.query(
+                'SELECT username, avatar_url, match_making_rating FROM users WHERE id = ?', 
+                [req.session.userId]
+            );
+            
+            if (users.length > 0) {
+                const user = users[0];
+                res.json({ 
+                    isLoggedIn: true, 
+                    user: { 
+                        id: req.session.userId, 
+                        username: user.username,
+                        avatar: user.avatar_url, // Возвращаем путь к аватару [cite: 63, 69, 98]
+                        mmr: user.match_making_rating
+                    } 
+                });
+            } else {
+                res.json({ isLoggedIn: false });
+            }
+        } catch (error) {
+            res.status(500).json({ error: 'Auth check error' });
+        }
     } else {
         res.json({ isLoggedIn: false });
+    }
+};
+
+// --- СМЕНА АВАТАРА (новый метод) ---
+exports.updateAvatar = async (req, res) => {
+    const { avatar_url } = req.body;
+    const userId = req.session.userId;
+
+    if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    try {
+        // Сохраняем выбор аватара в базе данных 
+        await db.query('UPDATE users SET avatar_url = ? WHERE id = ?', [avatar_url, userId]);
+        res.json({ message: 'Avatar updated successfully!' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error updating avatar' });
     }
 };
 
@@ -138,7 +175,7 @@ exports.forgotPassword = async (req, res) => {
 
     try {
         const token = crypto.randomBytes(20).toString('hex');
-        const expires = new Date(Date.now() + 3600000); // 1 час
+        const expires = new Date(Date.now() + 3600000); 
 
         const [result] = await db.query(
             'UPDATE users SET reset_token = ?, reset_token_expires = ? WHERE email = ?',
@@ -183,6 +220,7 @@ exports.resetPassword = async (req, res) => {
     }
 };
 
+// --- ВЫХОД ---
 exports.logout = (req, res) => {
     req.session.destroy((err) => {
         if (err) {
@@ -191,35 +229,4 @@ exports.logout = (req, res) => {
         res.clearCookie('connect.sid');
         return res.json({ message: 'Exit successful!' });
     });
-};
-exports.checkAuth = async (req, res) => {
-    if (req.session.userId) {
-        try {
-            // Достаем свежие данные из базы, включая аватар и MMR
-            const [users] = await db.query(
-                'SELECT username, avatar_url, match_making_rating FROM users WHERE id = ?', 
-                [req.session.userId]
-            );
-            
-            if (users.length > 0) {
-                const user = users[0];
-                res.json({ 
-                    isLoggedIn: true, 
-                    user: { 
-                        id: req.session.userId, 
-                        username: user.username,
-                        avatar: user.avatar_url, // Теперь аватар передается!
-                        mmr: user.match_making_rating
-                    } 
-                });
-            } else {
-                res.json({ isLoggedIn: false });
-            }
-        } catch (e) {
-            console.error(e);
-            res.status(500).json({ isLoggedIn: false });
-        }
-    } else {
-        res.json({ isLoggedIn: false });
-    }
 };

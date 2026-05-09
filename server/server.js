@@ -24,6 +24,7 @@ const authController = require('./controllers/authController');
 app.post('/api/register', authController.register);
 app.post('/api/verify', authController.verifyEmail);
 app.post('/api/login', authController.login);
+app.post('/api/update-avatar', authController.updateAvatar);
 app.post('/api/forgot-password', authController.forgotPassword);
 app.post('/api/reset-password', authController.resetPassword);
 app.post('/api/logout', authController.logout);

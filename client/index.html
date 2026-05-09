@@ -27,6 +27,16 @@
                 <input type="text" id="reg-username" placeholder="Username" required>
                 <input type="email" id="reg-email" placeholder="Email" required>
                 <input type="password" id="reg-password" placeholder="Password" required>
+                
+                <p>Choose your Avatar:</p>
+                <div class="avatar-grid" id="reg-avatar-grid">
+                    <img src="assets/avatar1.png" class="avatar-item selected" data-avatar="avatar1.png">
+                    <img src="assets/avatar2.png" class="avatar-item" data-avatar="avatar2.png">
+                    <img src="assets/avatar3.png" class="avatar-item" data-avatar="avatar3.png">
+                    <img src="assets/avatar4.png" class="avatar-item" data-avatar="avatar4.png">
+                </div>
+                <input type="hidden" id="reg-avatar-url" value="avatar1.png">
+                
                 <button type="submit">Sign Up</button>
             </form>
             <p>Already have an account? <a href="#" id="show-login">Back to Login</a></p>
@@ -64,12 +74,11 @@
         
         <div id="message" class="message"></div>
     </div>
+
     <div id="main-menu" class="lobby-container hidden">
-        
         <header class="lobby-header">
-            
             <div class="lobby-profile">
-                <div class="avatar-placeholder"></div>
+                <div class="avatar-placeholder" style="cursor: pointer;"></div>
                 <div class="user-info">
                     <span id="user-greeting" class="username">Player</span>
                     <span class="mmr-badge">MMR:<span id="user-mmr">1000</span></span>
@@ -85,7 +94,6 @@
         </header>
 
         <main class="lobby-main">
-            
             <aside class="friendlist-sidebar">
                 <div class="friendlist-header">Friends</div>
                 <div class="add-friend-box">
@@ -94,7 +102,7 @@
                 </div>
                 <ul id="friend-list" class="friend-list">
                     <li class="empty-friends">No friends online</li>
-                    </ul>
+                </ul>
             </aside>
 
             <div class="play-section">
@@ -104,22 +112,22 @@
                 </div>
                 <button id="btn-play-main" class="play-btn-huge">PLAY</button>
             </div>
-
         </main>
 
         <div id="avatar-modal" class="modal hidden">
-    <div class="modal-content auth-box">
-        <h3>Select Your Avatar</h3>
-        <div class="avatar-grid">
-            <img src=".../assets/avatar1.png" class="avatar-item" data-avatar="avatar1.png">
-            <img src=".../assets/avatar2.png" class="avatar-item" data-avatar="avatar2.png">
-            <img src=".../assets/avatar3.png" class="avatar-item" data-avatar="avatar3.png">
-            <img src=".../assets/avatar4.png" class="avatar-item" data-avatar="avatar4.png">
+            <div class="modal-content">
+                <h3>Select Avatar</h3>
+                <div class="avatar-grid" id="lobby-avatar-grid">
+                    <img src="assets/avatar1.png" class="avatar-item" data-avatar="avatar1.png">
+                    <img src="assets/avatar2.png" class="avatar-item" data-avatar="avatar2.png">
+                    <img src="assets/avatar3.png" class="avatar-item" data-avatar="avatar3.png">
+                    <img src="assets/avatar4.png" class="avatar-item" data-avatar="avatar4.png">
+                </div>
+                <button id="close-modal">Close</button>
+            </div>
         </div>
-        <button id="close-avatar-modal" class="nav-btn">Cancel</button>
     </div>
-</div>
-    </div>
+
     <script src="js/auth.js"></script>
 </body>
 </html>
