@@ -103,8 +103,11 @@ exports.login = async (req, res) => {
         // Обновляем статус на online (запятая на месте!)
         await db.query('UPDATE users SET status = "online" WHERE id = ?', [user.id]);
 
+        req.session.userId = user.id;
+        req.session.username = user.username;
+
         res.json({
-            message: 'Welcome back!',
+            message: 'Login successful! Welcome to Kiri!',
             user: {
                 id: user.id,
                 username: user.username,
@@ -115,6 +118,17 @@ exports.login = async (req, res) => {
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Login error' });
+    }
+};
+
+exports.checkAuth = (req, res) => {
+    if (req.session.userId) {
+        res.json({ 
+            isLoggedIn: true, 
+            user: { id: req.session.userId, username: req.session.username } 
+        });
+    } else {
+        res.json({ isLoggedIn: false });
     }
 };
 
