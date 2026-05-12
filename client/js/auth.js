@@ -56,6 +56,7 @@ window.onload = async () => {
         if (result.isLoggedIn) {
             updatePlayerUI(result.user);
             showBox('main-menu');
+            loadFriends();
         }
     } catch (e) { 
         console.log("Анонимный вход."); 
@@ -63,30 +64,45 @@ window.onload = async () => {
 };
 
 // --- 3. ФУНКЦИЯ ПЕРЕКЛЮЧЕНИЯ ОКОН (С ФИКСОМ НАЛОЖЕНИЯ) ---
+let friendPollInterval = null; // Переменная для хранения таймера
+
 function showBox(boxId) {
-    // Скрываем все окна авторизации
     document.querySelectorAll('.auth-box').forEach(box => box.classList.add('hidden'));
     
-    // ВАЖНО: Скрываем главное меню, если переходим к окнам входа/регистрации
     const mainMenu = document.getElementById('main-menu');
-    if (mainMenu) mainMenu.classList.add('hidden');
+    if (mainMenu) {
+        if (boxId === 'main-menu') {
+            mainMenu.classList.remove('hidden');
+            
+            // Запускаем автообновление друзей каждые 5 секунд (5000 мс)
+            if (!friendPollInterval) {
+                friendPollInterval = setInterval(loadFriends, 5000);
+            }
+        } else {
+            mainMenu.classList.add('hidden');
+            
+            // Если вышли из лобби — убиваем таймер, чтобы не грузить сервер
+            if (friendPollInterval) {
+                clearInterval(friendPollInterval);
+                friendPollInterval = null;
+            }
+        }
+    }
 
-    // Сбрасываем формы и размораживаем кнопки
     document.querySelectorAll('form').forEach(form => {
         form.reset();
         const btn = form.querySelector('button[type="submit"]');
         if (btn) {
             btn.disabled = false;
-            if (btn.hasAttribute('data-default')) {
-                btn.innerText = btn.getAttribute('data-default');
-            }
+            if (btn.hasAttribute('data-default')) btn.innerText = btn.getAttribute('data-default');
         }
     });
 
-    // Показываем нужное окно (либо лобби, либо окно авторизации)
     const target = document.getElementById(boxId);
     if (target) target.classList.remove('hidden');
-    msgBox.innerText = '';
+    
+    const msgBox = document.getElementById('message');
+    if (msgBox) msgBox.innerText = '';
 }
 
 // Навигация
@@ -286,4 +302,170 @@ const playBtnMain = document.getElementById('btn-play-main');
 const playModes = document.getElementById('play-modes');
 if (playBtnMain && playModes) {
     playBtnMain.onclick = () => playModes.classList.toggle('hidden');
+}
+
+// --- 6. ФРЕНДЛИСТ ---
+
+// Функция загрузки и отрисовки списка друзей
+async function loadFriends() {
+    try {
+        const [resF, resP] = await Promise.all([
+            fetch('/api/friends'),
+            fetch('/api/friends/pending')
+        ]);
+        
+        const dataFriends = await resF.json();
+        const dataPending = await resP.json();
+        const list = document.getElementById('friend-list');
+        list.innerHTML = '';
+
+        // 1. ОТРИСОВКА ЗАЯВОК (Pending)
+        if (dataPending.requests && dataPending.requests.length > 0) {
+            const head = document.createElement('li');
+            head.innerHTML = `<small style="color: #f1c40f">Новые заявки:</small>`;
+            list.appendChild(head);
+
+            dataPending.requests.forEach(req => {
+                const li = document.createElement('li');
+                li.className = 'friend-item pending';
+                li.style = "display:flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.1)";
+                li.innerHTML = `
+                    <span>${req.username}</span>
+                    <div>
+                        <button onclick="handleFriend(${req.friendship_id}, 'accept')" style="background:#27ae60; color:white; border:none; padding:2px 6px; cursor:pointer; margin-right:4px">✓</button>
+                        <button onclick="handleFriend(${req.friendship_id}, 'decline')" style="background:#e74c3c; color:white; border:none; padding:2px 7px; cursor:pointer">✕</button>
+                    </div>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        // 2. ОТРИСОВКА ДРУЗЕЙ (Accepted)
+       // 2. ОТРИСОВКА ДРУЗЕЙ (Accepted) с аватарами и Правым кликом
+        if (dataFriends.friends && dataFriends.friends.length > 0) {
+            const head = document.createElement('li');
+            head.innerHTML = `<small style="opacity:0.6; padding-left: 5px;">Друзья (${dataFriends.friends.length}/50):</small>`;
+            list.appendChild(head);
+
+            dataFriends.friends.forEach(f => {
+                const li = document.createElement('li');
+                li.className = 'friend-item';
+                
+                // Дефолтный аватар, если у юзера его нет
+                const avatarImg = f.avatar_url ? f.avatar_url : 'avatar1.png'; 
+                
+                li.innerHTML = `
+                    <div class="friend-info">
+                        <img src="assets/${avatarImg}" class="friend-avatar" alt="ava">
+                        <span>${f.username}</span>
+                    </div>
+                    <span style="color: ${f.status === 'online' ? '#2ecc71' : '#7f8c8d'}; font-size: 0.8rem;">●</span>
+                `;
+                
+                // ОБРАБОТЧИК ПРАВОЙ КНОПКИ МЫШИ (ПКМ)
+                li.oncontextmenu = (e) => {
+                    e.preventDefault(); // Отключаем стандартное меню браузера
+                    showFriendMenu(e.pageX, e.pageY, f.id, f.username);
+                };
+                
+                list.appendChild(li);
+            });
+        } else if (!dataPending.requests || dataPending.requests.length === 0) {
+            list.innerHTML = '<li class="empty-friends">Список пуст</li>';
+        }
+
+    } catch (e) { console.error("Ошибка френдлиста", e); }
+}
+
+// Универсальная функция для кнопок Принять/Отклонить
+window.handleFriend = async (id, action) => {
+    const res = await fetch('/api/friends/handle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ friendshipId: id, action: action })
+    });
+    const result = await res.json();
+    showNotification(result.message || result.error, res.ok ? 'success' : 'error');
+    if (res.ok) loadFriends(); // Обновляем список
+};
+
+// Кнопка добавления друга (+)
+const btnAddFriend = document.getElementById('btn-add-friend');
+if (btnAddFriend) {
+    btnAddFriend.onclick = async () => {
+        const input = document.getElementById('add-friend-input');
+        const username = input.value.trim();
+        if (!username) return;
+
+        try {
+            const res = await fetch('/api/friends/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ friendUsername: username })
+            });
+            const result = await res.json();
+            
+            // Используем твою готовую функцию showNotification!
+            showNotification(result.message || result.error, res.ok ? 'success' : 'error');
+            
+            if (res.ok) {
+                input.value = ''; // Очищаем поле
+                loadFriends();    // Сразу обновляем список на экране
+            }
+        } catch (e) {
+            showNotification('Ошибка соединения', 'error');
+        }
+    };
+}
+
+
+// --- 7. КОНТЕКСТНОЕ МЕНЮ ДРУЗЕЙ ---
+const ctxMenu = document.getElementById('friend-context-menu');
+let selectedTargetId = null;
+let selectedTargetName = null;
+
+function showFriendMenu(x, y, friendId, friendName) {
+    selectedTargetId = friendId;
+    selectedTargetName = friendName;
+    
+    ctxMenu.style.left = `${x}px`;
+    ctxMenu.style.top = `${y}px`;
+    ctxMenu.classList.remove('hidden');
+}
+
+// Скрываем меню при клике в любое другое место
+document.addEventListener('click', (e) => {
+    if (ctxMenu && !ctxMenu.classList.contains('hidden')) {
+        ctxMenu.classList.add('hidden');
+    }
+});
+
+// Кнопка "Предложить бой"
+const btnInvite = document.getElementById('ctx-invite');
+if (btnInvite) {
+    btnInvite.onclick = () => {
+        // Здесь позже будет вызов WebSockets или создание комнаты
+        showNotification(`Запрос на бой отправлен игроку ${selectedTargetName}!`);
+    };
+}
+
+// Кнопка "Удалить"
+const btnRemove = document.getElementById('ctx-remove');
+if (btnRemove) {
+    btnRemove.onclick = async () => {
+        if (!confirm(`Вы точно хотите удалить ${selectedTargetName} из друзей?`)) return;
+        
+        try {
+            const res = await fetch('/api/friends/remove', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ friendId: selectedTargetId })
+            });
+            const result = await res.json();
+            showNotification(result.message || result.error, res.ok ? 'success' : 'error');
+            if (res.ok) loadFriends(); // Обновляем список сразу
+        } catch (e) {
+            showNotification('Ошибка удаления', true);
+        }
+    };
 }
