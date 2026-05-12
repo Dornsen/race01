@@ -19,7 +19,7 @@ function updatePlayerUI(user) {
 
     const avatarPlaceholder = document.querySelector('.avatar-placeholder');
     if (avatarPlaceholder && user.avatar) {
-        avatarPlaceholder.style.backgroundImage = `url('assets/${user.avatar}')`;
+        avatarPlaceholder.style.backgroundImage = `url('assets/avatars/${user.avatar}')`;
         avatarPlaceholder.style.backgroundSize = 'cover';
         avatarPlaceholder.style.backgroundPosition = 'center';
     }
@@ -361,7 +361,7 @@ async function loadFriends() {
                 
                 li.innerHTML = `
                     <div class="friend-info">
-                        <img src="assets/${avatarImg}" class="friend-avatar" alt="ava">
+                        <img src="assets/avatars/${avatarImg}" class="friend-avatar" alt="ava">
                         <span>${f.username}</span>
                     </div>
                     <span style="color: ${f.status === 'online' ? '#2ecc71' : '#7f8c8d'}; font-size: 0.8rem;">●</span>
