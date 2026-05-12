@@ -222,11 +222,15 @@ exports.resetPassword = async (req, res) => {
 
 // --- ВЫХОД ---
 exports.logout = (req, res) => {
+    const userId = req.session.userId;
     req.session.destroy((err) => {
         if (err) {
             return res.status(500).json({ error: 'Ошибка при выходе' });
         }
         res.clearCookie('connect.sid');
+        if (userId) {
+            db.query('UPDATE users SET status = "offline" WHERE id = ?', [userId]);
+        }
         return res.json({ message: 'Exit successful!' });
     });
 };

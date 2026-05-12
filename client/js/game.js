@@ -1,9 +1,18 @@
 let cardDatabase = []; // Все карты в игре
 let myDeck = [];       // Карты, выбранные игроком
-const MAX_DECK_SIZE = 10;
+const MAX_DECK_SIZE = (window.GAME_CONFIG && window.GAME_CONFIG.deckSize) ? window.GAME_CONFIG.deckSize : 10;
 let hasLoadedCollection = false;
 let hasLoadedDeck = false;
 let activeCardModal = null;
+const GAME_CONFIG = window.GAME_CONFIG || {
+    players: 2,
+    health: 15,
+    handLimit: 5,
+    energyMax: 10,
+    energyPerRound: 6,
+    turnTimeSec: 30,
+    deckSize: 10
+};
 const collectionFilters = {
     ownedOnly: false,
     rarity: 'all',
@@ -11,6 +20,31 @@ const collectionFilters = {
     costMax: '',
     search: ''
 };
+
+const deckMaxEl = document.getElementById('deck-max');
+if (deckMaxEl) deckMaxEl.innerText = `${MAX_DECK_SIZE}`;
+
+let battleCardId = 1;
+const battleState = {
+    inBattle: false,
+    isOnline: false,
+    mode: 'practice',
+    turn: null,
+    timer: GAME_CONFIG.turnTimeSec,
+    timerId: null,
+    turnEndsAt: null,
+    selectedAttackerId: null,
+    player: { hp: 0, energy: 0, hand: [], deck: [], board: [] },
+    opponent: { hp: 0, energy: 0, hand: [], deck: [], board: [] },
+    opponentHandCount: 0
+};
+
+let socket = null;
+let socketUser = null;
+let queueMode = null;
+let queueTimerId = null;
+let queueStartAt = null;
+let pendingInvite = null;
 
 // --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ ОТРИСОВКИ КАРТ ---
 function getRarityColor(rarity) {
@@ -308,4 +342,700 @@ if (cardDetailModal) {
             activeCardModal = null;
         }
     };
+}
+
+function initSocket(user) {
+    if (!user || socket) return;
+    if (typeof io === 'undefined') return;
+
+    socketUser = user;
+    socket = io({ auth: { userId: user.id, username: user.username } });
+
+    socket.on('queue_status', (payload) => {
+        if (!payload) return;
+        if (payload.status === 'queued') {
+            queueMode = payload.mode;
+            showQueuePanel(queueMode);
+            showNotification(`Queued for ${payload.mode}.`);
+        } else if (payload.status === 'idle') {
+            queueMode = null;
+            hideQueuePanel();
+        } else if (payload.status === 'error') {
+            showNotification(payload.message || 'Queue error', true);
+            queueMode = null;
+            hideQueuePanel();
+        }
+    });
+
+    socket.on('match_start', (payload) => {
+        battleState.isOnline = true;
+        battleState.mode = payload.mode || 'casual';
+        battleState.inBattle = true;
+        hideQueuePanel();
+        hideInviteModal();
+        setBattleScreenVisible(true);
+        syncBattleAvatars();
+        const playerName = document.getElementById('player-name');
+        const opponentName = document.getElementById('opponent-name');
+        if (playerName) playerName.innerText = socketUser.username || 'Player';
+        if (opponentName) opponentName.innerText = payload.opponent || 'Opponent';
+        showCoinFlip('Flipping...');
+    });
+
+    socket.on('match_state', (state) => {
+        applyServerState(state);
+    });
+
+    socket.on('match_end', async (payload) => {
+        if (payload.result === 'draw') {
+            showNotification('Draw');
+        } else {
+            showNotification(payload.result === 'win' ? 'You win!' : 'You lose', payload.result !== 'win');
+        }
+        if (battleState.isOnline) exitBattle(true);
+        await refreshPlayerStats();
+    });
+
+    socket.on('friend_invite', (payload) => {
+        if (!payload) return;
+        pendingInvite = { fromUserId: payload.fromUserId, fromName: payload.fromName };
+        showInviteModal(payload.fromName);
+    });
+
+    socket.on('friend_invite_cancel', () => {
+        hideInviteModal();
+    });
+
+    socket.on('friend_invite_error', (payload) => {
+        showNotification(payload.message || 'Invite error', true);
+        hideInviteModal();
+    });
+
+    socket.on('disconnect', () => {
+        if (battleState.isOnline) {
+            showNotification('Connection lost', true);
+            exitBattle(true);
+        }
+        hideQueuePanel();
+        hideInviteModal();
+    });
+}
+
+function disconnectSocket() {
+    if (socket) {
+        socket.disconnect();
+        socket = null;
+    }
+    socketUser = null;
+}
+
+async function joinQueue(mode) {
+    if (!socket) {
+        showNotification('Connect first', true);
+        return;
+    }
+    await fetchMyDeck();
+    if (myDeck.length !== MAX_DECK_SIZE) {
+        showNotification(`Save a ${MAX_DECK_SIZE}-card deck first.`, true);
+        return;
+    }
+    socket.emit('queue_join', { mode });
+}
+
+function leaveQueue() {
+    if (socket) socket.emit('queue_leave');
+    hideQueuePanel();
+}
+
+function showInviteModal(name) {
+    const inviteModal = document.getElementById('friend-invite-modal');
+    const inviteText = document.getElementById('invite-text');
+    if (!inviteModal || !inviteText) return;
+    inviteText.innerText = `${name || 'Игрок'} приглашает вас в бой.`;
+    inviteModal.classList.remove('hidden');
+}
+
+function hideInviteModal() {
+    const inviteModal = document.getElementById('friend-invite-modal');
+    if (inviteModal) inviteModal.classList.add('hidden');
+    pendingInvite = null;
+}
+
+function sendFriendInvite(friendId, friendName) {
+    if (!socket) {
+        showNotification('Нет соединения', true);
+        return;
+    }
+    socket.emit('friend_invite', { targetUserId: friendId });
+    showNotification(`Запрос на бой отправлен игроку ${friendName || ''}`);
+}
+
+function showQueuePanel(mode) {
+    const panel = document.getElementById('queue-panel');
+    const modeEl = document.getElementById('queue-mode');
+    if (!panel || !modeEl) return;
+    const label = mode === 'ranked' ? 'Рейтинговый' : (mode === 'casual' ? 'Обычный' : '-');
+    modeEl.innerText = label;
+    panel.classList.remove('hidden');
+    queueStartAt = Date.now();
+    startQueueTimer();
+}
+
+function hideQueuePanel() {
+    const panel = document.getElementById('queue-panel');
+    if (panel) panel.classList.add('hidden');
+    stopQueueTimer();
+}
+
+function startQueueTimer() {
+    stopQueueTimer();
+    const timeEl = document.getElementById('queue-time');
+    if (!timeEl) return;
+    queueTimerId = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - queueStartAt) / 1000);
+        const mins = Math.floor(elapsed / 60);
+        const secs = `${elapsed % 60}`.padStart(2, '0');
+        timeEl.innerText = `${mins}:${secs}`;
+    }, 500);
+}
+
+function stopQueueTimer() {
+    if (queueTimerId) {
+        clearInterval(queueTimerId);
+        queueTimerId = null;
+    }
+    queueStartAt = null;
+    const timeEl = document.getElementById('queue-time');
+    if (timeEl) timeEl.innerText = '0:00';
+}
+
+function showCoinFlip(text) {
+    const coin = document.getElementById('coin-flip');
+    const coinText = document.getElementById('coin-text');
+    if (!coin || !coinText) return;
+    coinText.innerText = text || 'Flipping...';
+    coin.classList.remove('hidden');
+    setTimeout(() => {
+        coin.classList.add('hidden');
+    }, 1200);
+}
+
+function applyServerState(state) {
+    if (!state) return;
+    battleState.isOnline = true;
+    battleState.inBattle = true;
+    battleState.mode = state.mode || 'casual';
+    battleState.turn = state.turn === 'you' ? 'player' : 'opponent';
+    battleState.turnEndsAt = state.turnEndsAt;
+    battleState.timer = Math.max(0, Math.ceil((state.turnEndsAt - Date.now()) / 1000));
+    battleState.selectedAttackerId = null;
+    battleState.player.hp = state.you.hp;
+    battleState.player.energy = state.you.energy;
+    battleState.player.hand = state.you.hand || [];
+    battleState.player.board = state.you.board || [];
+    battleState.opponent.hp = state.opponent.hp;
+    battleState.opponent.energy = state.opponent.energy;
+    battleState.opponent.board = state.opponent.board || [];
+    battleState.opponent.handCount = state.opponent.handCount || 0;
+
+    const playerName = document.getElementById('player-name');
+    const opponentName = document.getElementById('opponent-name');
+    if (playerName) playerName.innerText = state.you.name || 'Player';
+    if (opponentName) opponentName.innerText = state.opponent.name || 'Opponent';
+
+    startTimer();
+    renderBattle();
+}
+
+async function refreshPlayerStats() {
+    try {
+        const res = await fetch('/api/me');
+        const data = await res.json();
+        if (data.isLoggedIn && typeof updatePlayerUI === 'function') {
+            updatePlayerUI(data.user);
+        }
+    } catch (e) {
+        console.error('Failed to refresh player stats', e);
+    }
+}
+
+window.initSocket = initSocket;
+window.disconnectSocket = disconnectSocket;
+window.leaveQueue = leaveQueue;
+window.sendFriendInvite = sendFriendInvite;
+
+const btnPractice = document.getElementById('btn-practice');
+if (btnPractice) {
+    btnPractice.onclick = async () => {
+        await startPracticeMatch();
+    };
+}
+
+const btnRanked = document.querySelector('.mode-btn.ranked');
+if (btnRanked) {
+    btnRanked.onclick = () => joinQueue('ranked');
+}
+
+const btnCasual = document.querySelector('.mode-btn.casual');
+if (btnCasual) {
+    btnCasual.onclick = () => joinQueue('casual');
+}
+
+const btnExitBattle = document.getElementById('btn-exit-battle');
+if (btnExitBattle) {
+    btnExitBattle.onclick = () => exitBattle();
+}
+
+const btnEndTurn = document.getElementById('btn-end-turn');
+if (btnEndTurn) {
+    btnEndTurn.onclick = () => {
+        if (battleState.inBattle && battleState.turn === 'player') endTurn();
+    };
+}
+
+const opponentAvatar = document.getElementById('opponent-avatar');
+if (opponentAvatar) {
+    opponentAvatar.onclick = () => attackAvatar();
+}
+
+const btnCancelQueue = document.getElementById('btn-cancel-queue');
+if (btnCancelQueue) {
+    btnCancelQueue.onclick = () => leaveQueue();
+}
+
+const btnInviteAccept = document.getElementById('btn-invite-accept');
+if (btnInviteAccept) {
+    btnInviteAccept.onclick = () => {
+        if (pendingInvite && socket) {
+            socket.emit('friend_invite_accept', { fromUserId: pendingInvite.fromUserId });
+        }
+        hideInviteModal();
+    };
+}
+
+const btnInviteDecline = document.getElementById('btn-invite-decline');
+if (btnInviteDecline) {
+    btnInviteDecline.onclick = () => {
+        if (pendingInvite && socket) {
+            socket.emit('friend_invite_decline', { fromUserId: pendingInvite.fromUserId });
+        }
+        hideInviteModal();
+    };
+}
+
+// --- 3.1 BATTLE LOGIC ---
+function shuffle(array) {
+    const arr = array.slice();
+    for (let i = arr.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+}
+
+function makeBattleCard(card) {
+    return {
+        ...card,
+        currentHp: card.defense,
+        summoningSick: false,
+        hasAttacked: false,
+        uid: battleCardId++
+    };
+}
+
+function drawUpToLimit(side) {
+    while (side.hand.length < GAME_CONFIG.handLimit && side.deck.length > 0) {
+        side.hand.push(side.deck.shift());
+    }
+}
+
+function setBattleScreenVisible(isVisible) {
+    const battle = document.getElementById('battle-screen');
+    const lobby = document.getElementById('main-menu');
+    const deck = document.getElementById('deck-builder');
+    if (!battle || !lobby) return;
+    if (isVisible) {
+        if (deck) deck.classList.add('hidden');
+        lobby.classList.add('hidden');
+        battle.classList.remove('hidden');
+    } else {
+        battle.classList.add('hidden');
+        lobby.classList.remove('hidden');
+    }
+}
+
+async function startPracticeMatch() {
+    leaveQueue();
+    if (!hasLoadedCollection) await fetchCardsFromDB();
+    await fetchMyDeck();
+
+    if (myDeck.length !== GAME_CONFIG.deckSize) {
+        showNotification(`Save a ${GAME_CONFIG.deckSize}-card deck first.`, true);
+        return;
+    }
+
+    battleState.inBattle = true;
+    battleState.isOnline = false;
+    battleState.mode = 'practice';
+    battleState.opponentHandCount = 0;
+    battleState.selectedAttackerId = null;
+    battleState.turnEndsAt = null;
+    battleState.player.hp = GAME_CONFIG.health;
+    battleState.opponent.hp = GAME_CONFIG.health;
+    battleState.player.energy = 0;
+    battleState.opponent.energy = 0;
+    battleState.player.board = [];
+    battleState.opponent.board = [];
+    battleState.player.hand = [];
+    battleState.opponent.hand = [];
+
+    const playerDeck = shuffle(myDeck).map(makeBattleCard);
+    const opponentDeckSource = shuffle(cardDatabase.length ? cardDatabase : myDeck);
+    const opponentDeck = opponentDeckSource.slice(0, GAME_CONFIG.deckSize).map(makeBattleCard);
+
+    battleState.player.deck = playerDeck;
+    battleState.opponent.deck = opponentDeck;
+
+    drawUpToLimit(battleState.player);
+    drawUpToLimit(battleState.opponent);
+
+    setBattleScreenVisible(true);
+    syncBattleAvatars();
+    await coinFlipStart();
+}
+
+function syncBattleAvatars() {
+    const playerAvatar = document.getElementById('player-avatar');
+    const opponentAvatar = document.getElementById('opponent-avatar');
+    const lobbyAvatar = document.querySelector('.avatar-placeholder');
+
+    if (playerAvatar && lobbyAvatar && lobbyAvatar.style.backgroundImage) {
+        playerAvatar.style.backgroundImage = lobbyAvatar.style.backgroundImage;
+    }
+
+    if (opponentAvatar) {
+        const fallback = 'assets/avatars/avatar2.png';
+        opponentAvatar.style.backgroundImage = `url('${fallback}')`;
+    }
+}
+
+function coinFlipStart() {
+    return new Promise((resolve) => {
+        const coin = document.getElementById('coin-flip');
+        const text = document.getElementById('coin-text');
+        if (!coin || !text) {
+            startTurn(Math.random() > 0.5 ? 'player' : 'opponent');
+            resolve();
+            return;
+        }
+
+        coin.classList.remove('hidden');
+        text.innerText = 'Flipping...';
+
+        setTimeout(() => {
+            const starter = Math.random() > 0.5 ? 'player' : 'opponent';
+            text.innerText = starter === 'player' ? 'You start!' : 'Opponent starts!';
+            setTimeout(() => {
+                coin.classList.add('hidden');
+                startTurn(starter);
+                resolve();
+            }, 800);
+        }, 900);
+    });
+}
+
+function startTurn(who) {
+    battleState.turn = who;
+    battleState.timer = GAME_CONFIG.turnTimeSec;
+    battleState.turnEndsAt = Date.now() + GAME_CONFIG.turnTimeSec * 1000;
+    battleState.selectedAttackerId = null;
+
+    const side = who === 'player' ? battleState.player : battleState.opponent;
+    side.energy = Math.min(GAME_CONFIG.energyMax, side.energy + GAME_CONFIG.energyPerRound);
+    side.board.forEach(card => {
+        card.hasAttacked = false;
+        card.summoningSick = false;
+    });
+    drawUpToLimit(side);
+
+    startTimer();
+    renderBattle();
+
+    if (who === 'opponent') {
+        setTimeout(runOpponentTurn, 400);
+    }
+}
+
+function startTimer() {
+    if (battleState.timerId) clearInterval(battleState.timerId);
+    if (battleState.isOnline) {
+        battleState.timerId = setInterval(() => {
+            if (!battleState.turnEndsAt) return;
+            battleState.timer = Math.max(0, Math.ceil((battleState.turnEndsAt - Date.now()) / 1000));
+            updateBattleHeader();
+        }, 250);
+        return;
+    }
+
+    battleState.timerId = setInterval(() => {
+        battleState.timer -= 1;
+        updateBattleHeader();
+        if (battleState.timer <= 0) {
+            if (battleState.turn === 'player') endTurn();
+        }
+    }, 1000);
+}
+
+function endTurn() {
+    if (!battleState.inBattle) return;
+    if (battleState.isOnline) {
+        if (socket) socket.emit('end_turn');
+        return;
+    }
+    const next = battleState.turn === 'player' ? 'opponent' : 'player';
+    startTurn(next);
+}
+
+function exitBattle(skipServer) {
+    if (battleState.isOnline && !skipServer && socket) {
+        socket.emit('leave_match');
+    }
+    battleState.inBattle = false;
+    battleState.isOnline = false;
+    battleState.mode = 'practice';
+    if (battleState.timerId) clearInterval(battleState.timerId);
+    battleState.timerId = null;
+    setBattleScreenVisible(false);
+}
+
+function renderBattle() {
+    updateBattleHeader();
+    renderBattleBoard('player');
+    renderBattleBoard('opponent');
+    renderBattleHand();
+}
+
+function updateBattleHeader() {
+    const turnOwner = document.getElementById('turn-owner');
+    const timer = document.getElementById('turn-timer');
+    const playerHp = document.getElementById('player-hp');
+    const opponentHp = document.getElementById('opponent-hp');
+    const playerEnergy = document.getElementById('player-energy');
+    const opponentEnergy = document.getElementById('opponent-energy');
+    const playerHand = document.getElementById('player-hand-count');
+    const opponentHand = document.getElementById('opponent-hand-count');
+
+    if (turnOwner) turnOwner.innerText = battleState.turn === 'player' ? 'Player' : 'Opponent';
+    if (timer) timer.innerText = `${battleState.timer}`;
+    if (playerHp) playerHp.innerText = `${battleState.player.hp}`;
+    if (opponentHp) opponentHp.innerText = `${battleState.opponent.hp}`;
+    if (playerEnergy) playerEnergy.innerText = `${battleState.player.energy}`;
+    if (opponentEnergy) opponentEnergy.innerText = `${battleState.opponent.energy}`;
+    if (playerHand) playerHand.innerText = `${battleState.player.hand.length}`;
+    if (opponentHand) {
+        const count = battleState.isOnline ? battleState.opponentHandCount : battleState.opponent.hand.length;
+        opponentHand.innerText = `${count}`;
+    }
+}
+
+function renderBattleBoard(side) {
+    const boardEl = document.getElementById(side === 'player' ? 'player-board' : 'opponent-board');
+    if (!boardEl) return;
+    boardEl.innerHTML = '';
+
+    const cards = side === 'player' ? battleState.player.board : battleState.opponent.board;
+    cards.forEach(card => {
+        const cardEl = buildBattleCard(card);
+        if (side === 'player') {
+            cardEl.onclick = () => selectAttacker(card.uid);
+            if (battleState.turn !== 'player' || card.hasAttacked || card.summoningSick) {
+                cardEl.classList.add('disabled');
+            }
+        } else {
+            cardEl.onclick = () => attackCard(card.uid);
+        }
+        if (battleState.selectedAttackerId === card.uid) cardEl.classList.add('selected');
+        boardEl.appendChild(cardEl);
+    });
+}
+
+function renderBattleHand() {
+    const handEl = document.getElementById('player-hand');
+    if (!handEl) return;
+    handEl.innerHTML = '';
+
+    battleState.player.hand.forEach(card => {
+        const cardEl = buildBattleCard(card);
+        const canPlay = battleState.turn === 'player' && card.cost <= battleState.player.energy;
+        if (!canPlay) cardEl.classList.add('disabled');
+        cardEl.onclick = () => playCardFromHand(card.uid);
+        handEl.appendChild(cardEl);
+    });
+}
+
+function buildBattleCard(card) {
+    const el = document.createElement('div');
+    el.className = 'battle-card';
+    el.style.borderColor = getRarityColor(card.rarity);
+    el.innerHTML = `
+        <div class="battle-title">${card.name}</div>
+        <div class="battle-cost" style="background: ${getRarityColor(card.rarity)}">${card.cost}</div>
+        <div style="flex: 1; display: flex; align-items: center; justify-content: center;">
+            <img src="${encodeURI(card.image.trim())}" alt="${card.name}" style="width: 100%; height: 90px; object-fit: cover; border-radius: 8px;">
+        </div>
+        <div class="battle-stats">
+            <span>⚔️ ${card.attack}</span>
+            <span class="battle-hp">🛡️ ${card.currentHp}</span>
+        </div>
+    `;
+
+    el.oncontextmenu = (e) => {
+        e.preventDefault();
+        showCardDetails(card);
+    };
+
+    return el;
+}
+
+function playCardFromHand(uid) {
+    if (!battleState.inBattle || battleState.turn !== 'player') return;
+    if (battleState.isOnline) {
+        if (socket) socket.emit('play_card', { uid });
+        return;
+    }
+    const idx = battleState.player.hand.findIndex(card => card.uid === uid);
+    if (idx === -1) return;
+    const card = battleState.player.hand[idx];
+    if (card.cost > battleState.player.energy) return;
+
+    battleState.player.energy -= card.cost;
+    battleState.player.hand.splice(idx, 1);
+    card.summoningSick = true;
+    card.hasAttacked = false;
+    battleState.player.board.push(card);
+    renderBattle();
+}
+
+function selectAttacker(uid) {
+    if (!battleState.inBattle || battleState.turn !== 'player') return;
+    const card = battleState.player.board.find(c => c.uid === uid);
+    if (!card || card.hasAttacked || card.summoningSick) return;
+    battleState.selectedAttackerId = uid;
+    renderBattleBoard('player');
+}
+
+function attackCard(targetUid) {
+    if (!battleState.inBattle || battleState.turn !== 'player') return;
+    if (battleState.isOnline) {
+        if (!battleState.selectedAttackerId) return;
+        if (socket) {
+            socket.emit('attack_card', {
+                attackerUid: battleState.selectedAttackerId,
+                targetUid: targetUid
+            });
+        }
+        return;
+    }
+    const attacker = battleState.player.board.find(c => c.uid === battleState.selectedAttackerId);
+    if (!attacker || attacker.hasAttacked || attacker.summoningSick) return;
+
+    const target = battleState.opponent.board.find(c => c.uid === targetUid);
+    if (!target) return;
+
+    resolveCombat(attacker, target);
+}
+
+function resolveCombat(attacker, defender) {
+    attacker.currentHp -= defender.attack;
+    defender.currentHp -= attacker.attack;
+    attacker.hasAttacked = true;
+
+    if (attacker.currentHp <= 0) {
+        battleState.player.board = battleState.player.board.filter(c => c.uid !== attacker.uid);
+    }
+    if (defender.currentHp <= 0) {
+        battleState.opponent.board = battleState.opponent.board.filter(c => c.uid !== defender.uid);
+    }
+
+    battleState.selectedAttackerId = null;
+    checkWin();
+    renderBattle();
+}
+
+function attackAvatar() {
+    if (!battleState.inBattle || battleState.turn !== 'player') return;
+    if (battleState.isOnline) {
+        if (!battleState.selectedAttackerId) return;
+        if (socket) socket.emit('attack_avatar', { attackerUid: battleState.selectedAttackerId });
+        return;
+    }
+    if (battleState.opponent.board.length > 0) return;
+    const attacker = battleState.player.board.find(c => c.uid === battleState.selectedAttackerId);
+    if (!attacker || attacker.hasAttacked || attacker.summoningSick) return;
+
+    battleState.opponent.hp -= attacker.attack;
+    attacker.hasAttacked = true;
+    battleState.selectedAttackerId = null;
+    checkWin();
+    renderBattle();
+}
+
+function runOpponentTurn() {
+    if (!battleState.inBattle || battleState.turn !== 'opponent') return;
+
+    const opponent = battleState.opponent;
+    const playable = opponent.hand.filter(card => card.cost <= opponent.energy);
+    while (playable.length > 0) {
+        playable.sort((a, b) => a.cost - b.cost);
+        const card = playable.shift();
+        if (!card || card.cost > opponent.energy) break;
+        opponent.energy -= card.cost;
+        opponent.hand = opponent.hand.filter(c => c.uid !== card.uid);
+        card.summoningSick = true;
+        card.hasAttacked = false;
+        opponent.board.push(card);
+        playable.splice(0, playable.length, ...opponent.hand.filter(c => c.cost <= opponent.energy));
+    }
+
+    opponent.board.forEach(card => {
+        if (card.hasAttacked || card.summoningSick) return;
+        if (battleState.player.board.length > 0) {
+            const target = battleState.player.board[Math.floor(Math.random() * battleState.player.board.length)];
+            target.currentHp -= card.attack;
+            card.currentHp -= target.attack;
+            card.hasAttacked = true;
+
+            if (target.currentHp <= 0) {
+                battleState.player.board = battleState.player.board.filter(c => c.uid !== target.uid);
+            }
+            if (card.currentHp <= 0) {
+                battleState.opponent.board = battleState.opponent.board.filter(c => c.uid !== card.uid);
+            }
+        } else {
+            battleState.player.hp -= card.attack;
+            card.hasAttacked = true;
+        }
+    });
+
+    checkWin();
+    renderBattle();
+    if (battleState.inBattle) endTurn();
+}
+
+function checkWin() {
+    if (battleState.player.hp <= 0) {
+        endBattle('Opponent wins');
+    } else if (battleState.opponent.hp <= 0) {
+        endBattle('You win');
+    }
+}
+
+function endBattle(message) {
+    showNotification(message, false);
+    battleState.inBattle = false;
+    if (battleState.timerId) clearInterval(battleState.timerId);
+    battleState.timerId = null;
+    setTimeout(() => {
+        setBattleScreenVisible(false);
+    }, 1200);
 }

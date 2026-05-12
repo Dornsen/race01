@@ -1,7 +1,9 @@
 const express = require('express');
 const path = require('path');
+const http = require('http');
 const app = express();
 const session = require('express-session');
+const { Server } = require('socket.io');
 
 
 app.use(express.json());
@@ -21,6 +23,7 @@ const autoInitDatabase = require('./config/initDb');
 const authController = require('./controllers/authController');
 const friendController = require('./controllers/friendController');
 const gameController = require('./controllers/gameController')
+const { setupSocket } = require('./game/socketGame');
 
 //login register routes
 app.post('/api/register', authController.register);
@@ -49,8 +52,13 @@ app.get('/api/me', authController.checkAuth);
 
 // start server
 const PORT = process.env.PORT || 3000;
+const server = http.createServer(app);
+const io = new Server(server);
+
+setupSocket(io);
+
 autoInitDatabase().then(() => {
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
         console.log(`🚀 Сервер игры запущен на http://localhost:${PORT}`);
     });
 });

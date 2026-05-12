@@ -59,6 +59,7 @@ window.onload = async () => {
             loadFriends();
             if (typeof fetchCardsFromDB === 'function') fetchCardsFromDB();
             if (typeof fetchMyDeck === 'function') fetchMyDeck();
+            if (typeof initSocket === 'function') initSocket(result.user);
         }
     } catch (e) { 
         console.log("Анонимный вход."); 
@@ -82,6 +83,7 @@ function showBox(boxId) {
             }
         } else {
             mainMenu.classList.add('hidden');
+            if (typeof leaveQueue === 'function') leaveQueue();
             
             // Если вышли из лобби — убиваем таймер, чтобы не грузить сервер
             if (friendPollInterval) {
@@ -218,6 +220,7 @@ document.getElementById('login-form').onsubmit = async (e) => {
         loadFriends();
         if (typeof fetchCardsFromDB === 'function') fetchCardsFromDB();
         if (typeof fetchMyDeck === 'function') fetchMyDeck();
+        if (typeof initSocket === 'function') initSocket(res.data.user);
     }
 };
 
@@ -261,6 +264,7 @@ if (logoutBtn) {
             showBox('login-box'); // Теперь корректно скроет меню 
             msgBox.style.color = '#2ecc71';
             msgBox.innerText = 'Вы успешно вышли из аккаунта.';
+            if (typeof disconnectSocket === 'function') disconnectSocket();
         } catch (err) {
             console.error("Ошибка при выходе:", err);
         }
@@ -358,13 +362,23 @@ async function loadFriends() {
                 
                 // Дефолтный аватар, если у юзера его нет
                 const avatarImg = f.avatar_url ? f.avatar_url : 'avatar1.png'; 
+                const statusLabel = (() => {
+                    if (f.status === 'online') return 'онлайн';
+                    if (f.status === 'searching for battle') return 'в поиске';
+                    if (f.status === 'in battle') return 'в бою';
+                    if (f.status === 'away') return 'отошел';
+                    return 'оффлайн';
+                })();
+                const statusColor = f.status === 'online'
+                    ? '#2ecc71'
+                    : (f.status === 'searching for battle' ? '#f1c40f' : (f.status === 'in battle' ? '#e67e22' : '#7f8c8d'));
                 
                 li.innerHTML = `
                     <div class="friend-info">
                         <img src="assets/avatars/${avatarImg}" class="friend-avatar" alt="ava">
                         <span>${f.username}</span>
                     </div>
-                    <span style="color: ${f.status === 'online' ? '#2ecc71' : '#7f8c8d'}; font-size: 0.8rem;">●</span>
+                    <span style="color: ${statusColor}; font-size: 0.75rem;">${statusLabel}</span>
                 `;
                 
                 // ОБРАБОТЧИК ПРАВОЙ КНОПКИ МЫШИ (ПКМ)
@@ -449,8 +463,11 @@ document.addEventListener('click', (e) => {
 const btnInvite = document.getElementById('ctx-invite');
 if (btnInvite) {
     btnInvite.onclick = () => {
-        // Здесь позже будет вызов WebSockets или создание комнаты
-        showNotification(`Запрос на бой отправлен игроку ${selectedTargetName}!`);
+        if (typeof sendFriendInvite === 'function') {
+            sendFriendInvite(selectedTargetId, selectedTargetName);
+        } else {
+            showNotification(`Запрос на бой отправлен игроку ${selectedTargetName}!`);
+        }
     };
 }
 
