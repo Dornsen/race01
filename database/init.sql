@@ -25,7 +25,8 @@ CREATE TABLE IF NOT EXISTS users (
     verification_code VARCHAR(6) DEFAULT NULL,
     is_verified BOOLEAN DEFAULT FALSE,
     reset_token VARCHAR(255) DEFAULT NULL,
-    reset_token_expires DATETIME DEFAULT NULL
+    reset_token_expires DATETIME DEFAULT NULL,
+    money INT DEFAULT 0
 );
 
 -- 3. Таблица карт (добавлено UNIQUE на name)
@@ -80,34 +81,34 @@ CREATE TABLE IF NOT EXISTS friendships (
 -- 7. Вставка и синхронизация карт (Оптимизированный вариант)
 INSERT INTO cards (name, description, avatar_url, attack, cost, defense, rarity, is_basic, clan, ability_code, ability_description) VALUES
 -- 🟢 COMMON
-('Kodama', 'Tiny forest spirits that dwell in ancient trees. Their presence brings peace to the fractured world.', 'kodama.png', 1, 1, 2, 'common', TRUE, 'Wild Spirits', 'HEAL_AVATAR', 'Harmony: Restores 1 HP to your avatar at the end of the turn.'),
-('Kappa', 'Playful water imps with a hollow in their head. They are as tricky as the rivers they inhabit.', 'kappa.png', 2, 2, 3, 'common', TRUE, 'Wild Spirits', 'DEBUFF_ATK_1', 'Humidity: Lowers a random enemy\'s attack by 1 when played.'),
-('Tanuki', 'Masters of disguise and mischief. They use their magic to blend into the chaos of the memory.', 'tanuki.png', 2, 2, 2, 'common', TRUE, 'Wild Spirits', 'COPY_WEAK_ATK', 'Mimicry: Copies the attack of a random weak enemy card.'),
-('Kitsune', 'Wise foxes with multiple tails. Their illusions are so vivid that even reality itself is fooled.', 'kitsune.png', 3, 3, 2, 'common', TRUE, 'Wild Spirits', 'IGNORE_FIRST_DMG', 'Illusion: Ignores the first instance of damage received.'),
-('Karasu-Tengu', 'Crow-headed warriors who strike like a bolt of lightning from the darkened skies.', 'karasu-tengu.png', 4, 3, 1, 'common', TRUE, 'Elemental Sovereigns', 'RUSH', 'Rush: Can attack on the same turn it is played.'),
-('Yuki-onna', 'A spirit of the snow who freezes the hearts of those lost in the winter fractures.', 'yuki-onna.png', 3, 4, 4, 'common', TRUE, 'Shadow Realm', 'FREEZE_TARGET', 'Freeze: Target enemy card cannot attack for 1 turn.'),
-('Zashiki-warashi', 'A protective child spirit of the house. While they stay, the home prospers; when they leave, new memories take their place.', 'zashiki-warashi.png', 3, 4, 3, 'common', TRUE, 'Wild Spirits', 'DEATH_SUMMON_COMMON', 'Legacy: Summons a random Common card upon death.'),
+('Kodama', 'Tiny forest spirits that dwell in ancient trees. Their presence brings peace to the fractured world.', 'assets/cards/Kodama_Card.png', 1, 1, 2, 'common', TRUE, 'Wild Spirits', 'HEAL_AVATAR', 'Harmony: Restores 1 HP to your avatar at the end of the turn.'),
+('Kappa', 'Playful water imps with a hollow in their head. They are as tricky as the rivers they inhabit.', 'assets/cards/Kappa_Card.png', 2, 2, 3, 'common', TRUE, 'Wild Spirits', 'DEBUFF_ATK_1', 'Humidity: Lowers a random enemy\'s attack by 1 when played.'),
+('Tanuki', 'Masters of disguise and mischief. They use their magic to blend into the chaos of the memory.', 'assets/cards/Tanuki_Card.png', 2, 2, 2, 'common', TRUE, 'Wild Spirits', 'COPY_WEAK_ATK', 'Mimicry: Copies the attack of a random weak enemy card.'),
+('Kitsune', 'Wise foxes with multiple tails. Their illusions are so vivid that even reality itself is fooled.', 'assets/cards/Kitsune_Card.png', 3, 3, 2, 'common', TRUE, 'Wild Spirits', 'IGNORE_FIRST_DMG', 'Illusion: Ignores the first instance of damage received.'),
+('Karasu-Tengu', 'Crow-headed warriors who strike like a bolt of lightning from the darkened skies.', 'assets/cards/Karasu-Tengu_Card.png', 4, 3, 1, 'common', TRUE, 'Elemental Sovereigns', 'RUSH', 'Rush: Can attack on the same turn it is played.'),
+('Yuki-onna', 'A spirit of the snow who freezes the hearts of those lost in the winter fractures.', 'assets/cards/Yuki-onna_Card.png', 3, 4, 4, 'common', TRUE, 'Shadow Realm', 'FREEZE_TARGET', 'Freeze: Target enemy card cannot attack for 1 turn.'),
+('Zashiki-warashi', 'A protective child spirit of the house. While they stay, the home prospers; when they leave, new memories take their place.', 'assets/cards/Zashiki-warashi_Card.png', 3, 4, 3, 'common', TRUE, 'Wild Spirits', 'DEATH_SUMMON_COMMON', 'Legacy: Summons a random Common card upon death.'),
 -- 🔵 RARE 
-('Komainu', 'Lion-dogs that guard sacred shrines. No fracture can break their unwavering resolve to protect.', 'komainu.png', 2, 4, 6, 'rare', TRUE, 'Celestial Court', 'TAUNT', 'Taunt: Enemies must attack this card first.'),
-('Ronin Ghost', 'A masterless samurai who wanders the void, seeking a purpose in the broken memories.', 'ronin_ghost.png', 5, 5, 3, 'rare', TRUE, 'Shadow Realm', 'BUFF_ON_ALLY_DEATH', 'Vengeance: Gains +2 ATK if a friendly card died this turn.'),
-('Jorogumo', 'A spider-woman who weaves threads of destiny to trap the unwary and aid her allies.', 'jorogumo.png', 5, 6, 5, 'rare', TRUE, 'Shadow Realm', 'REDUCE_NEXT_COST', 'Web: Reduces the cost of your next played card by 1.'),
-('Inari', 'The deity of prosperity and foxes. Her presence rejuvenates the soil of the soul.', 'inari.png', 4, 5, 6, 'rare', FALSE, 'Celestial Court', 'BUFF_KITSUNE_ALL', 'Blessing: Grants +1/+1 to all friendly Kitsune cards on the field.'),
-('Bake-neko', 'A cat that has lived long enough to gain supernatural powers and toy with death itself.', 'bake-neko.png', 3, 5, 5, 'rare', FALSE, 'Shadow Realm', 'RETURN_FROM_GRAVE', 'Recall: Returns a random card from the graveyard to your hand.'),
-('Tengu Guard', 'Elite protectors of the mountain peaks, using the wind to deflect magical interference.', 'tengu_guard.png', 4, 6, 5, 'rare', FALSE, 'Elemental Sovereigns', 'SHIELD_ADJACENT', 'Shield: Protects adjacent cards from enemy abilities.'),
-('Namazu', 'A giant catfish whose movements cause the earth to tremble and reality to crack.', 'namazu.png', 5, 7, 7, 'rare', FALSE, 'Elemental Sovereigns', 'CREATE_RIFT', 'Fracture: Creates a battlefield rift when damaged.'),
--- 🟣 EPIC 
-('Bake-kujira', 'The skeletal ghost of a whale that brings a haunting song to the shores of the afterlife.', 'bake-kujira.png', 4, 6, 7, 'epic', FALSE, 'Shadow Realm', 'DEATH_AOE_1', 'Echo: Deals 1 damage to all enemy cards upon death.'),
-('Raijin', 'The god of thunder who beats his drums to shake the very foundations of the world.', 'raijin.png', 6, 6, 4, 'epic', FALSE, 'Elemental Sovereigns', 'DMG_RANDOM_3', 'Discharge: Deals 3 damage to a random enemy card.'),
-('Fujin', 'The god of wind who carries the tempests in his bag, ready to blow away any obstacle.', 'fujin.png', 5, 6, 5, 'epic', FALSE, 'Elemental Sovereigns', 'RETURN_TO_HAND_ENEMY', 'Gale: Returns a target enemy card to the opponent\'s hand.'),
-('Orochi', 'The eight-headed serpent of chaos, consuming everything in its path with relentless hunger.', 'orochi.png', 7, 7, 7, 'epic', FALSE, 'Elemental Sovereigns', 'MULTI_STRIKE_2', 'Multi-strike: Attacks two targets in a single turn.'),
-('Rokurokubi', 'By day, she is human. By night, her neck snakes through the fractures to strike from the shadows.', 'rokurokubi.png', 6, 7, 3, 'epic', FALSE, 'Shadow Realm', 'IGNORE_TAUNT', 'Reach: Can attack any enemy card, ignoring Taunt.'),
-('Kirin', 'A holy beast that appears only in times of peace to heal the scars of the land.', 'kirin.png', 5, 9, 10, 'epic', FALSE, 'Celestial Court', 'HEAL_AVATAR_FULL', 'Purify: Fully restores your avatar\'s health.'),
+('Komainu', 'Lion-dogs that guard sacred shrines. No fracture can break their unwavering resolve to protect.', 'assets/cards/Komainu_Card.png', 2, 4, 6, 'rare', TRUE, 'Celestial Court', 'TAUNT', 'Taunt: Enemies must attack this card first.'),
+('Ronin Ghost', 'A masterless samurai who wanders the void, seeking a purpose in the broken memories.', 'assets/cards/Ronin_Ghost_Card.png', 5, 5, 3, 'rare', TRUE, 'Shadow Realm', 'BUFF_ON_ALLY_DEATH', 'Vengeance: Gains +2 ATK if a friendly card died this turn.'),
+('Jorogumo', 'A spider-woman who weaves threads of destiny to trap the unwary and aid her allies.', 'assets/cards/Jorogumo_Card.png', 5, 6, 5, 'rare', TRUE, 'Shadow Realm', 'REDUCE_NEXT_COST', 'Web: Reduces the cost of your next played card by 1.'),
+('Inari', 'The deity of prosperity and foxes. Her presence rejuvenates the soil of the soul.', 'assets/cards/Inari_Card.png', 4, 5, 6, 'rare', FALSE, 'Celestial Court', 'BUFF_KITSUNE_ALL', 'Blessing: Grants +1/+1 to all friendly Kitsune cards on the field.'),
+('Bake-neko', 'A cat that has lived long enough to gain supernatural powers and toy with death itself.', 'assets/cards/Bake-neko_Card.png', 3, 5, 5, 'rare', FALSE, 'Shadow Realm', 'RETURN_FROM_GRAVE', 'Recall: Returns a random card from the graveyard to your hand.'),
+('Tengu Guard', 'Elite protectors of the mountain peaks, using the wind to deflect magical interference.', 'assets/cards/Tengu_Guard_Card.png', 4, 6, 5, 'rare', FALSE, 'Elemental Sovereigns', 'SHIELD_ADJACENT', 'Shield: Protects adjacent cards from enemy abilities.'),
+('Namazu', 'A giant catfish whose movements cause the earth to tremble and reality to crack.', 'assets/cards/Namazu_Card.png', 5, 7, 7, 'rare', FALSE, 'Elemental Sovereigns', 'CREATE_RIFT', 'Fracture: Creates a battlefield rift when damaged.'),
+
+('Bake-kujira', 'The skeletal ghost of a whale that brings a haunting song to the shores of the afterlife.', 'assets/cards/Bake-kujira_Card.png', 4, 6, 7, 'epic', FALSE, 'Shadow Realm', 'DEATH_AOE_1', 'Echo: Deals 1 damage to all enemy cards upon death.'),
+('Raijin', 'The god of thunder who beats his drums to shake the very foundations of the world.', 'assets/cards/Raijin_Card.png', 6, 6, 4, 'epic', FALSE, 'Elemental Sovereigns', 'DMG_RANDOM_3', 'Discharge: Deals 3 damage to a random enemy card.'),
+('Fujin', 'The god of wind who carries the tempests in his bag, ready to blow away any obstacle.', 'assets/cards/Fujin_Card.png', 5, 6, 5, 'epic', FALSE, 'Elemental Sovereigns', 'RETURN_TO_HAND_ENEMY', 'Gale: Returns a target enemy card to the opponent\'s hand.'),
+('Orochi', 'The eight-headed serpent of chaos, consuming everything in its path with relentless hunger.', 'assets/cards/Orochi_Card.png', 7, 7, 7, 'epic', FALSE, 'Elemental Sovereigns', 'MULTI_STRIKE_2', 'Multi-strike: Attacks two targets in a single turn.'),
+('Rokurokubi', 'By day, she is human. By night, her neck snakes through the fractures to strike from the shadows.', 'assets/cards/Rokurokubi_Card.png', 6, 7, 3, 'epic', FALSE, 'Shadow Realm', 'IGNORE_TAUNT', 'Reach: Can attack any enemy card, ignoring Taunt.'),
+('Kirin', 'A holy beast that appears only in times of peace to heal the scars of the land.', 'assets/cards/Kirin_Card.png', 5, 9, 10, 'epic', FALSE, 'Celestial Court', 'HEAL_AVATAR_FULL', 'Purify: Fully restores your avatar\'s health.'),
 -- 🟡 LEGENDARY 
-('Ryujin', 'The dragon god of the sea who controls the ebb and flow of all existence.', 'ryujin.png', 7, 8, 8, 'legendary', FALSE, 'Elemental Sovereigns', 'DRAW_2', 'Tide: Draw 2 random cards from your deck.'),
-('Izanami', 'The matron of death who rules the underworld, turning loss into a new kind of power.', 'izanami.png', 7, 9, 6, 'legendary', FALSE, 'Shadow Realm', 'RESURRECT_ALLY', 'Necromancy: Resurrects a random friendly card from the graveyard.'),
-('Tsukuyomi', 'The moon god whose silver light can freeze time and shroud the world in eternal night.', 'tsukuyomi.png', 6, 10, 12, 'legendary', FALSE, 'Celestial Court', 'SKIP_ENEMY_TURN', 'Eclipse: Opponent skips their next attack phase.'),
-('Susanoo', 'The tempestuous god of storms whose sword cuts through even the strongest defenses.', 'susanoo.png', 10, 10, 8, 'legendary', FALSE, 'Elemental Sovereigns', 'DESTROY_2_RANDOM', 'Storm Wrath: Destroys 2 random enemy cards.'),
-('Amaterasu', 'The sun goddess who mends the world with golden light, making the broken beautiful once more.', 'amaterasu.png', 9, 10, 9, 'legendary', FALSE, 'Celestial Court', 'HEAL_CLEANSE_ALL_ALLIES', 'Kintsugi: Fully heals and cleanses all friendly cards on the field.')
+('Ryujin', 'The dragon god of the sea who controls the ebb and flow of all existence.', 'assets/cards/Ryujin_Card.png', 7, 8, 8, 'legendary', FALSE, 'Elemental Sovereigns', 'DRAW_2', 'Tide: Draw 2 random cards from your deck.'),
+('Izanami', 'The matron of death who rules the underworld, turning loss into a new kind of power.', 'assets/cards/Izanami_Card.png', 7, 9, 6, 'legendary', FALSE, 'Shadow Realm', 'RESURRECT_ALLY', 'Necromancy: Resurrects a random friendly card from the graveyard.'),
+('Tsukuyomi', 'The moon god whose silver light can freeze time and shroud the world in eternal night.', 'assets/cards/Tsukuyomi_Card.png', 6, 10, 12, 'legendary', FALSE, 'Celestial Court', 'SKIP_ENEMY_TURN', 'Eclipse: Opponent skips their next attack phase.'),
+('Susanoo', 'The tempestuous god of storms whose sword cuts through even the strongest defenses.', 'assets/cards/Susanoo_Card.png', 10, 10, 8, 'legendary', FALSE, 'Elemental Sovereigns', 'DESTROY_2_RANDOM', 'Storm Wrath: Destroys 2 random enemy cards.'),
+('Amaterasu', 'The sun goddess who mends the world with golden light, making the broken beautiful once more.', 'assets/cards/Amaterasu_Card.png', 9, 10, 9, 'legendary', FALSE, 'Celestial Court', 'HEAL_CLEANSE_ALL_ALLIES', 'Kintsugi: Fully heals and cleanses all friendly cards on the field.')
 
 -- Синхронизация данных: если имя совпало, обновляем все статы
 ON DUPLICATE KEY UPDATE 

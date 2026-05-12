@@ -133,6 +133,75 @@
         <button id="ctx-remove" class="ctx-btn danger">🗑️ Удалить из друзей</button>
     </div>
 
+    <div id="deck-builder" class="deck-container hidden">
+        <header class="deck-header">
+            <div class="deck-info">
+                <h2>Сборка Колоды</h2>
+                <p>Выбрано: <span id="deck-count" style="color: #2ecc71; font-weight: bold;">0</span> / 10</p>
+            </div>
+            <div style="display: flex; gap: 15px;">
+                <button id="btn-save-deck" style="background: #27ae60; color: white; padding: 10px; border: none; cursor: pointer; border-radius: 5px;">💾 Сохранить</button>
+                <button id="btn-back-lobby" style="background: #e74c3c; color: white; padding: 10px; border: none; cursor: pointer; border-radius: 5px;">❌ В Лобби</button>
+            </div>
+        </header>
+
+        <main style="display: flex; height: calc(100vh - 70px);">
+            <div style="flex: 2; padding: 20px; overflow-y: auto; background: #1a1a1a;">
+                <div class="collection-toolbar">
+                    <h3 style="color: white; margin: 0;">Все карты</h3>
+                    <div id="collection-count" class="collection-count">Коллекция: 0 / 0</div>
+                </div>
+                <div class="collection-hint">Нажми на карту, чтобы добавить в колоду</div>
+                <div class="collection-filters">
+                    <label class="filter-check">
+                        <input id="filter-owned" type="checkbox">
+                        Только мои
+                    </label>
+                    <label class="filter-label">
+                        Редкость
+                        <select id="filter-rarity">
+                            <option value="all">Все</option>
+                            <option value="common">common</option>
+                            <option value="rare">rare</option>
+                            <option value="epic">epic</option>
+                            <option value="legendary">legendary</option>
+                        </select>
+                    </label>
+                    <label class="filter-label">
+                        Цена
+                        <div class="filter-range">
+                            <input id="filter-cost-min" type="number" min="0" placeholder="от">
+                            <span>–</span>
+                            <input id="filter-cost-max" type="number" min="0" placeholder="до">
+                        </div>
+                    </label>
+                    <label class="filter-label">
+                        Поиск
+                        <input id="filter-search" type="text" placeholder="имя, клан...">
+                    </label>
+                    <button id="filter-reset" class="filter-reset" type="button">Сброс</button>
+                </div>
+                <div id="collection-grid" style="display: flex; flex-wrap: wrap; gap: 15px; margin-top: 15px;"></div>
+            </div>
+
+            <div style="flex: 1; padding: 20px; overflow-y: auto; background: #111; border-left: 2px solid #333;">
+                <h3 style="color: white;">Моя колода (Нажми, чтобы убрать)</h3>
+                <div id="current-deck-grid" class="deck-grid" style="margin-top: 15px;"></div>
+            </div>
+        </main>
+
+        <div id="card-detail-modal" class="card-detail-modal hidden">
+            <div class="card-detail-content">
+                <div class="card-detail-header">
+                    <h3 id="card-detail-title">Card</h3>
+                    <button id="card-detail-close" class="card-detail-close">✕</button>
+                </div>
+                <div id="card-detail-body" class="card-detail-body"></div>
+            </div>
+        </div>
+    </div>
+
     <script src="js/auth.js"></script>
+    <script src="js/game.js"></script>
 </body>
 </html>

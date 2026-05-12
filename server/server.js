@@ -20,6 +20,7 @@ app.use(session({
 const autoInitDatabase = require('./config/initDb');
 const authController = require('./controllers/authController');
 const friendController = require('./controllers/friendController');
+const gameController = require('./controllers/gameController')
 
 //login register routes
 app.post('/api/register', authController.register);
@@ -36,6 +37,12 @@ app.get('/api/friends/pending', friendController.getPendingRequests);
 app.post('/api/friends/accept', friendController.acceptFriend);
 app.post('/api/friends/handle', friendController.handleRequest);
 app.post('/api/friends/remove', friendController.removeFriend);
+//decks and cards
+app.get('/api/cards', gameController.getAllCards);
+app.get('/api/cards/collection', gameController.getCardCollection);
+app.post('/api/decks/save', gameController.saveDeck);
+app.get('/api/decks/mine', gameController.getMyDeck);
+
 
 // stay logged in
 app.get('/api/me', authController.checkAuth);

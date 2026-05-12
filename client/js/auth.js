@@ -57,6 +57,8 @@ window.onload = async () => {
             updatePlayerUI(result.user);
             showBox('main-menu');
             loadFriends();
+            if (typeof fetchCardsFromDB === 'function') fetchCardsFromDB();
+            if (typeof fetchMyDeck === 'function') fetchMyDeck();
         }
     } catch (e) { 
         console.log("Анонимный вход."); 
@@ -213,6 +215,9 @@ document.getElementById('login-form').onsubmit = async (e) => {
     if (res.success) {
         updatePlayerUI(res.data.user);
         showBox('main-menu');
+        loadFriends();
+        if (typeof fetchCardsFromDB === 'function') fetchCardsFromDB();
+        if (typeof fetchMyDeck === 'function') fetchMyDeck();
     }
 };
 
