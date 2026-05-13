@@ -10,7 +10,7 @@ function updatePlayerUI(user) {
     // ВАЖНО: Обновляем только те поля, которые ПРИШЛИ в объекте user
     // Это предотвращает появление "undefined"
     if (user.username && greeting) {
-        greeting.innerText = `Привет, ${user.username}!`;
+        greeting.innerText = `Hello, ${user.username}!`;
     }
     
     if (user.mmr !== undefined && mmr) {
@@ -136,8 +136,12 @@ function showNotification(text, isError = false) {
     const msgBox = document.getElementById('message');
     if (!msgBox) return;
 
+    // Поддержка как булевых, так и строковых значений ('error'/'success')
+    const isErrorState = isError === true || isError === 'error';
+
     msgBox.innerText = text;
-    msgBox.style.color = isError ? '#e74c3c' : '#2ecc71';
+    msgBox.classList.remove('is-error', 'is-success');
+    msgBox.classList.add(isErrorState ? 'is-error' : 'is-success');
     
     // Добавляем класс видимости
     msgBox.classList.add('show');
@@ -164,7 +168,7 @@ async function apiCall(endpoint, data, formId) {
     try {
         if (btn) {
             btn.disabled = true;
-            btn.innerText = 'Загрузка...';
+            btn.innerText = 'Loading...';
         }
 
         const response = await fetch(endpoint, {
@@ -177,14 +181,14 @@ async function apiCall(endpoint, data, formId) {
         
         if (response.ok) {
             // Показываем красивое уведомление вместо обычного текста
-            showNotification(result.message || 'Успешно');
+            showNotification(result.message || 'Success');
             if (btn) {
                 btn.disabled = false;
                 btn.innerText = originalBtnText;
             }
             return { success: true, data: result };
         } else {
-            showNotification(result.error || 'Ошибка', true);
+            showNotification(result.error || 'Error', true);
             if (btn) {
                 btn.disabled = false;
                 btn.innerText = originalBtnText;
@@ -192,7 +196,7 @@ async function apiCall(endpoint, data, formId) {
             return { success: false };
         }
     } catch (err) {
-        showNotification('Ошибка соединения', true);
+        showNotification('Connection error', true);
         if (btn) {
             btn.disabled = false;
             btn.innerText = originalBtnText;
@@ -275,12 +279,11 @@ if (logoutBtn) {
     logoutBtn.onclick = async () => {
         try {
             await fetch('/api/logout', { method: 'POST' });
-            showBox('login-box'); // Теперь корректно скроет меню 
-            msgBox.style.color = '#2ecc71';
-            msgBox.innerText = 'Вы успешно вышли из аккаунта.';
+            showBox('login-box');
+            showNotification('Logged out successfully.');
             if (typeof disconnectSocket === 'function') disconnectSocket();
         } catch (err) {
-            console.error("Ошибка при выходе:", err);
+            console.error("Logout error:", err);
         }
     };
 }
@@ -345,7 +348,7 @@ async function loadFriends() {
         // 1. ОТРИСОВКА ЗАЯВОК (Pending)
         if (dataPending.requests && dataPending.requests.length > 0) {
             const head = document.createElement('li');
-            head.innerHTML = `<small style="color: #f1c40f">Новые заявки:</small>`;
+            head.innerHTML = `<small style="color: #f1c40f">New requests:</small>`;
             list.appendChild(head);
 
             dataPending.requests.forEach(req => {
@@ -367,7 +370,7 @@ async function loadFriends() {
        // 2. ОТРИСОВКА ДРУЗЕЙ (Accepted) с аватарами и Правым кликом
         if (dataFriends.friends && dataFriends.friends.length > 0) {
             const head = document.createElement('li');
-            head.innerHTML = `<small style="opacity:0.6; padding-left: 5px;">Друзья (${dataFriends.friends.length}/50):</small>`;
+            head.innerHTML = `<small style="opacity:0.6; padding-left: 5px;">Friends (${dataFriends.friends.length}/50):</small>`;
             list.appendChild(head);
 
             dataFriends.friends.forEach(f => {
@@ -377,11 +380,11 @@ async function loadFriends() {
                 // Дефолтный аватар, если у юзера его нет
                 const avatarImg = f.avatar_url ? f.avatar_url : 'avatar1.png'; 
                 const statusLabel = (() => {
-                    if (f.status === 'online') return 'онлайн';
-                    if (f.status === 'searching for battle') return 'в поиске';
-                    if (f.status === 'in battle') return 'в бою';
-                    if (f.status === 'away') return 'отошел';
-                    return 'оффлайн';
+                    if (f.status === 'online') return 'online';
+                    if (f.status === 'searching for battle') return 'searching';
+                    if (f.status === 'in battle') return 'in battle';
+                    if (f.status === 'away') return 'away';
+                    return 'offline';
                 })();
                 const statusColor = f.status === 'online'
                     ? '#2ecc71'
@@ -404,7 +407,7 @@ async function loadFriends() {
                 list.appendChild(li);
             });
         } else if (!dataPending.requests || dataPending.requests.length === 0) {
-            list.innerHTML = '<li class="empty-friends">Список пуст</li>';
+            list.innerHTML = '<li class="empty-friends">No friends yet</li>';
         }
 
     } catch (e) { console.error("Ошибка френдлиста", e); }
@@ -446,7 +449,7 @@ if (btnAddFriend) {
                 loadFriends();    // Сразу обновляем список на экране
             }
         } catch (e) {
-            showNotification('Ошибка соединения', 'error');
+            showNotification('Connection error', 'error');
         }
     };
 }
@@ -480,7 +483,7 @@ if (btnInvite) {
         if (typeof sendFriendInvite === 'function') {
             sendFriendInvite(selectedTargetId, selectedTargetName);
         } else {
-            showNotification(`Запрос на бой отправлен игроку ${selectedTargetName}!`);
+            showNotification(`Battle request sent to ${selectedTargetName}!`);
         }
     };
 }
@@ -489,7 +492,7 @@ if (btnInvite) {
 const btnRemove = document.getElementById('ctx-remove');
 if (btnRemove) {
     btnRemove.onclick = async () => {
-        if (!confirm(`Вы точно хотите удалить ${selectedTargetName} из друзей?`)) return;
+        if (!confirm(`Remove ${selectedTargetName} from friends?`)) return;
         
         try {
             const res = await fetch('/api/friends/remove', {
@@ -501,7 +504,7 @@ if (btnRemove) {
             showNotification(result.message || result.error, res.ok ? 'success' : 'error');
             if (res.ok) loadFriends(); // Обновляем список сразу
         } catch (e) {
-            showNotification('Ошибка удаления', true);
+            showNotification('Removal failed', true);
         }
     };
 }
