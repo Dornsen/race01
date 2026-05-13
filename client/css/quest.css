@@ -1,0 +1,37 @@
+.quests-container {
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 12, 15, 0.95);
+    color: #d0cbb5;
+    z-index: 55;
+    display: flex;
+    flex-direction: column;
+}
+
+.quests-body {
+    padding: 18px 24px;
+    display: grid;
+    gap: 12px;
+    overflow-y: auto;
+}
+
+.quest-card {
+    background: rgba(20, 22, 26, 0.75);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: grid;
+    gap: 6px;
+}
+
+.quest-title {
+    font-weight: 600;
+    color: #f4f1e1;
+}
+
+.quest-desc {
+    font-size: 0.9rem;
+    color: #9aa5b1;
+}

@@ -4,7 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KIRI - Auth</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/global.css">
+
+    <link rel="stylesheet" href="css/auth.css">
+    <link rel="stylesheet" href="css/battle.css">
+    <link rel="stylesheet" href="css/deckBuilder.css">
+    <link rel="stylesheet" href="css/friendlist.css">
+    <link rel="stylesheet" href="css/gacha.css">
+    <link rel="stylesheet" href="css/history.css">
+    <link rel="stylesheet" href="css/invite.css">
+    <link rel="stylesheet" href="css/leaderboard.css">
+    <link rel="stylesheet" href="css/lobby.css">
+    <link rel="stylesheet" href="css/quest.css">
+    <link rel="stylesheet" href="css/queue.css">
+    <link rel="stylesheet" href="css/shop.css">
 </head>
 <body>
     <div class="auth-container">
@@ -233,30 +246,30 @@
 
     <div id="match-history" class="history-container hidden">
         <header class="history-header">
-            <h2>История матчей</h2>
-            <button id="btn-back-history" class="history-back">В лобби</button>
+            <h2>Match history</h2>
+            <button id="btn-back-history" class="history-back">Back to lobby</button>
         </header>
         <div class="history-filters">
             <label>
-                Режим
+                Mode
                 <select id="history-filter-mode">
-                    <option value="all">Все</option>
-                    <option value="ranked">Рейтинговый</option>
-                    <option value="casual">Обычный</option>
-                    <option value="friend">Дружеский</option>
+                    <option value="all">All</option>
+                    <option value="ranked">Ranked</option>
+                    <option value="casual">Casual</option>
+                    <option value="friend">Friend</option>
                 </select>
             </label>
             <label>
-                Поиск
-                <input id="history-search" type="text" placeholder="оппонент...">
+                Search
+                <input id="history-search" type="text" placeholder="opponent...">
             </label>
             <label>
-                Сортировка
+                Sort by
                 <select id="history-sort">
-                    <option value="date_desc">Дата: новые</option>
-                    <option value="date_asc">Дата: старые</option>
-                    <option value="name_asc">Оппонент: A-Z</option>
-                    <option value="name_desc">Оппонент: Z-A</option>
+                    <option value="date_desc">Date: new</option>
+                    <option value="date_asc">Date: old</option>
+                    <option value="name_asc">Opponent: A-Z</option>
+                    <option value="name_desc">Opponent: Z-A</option>
                 </select>
             </label>
         </div>
@@ -266,7 +279,7 @@
     <div id="history-detail" class="history-detail hidden">
         <div class="history-detail-card">
             <div class="history-detail-header">
-                <div class="history-detail-title">Матч</div>
+                <div class="history-detail-title">Match</div>
                 <button id="history-detail-close" class="history-detail-close">✕</button>
             </div>
             <div id="history-detail-body" class="history-detail-body"></div>
@@ -276,7 +289,7 @@
     <div id="leaderboard" class="leaderboard-container hidden">
         <header class="history-header">
             <h2>Leaderboard</h2>
-            <button id="btn-back-leaderboard" class="history-back">В лобби</button>
+            <button id="btn-back-leaderboard" class="history-back">Back to lobby</button>
         </header>
         <div id="leaderboard-list" class="leaderboard-list"></div>
     </div>
@@ -284,16 +297,16 @@
     <div id="quests" class="quests-container hidden">
         <header class="history-header">
             <h2>Quests</h2>
-            <button id="btn-back-quests" class="history-back">В лобби</button>
+            <button id="btn-back-quests" class="history-back">Back to lobby</button>
         </header>
         <div class="quests-body">
             <div class="quest-card">
-                <div class="quest-title">Ежедневные задания</div>
-                <div class="quest-desc">Скоро появятся. Загляни позже.</div>
+                <div class="quest-title">Daily Quests</div>
+                <div class="quest-desc">Comming soon. Check back later.</div>
             </div>
             <div class="quest-card">
-                <div class="quest-title">Недельные задания</div>
-                <div class="quest-desc">Скоро появятся. Загляни позже.</div>
+                <div class="quest-title">Weekly Quests</div>
+                <div class="quest-desc">Comming soon. Check back later.</div>
             </div>
         </div>
     </div>
@@ -301,28 +314,28 @@
     <div id="shop" class="shop-container hidden">
         <header class="history-header">
             <h2>Shop</h2>
-            <div class="shop-balance">Баланс: ⛩️ <span id="shop-money">0</span></div>
-            <button id="btn-back-shop" class="history-back">В лобби</button>
+            <div class="shop-balance">Balance: ⛩️ <span id="shop-money">0</span></div>
+            <button id="btn-back-shop" class="history-back">Back to lobby</button>
         </header>
         <div class="shop-body">
-            <div class="shop-section-title">Донат</div>
+            <div class="shop-section-title">Donate</div>
             <div class="shop-donate">
                 <div class="shop-item">
-                    <div class="shop-item-title">Поддержать проект</div>
-                    <div class="shop-item-desc">Откроется позже. Спасибо за поддержку!</div>
-                    <button class="shop-donate-btn" disabled>Скоро</button>
+                    <div class="shop-item-title">Support the project</div>
+                    <div class="shop-item-desc">Will be available soon. Thank you for your support!</div>
+                    <button class="shop-donate-btn" disabled>Comming soon</button>
                 </div>
             </div>
-            <div class="shop-section-title">Паки</div>
+            <div class="shop-section-title">Packs</div>
             <div class="shop-item">
                 <div class="shop-item-title">Omamori Pack</div>
-                <div class="shop-item-desc">Случайные карты x5</div>
-                <div class="shop-item-price">Цена: ⛩️ 100</div>
+                <div class="shop-item-desc">Random cards x5</div>
+                <div class="shop-item-price">Price: ⛩️ 100</div>
             </div>
             <div class="shop-item">
                 <div class="shop-item-title">Omamori Ritual x10</div>
-                <div class="shop-item-desc">Гарантия эпик+ в последнем паке</div>
-                <div class="shop-item-price">Цена: ⛩️ 900</div>
+                <div class="shop-item-desc">Guarantee of epic+ in the last pack</div>
+                <div class="shop-item-price">Price: ⛩️ 900</div>
             </div>
         </div>
     </div>
@@ -330,7 +343,7 @@
     <div id="gacha" class="gacha-container hidden">
         <header class="history-header">
             <h2>Omamori Packs</h2>
-            <button id="btn-back-gacha" class="history-back">В лобби</button>
+            <button id="btn-back-gacha" class="history-back">Back to lobby</button>
         </header>
         <div class="gacha-body">
             <div class="gacha-stage" id="gacha-stage">
@@ -343,12 +356,12 @@
                 <div id="gacha-cards" class="gacha-cards"></div>
             </div>
             <div class="gacha-controls">
-                <button id="btn-gacha-open" class="gacha-open-btn">Открыть</button>
-                <button id="btn-gacha-open-10" class="gacha-open-btn secondary">Ритуал x10</button>
-                <button id="btn-gacha-flip" class="gacha-open-btn ghost">Перевернуть все</button>
-                <button id="btn-gacha-reset" class="gacha-open-btn ghost">Сброс</button>
+                <button id="btn-gacha-open" class="gacha-open-btn">Open</button>
+                <button id="btn-gacha-open-10" class="gacha-open-btn secondary">Ritual x10</button>
+                <button id="btn-gacha-flip" class="gacha-open-btn ghost">Flip all</button>
+                <button id="btn-gacha-reset" class="gacha-open-btn ghost">Reset</button>
             </div>
-            <div id="gacha-hint" class="gacha-hint">Зажми узелок и потяни вниз</div>
+            <div id="gacha-hint" class="gacha-hint"></div>
         </div>
     </div>
     <div id="battle-screen" class="battle-screen hidden">
@@ -366,7 +379,7 @@
             </div>
             <div class="battle-center">
                 <div class="battle-timer">Turn: <span id="turn-owner">Player</span> | <span id="turn-timer">30</span>s</div>
-                <div id="turn-indicator" class="turn-indicator">Ваш ход</div>
+                <div id="turn-indicator" class="turn-indicator">Your turn</div>
                 <button id="btn-end-turn" class="battle-btn">End Turn</button>
             </div>
             <div class="battle-controls">

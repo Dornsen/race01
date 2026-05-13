@@ -1,0 +1,50 @@
+.invite-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 140;
+}
+
+.invite-card {
+    background: rgba(20, 22, 26, 0.95);
+    border: 1px solid rgba(139, 126, 109, 0.2);
+    border-radius: 12px;
+    padding: 18px 20px;
+    min-width: 260px;
+    color: #d0cbb5;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+}
+
+.invite-title {
+    font-weight: 600;
+    color: #f1c40f;
+    margin-bottom: 8px;
+}
+
+.invite-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.invite-accept,
+.invite-decline {
+    width: auto;
+    padding: 8px 14px;
+    margin: 0;
+    font-size: 0.85rem;
+}
+
+.invite-accept {
+    background: #27ae60;
+    border: 1px solid #1f8a4d;
+}
+
+.invite-decline {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #d0cbb5;
+}

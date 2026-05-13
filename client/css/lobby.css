@@ -1,0 +1,206 @@
+.lobby-container {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: transparent;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 10;
+}
+
+.lobby-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 40px;
+    background: rgba(20, 22, 26, 0.85);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(139, 126, 109, 0.15);
+}
+
+.lobby-profile { display: flex; align-items: center; gap: 16px; }
+
+.lobby-nav {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+    margin-right: 20px;
+}
+
+.lobby-main {
+    display: flex;
+    flex: 1;
+    position: relative;
+}
+
+.avatar-placeholder {
+    width: 56px;
+    height: 56px;
+    background: #1A1C20;
+    border-radius: 12px;
+    border: 2px solid #633D3D;
+    box-shadow: 0 0 15px rgba(99, 61, 61, 0.2);
+}
+.user-info { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 4px; 
+}
+
+.username { font-size: 1.1rem; 
+    font-weight: 600; 
+    color: #F4F1E1; 
+    letter-spacing: 0.5px; 
+}
+
+.mmr-badge { color: #D0CBB5; 
+    font-size: 0.85rem; 
+    background: rgba(0,0,0,0.4); 
+    padding: 4px 8px; 
+    border-radius: 4px; 
+    display: inline-block;
+}
+
+.currency-badge { 
+    color: #f4f1e1; 
+    font-size: 0.85rem; 
+    background: rgba(99, 61, 61, 0.35); 
+    padding: 4px 8px; 
+    border-radius: 4px; 
+    display: inline-block;
+}
+
+.nav-btn {
+    background: transparent;
+    color: #8B7E6D;
+    padding: 10px 20px;
+    border: none;
+    box-shadow: none;
+    border-radius: 6px;
+    margin: 0;
+}
+
+.nav-btn:hover {
+    background: rgba(139, 126, 109, 0.1);
+    color: #D0CBB5;
+    transform: none;
+}
+
+.logout-btn {
+    width: auto;
+    padding: 10px 24px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #8B7E6D;
+    margin: 0;
+}
+
+.logout-btn:hover { 
+    background: rgba(99, 61, 61, 0.2); 
+    border-color: #633D3D; 
+    color: #FFF; 
+}
+
+.play-section {
+    position: absolute;
+    bottom: 60px;
+    right: 60px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 16px;
+}
+
+.play-modes {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: rgba(20, 22, 26, 0.8);
+    backdrop-filter: blur(12px);
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(139, 126, 109, 0.15);
+}
+
+.mode-btn { background: transparent; color: #8B7E6D; border: 1px solid transparent; margin: 0; box-shadow: none; padding: 12px 24px; }
+.mode-btn:hover { background: rgba(255,255,255,0.05); color: #D0CBB5; transform: none; }
+
+.play-btn-huge {
+    background: linear-gradient(180deg, #8B2332 0%, #5E141F 100%);
+    color: #FFF;
+    font-size: 2rem;
+    padding: 24px 70px;
+    border: 1px solid #A82A3C;
+    border-radius: 12px;
+    margin: 0;
+    box-shadow: 
+        inset 0 2px 0 rgba(255, 255, 255, 0.2),
+        0 10px 30px rgba(0, 0, 0, 0.6),
+        0 0 20px rgba(139, 35, 50, 0.4);
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.play-btn-huge:hover { 
+    background: linear-gradient(180deg, #9C2738 0%, #6E1724 100%);
+    transform: translateY(-2px); 
+    box-shadow: 
+        inset 0 2px 0 rgba(255, 255, 255, 0.25),
+        0 15px 35px rgba(0, 0, 0, 0.7),
+        0 0 30px rgba(139, 35, 50, 0.6);
+}
+
+.play-btn-huge:active {
+    transform: translateY(2px);
+    box-shadow: inset 0 4px 8px rgba(0,0,0,0.4);
+}
+
+.avatar-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 5px;
+}
+
+.avatar-item {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: 0.3s;
+}
+
+.avatar-item.selected, .avatar-item:hover {
+    border-color: #633D3D;
+    box-shadow: 0 0 10px rgba(99, 61, 61, 0.5);
+}
+
+.context-menu {
+    position: absolute;
+    background: #2c3e50;
+    border: 2px solid #34495e;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.8);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 180px;
+}
+.ctx-btn {
+    background: transparent;
+    color: white;
+    border: none;
+    padding: 12px 15px;
+    text-align: left;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+}
+.ctx-btn:hover { background: #34495e; }
+.ctx-btn.danger:hover { background: #e74c3c; }
