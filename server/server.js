@@ -1,59 +1,63 @@
 const express = require('express');
 const path = require('path');
 const http = require('http');
-const app = express();
 const session = require('express-session');
 const { Server } = require('socket.io');
 
+const app = express();
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../client')));
+
 app.use(session({
     secret: 'kiri_secret_key_2026',
     resave: false,
     saveUninitialized: false,
     cookie: { 
-        maxAge: 24 * 60 * 60 * 10000,
+        maxAge: 10 * 24 * 60 * 60 * 1000,
         secure: false
     }
 }));
 
-
 const autoInitDatabase = require('./config/initDb');
 const authController = require('./controllers/authController');
 const friendController = require('./controllers/friendController');
-const gameController = require('./controllers/gameController')
+const gameController = require('./controllers/gameController');
 const { setupSocket } = require('./game/socketGame');
 
-//login register routes
+
+// --- Authentication Routes ---
 app.post('/api/register', authController.register);
 app.post('/api/verify', authController.verifyEmail);
 app.post('/api/login', authController.login);
+app.post('/api/logout', authController.logout);
 app.post('/api/update-avatar', authController.updateAvatar);
 app.post('/api/forgot-password', authController.forgotPassword);
 app.post('/api/reset-password', authController.resetPassword);
-app.post('/api/logout', authController.logout);
-//friend routes
+
+// --- Session Check ---
+app.get('/api/me', authController.checkAuth);
+
+// --- Friend System Routes ---
 app.post('/api/friends/add', friendController.addFriend);
 app.get('/api/friends', friendController.getFriends);
 app.get('/api/friends/pending', friendController.getPendingRequests);
 app.post('/api/friends/accept', friendController.acceptFriend);
 app.post('/api/friends/handle', friendController.handleRequest);
 app.post('/api/friends/remove', friendController.removeFriend);
-//decks and cards
+
+// --- Game & Deck Routes ---
 app.get('/api/cards', gameController.getAllCards);
 app.get('/api/cards/collection', gameController.getCardCollection);
 app.post('/api/decks/save', gameController.saveDeck);
 app.get('/api/decks/mine', gameController.getMyDeck);
+
+// --- Progression & Shop Routes ---
 app.get('/api/matches/history', gameController.getMatchHistory);
 app.get('/api/leaderboard', gameController.getLeaderboard);
 app.post('/api/gacha/open', gameController.openGacha);
 
 
-// stay logged in
-app.get('/api/me', authController.checkAuth);
-
-// start server
 const PORT = process.env.PORT || 3000;
 const server = http.createServer(app);
 const io = new Server(server);
@@ -62,6 +66,8 @@ setupSocket(io);
 
 autoInitDatabase().then(() => {
     server.listen(PORT, () => {
-        console.log(`🚀 Сервер игры запущен на http://localhost:${PORT}`);
+        console.log(`🚀 Game server is running on http://localhost:${PORT}`);
     });
+}).catch(err => {
+    console.error('❌ Failed to initialize database:', err);
 });

@@ -1,69 +1,69 @@
 const db = require('../config/database');
 const GAME_CONFIG = require('../config/gameConfig');
 
-// 1. Получить ВСЕ карты из базы (для левой панели)
+
 exports.getAllCards = async (req, res) => {
     try {
         const [cards] = await db.query('SELECT * FROM cards');
         res.json({ cards });
     } catch (error) {
-        res.status(500).json({ error: 'Ошибка загрузки базы карт' });
+        console.error(error);
+        res.status(500).json({ error: 'Error loading card database' });
     }
 };
 
-// 1.1 Получить коллекцию игрока (все карты + флаг owned)
+// ==============================
+// GET PLAYER COLLECTION
+// ==============================
 exports.getCardCollection = async (req, res) => {
     const userId = req.session.userId;
-    if (!userId) return res.status(401).json({ error: 'Вы не авторизованы' });
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
     try {
-        const [cards] = await db.query(
-            `
+        const [cards] = await db.query(`
             SELECT c.*, CASE WHEN uc.card_id IS NULL THEN 0 ELSE 1 END AS owned
             FROM cards c
             LEFT JOIN user_cards uc ON uc.card_id = c.id AND uc.user_id = ?
             ORDER BY c.cost ASC, c.id ASC
-            `,
-            [userId]
-        );
+        `, [userId]);
 
         res.json({ cards });
     } catch (error) {
-        res.status(500).json({ error: 'Ошибка загрузки коллекции' });
+        console.error(error);
+        res.status(500).json({ error: 'Error loading collection' });
     }
 };
 
-// 2. Сохранить колоду (строго 10 уникальных карт)
 exports.saveDeck = async (req, res) => {
     const userId = req.session.userId;
     const { cardIds } = req.body; 
 
-    if (!userId) return res.status(401).json({ error: 'Вы не авторизованы' });
-    if (!cardIds || cardIds.length !== 10) return res.status(400).json({ error: 'Колода должна состоять ровно из 10 карт!' });
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+    if (!cardIds || cardIds.length !== 10) {
+        return res.status(400).json({ error: 'Deck must contain exactly 10 cards!' });
+    }
 
     try {
-        // Проверяем на дубликаты на сервере
         const uniqueCards = new Set(cardIds);
-        if (uniqueCards.size !== 10) return res.status(400).json({ error: 'В колоде не должно быть одинаковых карт!' });
+        if (uniqueCards.size !== 10) {
+            return res.status(400).json({ error: 'Deck cannot contain duplicate cards!' });
+        }
 
-        // Шаг А: Удаляем старую колоду из active_decks
         await db.query('DELETE FROM active_decks WHERE user_id = ?', [userId]);
 
-        // Шаг Б: Записываем новую
         const values = cardIds.map(id => [userId, id]);
         await db.query('INSERT INTO active_decks (user_id, card_id) VALUES ?', [values]);
 
-        res.json({ message: 'Колода из 10 карт успешно сохранена!' });
+        res.json({ message: '10-card deck saved successfully!' });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Ошибка при сохранении колоды' });
+        res.status(500).json({ error: 'Error saving deck' });
     }
 };
 
-// 3. Получить ТЕКУЩУЮ колоду игрока
 exports.getMyDeck = async (req, res) => {
     const userId = req.session.userId;
-    if (!userId) return res.status(401).json({ error: 'Вы не авторизованы' });
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
     try {
         const [deck] = await db.query(`
@@ -74,18 +74,17 @@ exports.getMyDeck = async (req, res) => {
         
         res.json({ deck });
     } catch (error) {
-        res.status(500).json({ error: 'Ошибка загрузки колоды' });
+        console.error(error);
+        res.status(500).json({ error: 'Error loading active deck' });
     }
 };
 
-// 4. Получить историю матчей
 exports.getMatchHistory = async (req, res) => {
     const userId = req.session.userId;
-    if (!userId) return res.status(401).json({ error: 'Вы не авторизованы' });
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
     try {
-        const [rows] = await db.query(
-            `
+        const [rows] = await db.query(`
             SELECT 
                 mh.id,
                 mh.mode,
@@ -103,9 +102,7 @@ exports.getMatchHistory = async (req, res) => {
             WHERE mh.player1_id = ? OR mh.player2_id = ?
             ORDER BY mh.created_at DESC
             LIMIT 50
-            `,
-            [userId, userId, userId, userId]
-        );
+        `, [userId, userId, userId, userId]);
 
         res.json({
             matches: rows,
@@ -115,37 +112,37 @@ exports.getMatchHistory = async (req, res) => {
             }
         });
     } catch (error) {
-        res.status(500).json({ error: 'Ошибка загрузки истории' });
+        console.error(error);
+        res.status(500).json({ error: 'Error loading match history' });
     }
 };
 
-// 5. Лидерборд по рейтингу
 exports.getLeaderboard = async (req, res) => {
     try {
-        const [rows] = await db.query(
-            `
+        const [rows] = await db.query(`
             SELECT username, match_making_rating
             FROM users
             ORDER BY match_making_rating DESC
             LIMIT 50
-            `
-        );
+        `);
         res.json({ leaderboard: rows });
     } catch (error) {
-        res.status(500).json({ error: 'Ошибка загрузки лидерборда' });
+        console.error(error);
+        res.status(500).json({ error: 'Error loading leaderboard' });
     }
 };
 
-// 6. Открыть Омамори пак
 exports.openGacha = async (req, res) => {
     const userId = req.session.userId;
-    if (!userId) return res.status(401).json({ error: 'Вы не авторизованы' });
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
     const rawCount = Number(req.body && req.body.count) || 1;
     const count = Math.max(1, Math.min(10, rawCount));
+    
     const packSize = GAME_CONFIG.gacha.packSize;
     const packCost = GAME_CONFIG.gacha.packCost;
     const packCost10 = GAME_CONFIG.gacha.packCost10;
+    
     const totalCost = count >= 10 ? packCost10 : packCost * count;
     const totalCards = count * packSize;
 
@@ -156,7 +153,7 @@ exports.openGacha = async (req, res) => {
         );
 
         if (chargeResult.affectedRows === 0) {
-            return res.status(400).json({ error: 'Недостаточно валюты' });
+            return res.status(400).json({ error: 'Insufficient funds' });
         }
 
         const [commons] = await db.query('SELECT * FROM cards WHERE rarity = "common"');
@@ -177,11 +174,14 @@ exports.openGacha = async (req, res) => {
         };
 
         const picks = [];
+
         for (let i = 0; i < totalCards; i += 1) {
             const rarity = drawRarity();
             const pool = pools[rarity];
             const finalPool = pool && pool.length > 0 ? pool : fallbackPool;
+            
             if (!finalPool || finalPool.length === 0) continue;
+            
             const card = finalPool[Math.floor(Math.random() * finalPool.length)];
             picks.push({ ...card });
         }
@@ -195,6 +195,7 @@ exports.openGacha = async (req, res) => {
             const lastPackStart = (count - 1) * packSize;
             const lastPack = picks.slice(lastPackStart, lastPackStart + packSize);
             const hasSr = lastPack.some(card => card.rarity === 'epic' || card.rarity === 'legendary');
+
             if (!hasSr) {
                 const srPool = [...epics, ...legendaries];
                 if (srPool.length > 0) {
@@ -219,6 +220,7 @@ exports.openGacha = async (req, res) => {
             balance: userRow ? userRow.money : 0
         });
     } catch (error) {
-        res.status(500).json({ error: 'Ошибка открытия пака' });
+        console.error(error);
+        res.status(500).json({ error: 'Error opening pack' });
     }
 };

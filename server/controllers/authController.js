@@ -3,9 +3,8 @@ const crypto = require('crypto');
 const db = require('../config/database');
 const transporter = require('../config/mailer');
 
-// --- РЕГИСТРАЦИЯ (с выбором аватара) ---
 exports.register = async (req, res) => {
-    const { username, email, password, avatar_url } = req.body; // Принимаем avatar_url 
+    const { username, email, password, avatar_url } = req.body; 
 
     if (!username || !email || !password) {
         return res.status(400).json({ error: 'All fields are required' });
@@ -15,7 +14,6 @@ exports.register = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10);
         const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
         
-        // Используем выбранный аватар или дефолтный [cite: 107, 110]
         const finalAvatar = avatar_url || 'avatar1.png';
 
         await db.query(
@@ -42,7 +40,6 @@ exports.register = async (req, res) => {
     }
 };
 
-// --- ПОДТВЕРЖДЕНИЕ ПОЧТЫ ---
 exports.verifyEmail = async (req, res) => {
     const { email, code } = req.body;
 
@@ -63,6 +60,7 @@ exports.verifyEmail = async (req, res) => {
             [userId]
         );
 
+        // Grant basic cards for the starter deck upon successful verification
         const [basicCards] = await db.query('SELECT id FROM cards WHERE is_basic = TRUE');
         if (basicCards.length > 0) {
             const inventoryData = basicCards.map(card => [userId, card.id]);
@@ -76,7 +74,6 @@ exports.verifyEmail = async (req, res) => {
     }
 };
 
-// --- ЛОГИН ---
 exports.login = async (req, res) => {
     const { username, password } = req.body;
 
@@ -119,11 +116,9 @@ exports.login = async (req, res) => {
     }
 };
 
-// --- ПРОВЕРКА АВТОРИЗАЦИИ (возвращает данные из БД) ---
 exports.checkAuth = async (req, res) => {
     if (req.session.userId) {
         try {
-            // Достаем актуальные данные (аватарку и MMR) из базы 
             const [users] = await db.query(
                 'SELECT username, avatar_url, match_making_rating, status, money FROM users WHERE id = ?',
                 [req.session.userId]
@@ -131,15 +126,17 @@ exports.checkAuth = async (req, res) => {
             
             if (users.length > 0) {
                 const user = users[0];
+                
                 if (user.status === 'offline') {
                     db.query('UPDATE users SET status = "online" WHERE id = ?', [req.session.userId]);
                 }
+                
                 res.json({ 
                     isLoggedIn: true, 
                     user: { 
                         id: req.session.userId, 
                         username: user.username,
-                        avatar: user.avatar_url, // Возвращаем путь к аватару [cite: 63, 69, 98]
+                        avatar: user.avatar_url, 
                         mmr: user.match_making_rating,
                         money: user.money
                     } 
@@ -155,7 +152,6 @@ exports.checkAuth = async (req, res) => {
     }
 };
 
-// --- СМЕНА АВАТАРА (новый метод) ---
 exports.updateAvatar = async (req, res) => {
     const { avatar_url } = req.body;
     const userId = req.session.userId;
@@ -165,7 +161,6 @@ exports.updateAvatar = async (req, res) => {
     }
 
     try {
-        // Сохраняем выбор аватара в базе данных 
         await db.query('UPDATE users SET avatar_url = ? WHERE id = ?', [avatar_url, userId]);
         res.json({ message: 'Avatar updated successfully!' });
     } catch (error) {
@@ -174,13 +169,12 @@ exports.updateAvatar = async (req, res) => {
     }
 };
 
-// --- ЗАБЫЛИ ПАРОЛЬ ---
 exports.forgotPassword = async (req, res) => {
     const { email } = req.body;
 
     try {
         const token = crypto.randomBytes(20).toString('hex');
-        const expires = new Date(Date.now() + 3600000); 
+        const expires = new Date(Date.now() + 3600000);
 
         const [result] = await db.query(
             'UPDATE users SET reset_token = ?, reset_token_expires = ? WHERE email = ?',
@@ -204,7 +198,6 @@ exports.forgotPassword = async (req, res) => {
     }
 };
 
-// --- СБРОС ПАРОЛЯ ---
 exports.resetPassword = async (req, res) => {
     const { email, token, newPassword } = req.body;
 
@@ -225,17 +218,20 @@ exports.resetPassword = async (req, res) => {
     }
 };
 
-// --- ВЫХОД ---
 exports.logout = (req, res) => {
     const userId = req.session.userId;
+    
     req.session.destroy((err) => {
         if (err) {
-            return res.status(500).json({ error: 'Ошибка при выходе' });
+            return res.status(500).json({ error: 'Logout error' });
         }
+        
         res.clearCookie('connect.sid');
+        
         if (userId) {
             db.query('UPDATE users SET status = "offline" WHERE id = ?', [userId]);
         }
+        
         return res.json({ message: 'Exit successful!' });
     });
 };

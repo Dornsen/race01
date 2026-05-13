@@ -4,12 +4,12 @@ exports.addFriend = async (req, res) => {
     const userId = req.session.userId;
     const { friendUsername } = req.body;
 
-    if (!userId) return res.status(401).json({ error: 'Вы не авторизованы' });
-    if (req.session.username === friendUsername) return res.status(400).json({ error: 'Нельзя добавить самого себя!' });
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+    if (req.session.username === friendUsername) return res.status(400).json({ error: 'You cannot add yourself!' });
 
     try {
         const [users] = await db.query('SELECT id FROM users WHERE username = ?', [friendUsername]);
-        if (users.length === 0) return res.status(404).json({ error: 'Игрок не найден' });
+        if (users.length === 0) return res.status(404).json({ error: 'Player not found' });
 
         const friendId = users[0].id;
 
@@ -20,16 +20,16 @@ exports.addFriend = async (req, res) => {
 
         if (check.length > 0) {
             const status = check[0].status;
-            if (status === 'accepted') return res.status(400).json({ error: 'Вы уже друзья' });
-            if (status === 'pending') return res.status(400).json({ error: 'Заявка уже существует' });
-            if (status === 'blocked') return res.status(403).json({ error: 'Действие заблокировано' });
+            if (status === 'accepted') return res.status(400).json({ error: 'You are already friends' });
+            if (status === 'pending') return res.status(400).json({ error: 'Friend request already exists' });
+            if (status === 'blocked') return res.status(403).json({ error: 'Action blocked' });
         }
 
         await db.query('INSERT INTO friendships (user_id, friend_id) VALUES (?, ?)', [userId, friendId]);
-        res.json({ message: 'Заявка в друзья отправлена!' });
+        res.json({ message: 'Friend request sent!' });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Ошибка сервера' });
+        res.status(500).json({ error: 'Server error' });
     }
 };
 
@@ -45,16 +45,15 @@ exports.getFriends = async (req, res) => {
         `, [userId, userId, userId]);
         res.json({ friends });
     } catch (error) {
-        res.status(500).json({ error: 'Ошибка загрузки' });
+        res.status(500).json({ error: 'Error loading friends list' });
     }
 };
 
 exports.getPendingRequests = async (req, res) => {
     const userId = req.session.userId;
-    if (!userId) return res.status(401).json({ error: 'Вы не авторизованы' });
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
     try {
-        // Ищем тех, кто отправил заявку ТЕБЕ
         const [requests] = await db.query(`
             SELECT f.id as friendship_id, u.username 
             FROM friendships f
@@ -64,7 +63,7 @@ exports.getPendingRequests = async (req, res) => {
         
         res.json({ requests });
     } catch (error) {
-        res.status(500).json({ error: 'Ошибка загрузки заявок' });
+        res.status(500).json({ error: 'Error loading requests' });
     }
 };
 
@@ -78,31 +77,29 @@ exports.acceptFriend = async (req, res) => {
             WHERE id = ? AND friend_id = ?
         `, [friendshipId, userId]);
         
-        res.json({ message: 'Заявка принята!' });
+        res.json({ message: 'Request accepted!' });
     } catch (error) {
-        res.status(500).json({ error: 'Ошибка при принятии заявки' });
+        res.status(500).json({ error: 'Error accepting request' });
     }
 };
 
-
 exports.handleRequest = async (req, res) => {
-    const { friendshipId, action } = req.body; // action: 'accept' или 'decline'
+    const { friendshipId, action } = req.body;
     const userId = req.session.userId;
 
     try {
         if (action === 'accept') {
             await db.query('UPDATE friendships SET status = "accepted" WHERE id = ? AND friend_id = ?', [friendshipId, userId]);
-            res.json({ message: 'Друг добавлен!' });
+            res.json({ message: 'Friend added!' });
         } else {
             await db.query('DELETE FROM friendships WHERE id = ? AND friend_id = ?', [friendshipId, userId]);
-            res.json({ message: 'Заявка отклонена' });
+            res.json({ message: 'Request declined' });
         }
     } catch (error) {
-        res.status(500).json({ error: 'Ошибка обработки' });
+        res.status(500).json({ error: 'Error processing request' });
     }
 };
 
-// 5. Удалить из друзей
 exports.removeFriend = async (req, res) => {
     const userId = req.session.userId;
     const { friendId } = req.body;
@@ -111,8 +108,9 @@ exports.removeFriend = async (req, res) => {
             DELETE FROM friendships 
             WHERE (user_id = ? AND friend_id = ?) OR (user_id = ? AND friend_id = ?)
         `, [userId, friendId, friendId, userId]);
-        res.json({ message: 'Игрок удален из друзей' });
+        
+        res.json({ message: 'Player removed from friends' });
     } catch (error) {
-        res.status(500).json({ error: 'Ошибка при удалении' });
+        res.status(500).json({ error: 'Error removing friend' });
     }
 };
