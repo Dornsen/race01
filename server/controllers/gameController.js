@@ -1,4 +1,5 @@
 const db = require('../config/database');
+const GAME_CONFIG = require('../config/gameConfig');
 
 // 1. Получить ВСЕ карты из базы (для левой панели)
 exports.getAllCards = async (req, res) => {
@@ -74,5 +75,150 @@ exports.getMyDeck = async (req, res) => {
         res.json({ deck });
     } catch (error) {
         res.status(500).json({ error: 'Ошибка загрузки колоды' });
+    }
+};
+
+// 4. Получить историю матчей
+exports.getMatchHistory = async (req, res) => {
+    const userId = req.session.userId;
+    if (!userId) return res.status(401).json({ error: 'Вы не авторизованы' });
+
+    try {
+        const [rows] = await db.query(
+            `
+            SELECT 
+                mh.id,
+                mh.mode,
+                mh.reason,
+                mh.created_at,
+                u.username AS opponent_name,
+                u.avatar_url AS opponent_avatar,
+                CASE 
+                    WHEN mh.winner_id IS NULL THEN 'draw'
+                    WHEN mh.winner_id = ? THEN 'win'
+                    ELSE 'lose'
+                END AS result
+            FROM match_history mh
+            JOIN users u ON u.id = IF(mh.player1_id = ?, mh.player2_id, mh.player1_id)
+            WHERE mh.player1_id = ? OR mh.player2_id = ?
+            ORDER BY mh.created_at DESC
+            LIMIT 50
+            `,
+            [userId, userId, userId, userId]
+        );
+
+        res.json({
+            matches: rows,
+            mmrDelta: {
+                win: GAME_CONFIG.rankedWinDelta,
+                lose: GAME_CONFIG.rankedLoseDelta
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Ошибка загрузки истории' });
+    }
+};
+
+// 5. Лидерборд по рейтингу
+exports.getLeaderboard = async (req, res) => {
+    try {
+        const [rows] = await db.query(
+            `
+            SELECT username, match_making_rating
+            FROM users
+            ORDER BY match_making_rating DESC
+            LIMIT 50
+            `
+        );
+        res.json({ leaderboard: rows });
+    } catch (error) {
+        res.status(500).json({ error: 'Ошибка загрузки лидерборда' });
+    }
+};
+
+// 6. Открыть Омамори пак
+exports.openGacha = async (req, res) => {
+    const userId = req.session.userId;
+    if (!userId) return res.status(401).json({ error: 'Вы не авторизованы' });
+
+    const rawCount = Number(req.body && req.body.count) || 1;
+    const count = Math.max(1, Math.min(10, rawCount));
+    const packSize = GAME_CONFIG.gacha.packSize;
+    const packCost = GAME_CONFIG.gacha.packCost;
+    const packCost10 = GAME_CONFIG.gacha.packCost10;
+    const totalCost = count >= 10 ? packCost10 : packCost * count;
+    const totalCards = count * packSize;
+
+    try {
+        const [chargeResult] = await db.query(
+            'UPDATE users SET money = money - ? WHERE id = ? AND money >= ?',
+            [totalCost, userId, totalCost]
+        );
+
+        if (chargeResult.affectedRows === 0) {
+            return res.status(400).json({ error: 'Недостаточно валюты' });
+        }
+
+        const [commons] = await db.query('SELECT * FROM cards WHERE rarity = "common"');
+        const [rares] = await db.query('SELECT * FROM cards WHERE rarity = "rare"');
+        const [epics] = await db.query('SELECT * FROM cards WHERE rarity = "epic"');
+        const [legendaries] = await db.query('SELECT * FROM cards WHERE rarity = "legendary"');
+
+        const pools = { common: commons, rare: rares, epic: epics, legendary: legendaries };
+        const odds = GAME_CONFIG.gacha.odds;
+        const fallbackPool = commons.length > 0 ? commons : [...rares, ...epics, ...legendaries];
+
+        const drawRarity = () => {
+            const roll = Math.random() * 100;
+            if (roll < odds.legendary) return 'legendary';
+            if (roll < odds.legendary + odds.epic) return 'epic';
+            if (roll < odds.legendary + odds.epic + odds.rare) return 'rare';
+            return 'common';
+        };
+
+        const picks = [];
+        for (let i = 0; i < totalCards; i += 1) {
+            const rarity = drawRarity();
+            const pool = pools[rarity];
+            const finalPool = pool && pool.length > 0 ? pool : fallbackPool;
+            if (!finalPool || finalPool.length === 0) continue;
+            const card = finalPool[Math.floor(Math.random() * finalPool.length)];
+            picks.push({ ...card });
+        }
+
+        while (picks.length < totalCards && fallbackPool && fallbackPool.length > 0) {
+            const card = fallbackPool[Math.floor(Math.random() * fallbackPool.length)];
+            picks.push({ ...card });
+        }
+
+        if (count >= 10) {
+            const lastPackStart = (count - 1) * packSize;
+            const lastPack = picks.slice(lastPackStart, lastPackStart + packSize);
+            const hasSr = lastPack.some(card => card.rarity === 'epic' || card.rarity === 'legendary');
+            if (!hasSr) {
+                const srPool = [...epics, ...legendaries];
+                if (srPool.length > 0) {
+                    const srCard = srPool[Math.floor(Math.random() * srPool.length)];
+                    const replaceIndex = lastPackStart + Math.floor(Math.random() * packSize);
+                    picks[replaceIndex] = { ...srCard };
+                }
+            }
+        }
+
+        if (picks.length > 0) {
+            const values = picks.map(card => [userId, card.id]);
+            await db.query('INSERT IGNORE INTO user_cards (user_id, card_id) VALUES ?', [values]);
+        }
+
+        const [[userRow]] = await db.query('SELECT money FROM users WHERE id = ?', [userId]);
+
+        res.json({
+            count,
+            packSize,
+            cards: picks,
+            balance: userRow ? userRow.money : 0
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Ошибка открытия пака' });
     }
 };

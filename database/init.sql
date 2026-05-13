@@ -78,6 +78,23 @@ CREATE TABLE IF NOT EXISTS friendships (
     UNIQUE KEY unique_friendship (user_id, friend_id)
 );
 
+-- 6.1 Таблица истории матчей
+CREATE TABLE IF NOT EXISTS match_history (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    mode ENUM('ranked', 'casual', 'friend') NOT NULL,
+    player1_id INT NOT NULL,
+    player2_id INT NOT NULL,
+    winner_id INT DEFAULT NULL,
+    reason VARCHAR(50) DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (player1_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (player2_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (winner_id) REFERENCES users(id) ON DELETE SET NULL,
+    INDEX idx_match_player1 (player1_id),
+    INDEX idx_match_player2 (player2_id),
+    INDEX idx_match_created (created_at)
+);
+
 -- 7. Вставка и синхронизация карт (Оптимизированный вариант)
 INSERT INTO cards (name, description, avatar_url, attack, cost, defense, rarity, is_basic, clan, ability_code, ability_description) VALUES
 -- 🟢 COMMON

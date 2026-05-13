@@ -5,5 +5,10 @@ window.GAME_CONFIG = {
     energyMax: 10,
     energyPerRound: 6,
     turnTimeSec: 30,
-    deckSize: 10
+    deckSize: 10,
+    gacha: {
+        packSize: 5,
+        packCost: 100,
+        packCost10: 900
+    }
 };

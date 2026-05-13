@@ -150,7 +150,7 @@ function endTurn(match, io) {
     startTurn(match, nextPlayer, io);
 }
 
-function endMatch(match, io, result) {
+async function endMatch(match, io, result) {
     clearTurnTimer(match);
     const isDraw = !result.winnerSocketId;
     match.players.forEach(player => {
@@ -166,13 +166,29 @@ function endMatch(match, io, result) {
     if (!isDraw && match.mode === 'ranked' && result.winnerUserId && result.loserUserId) {
         const winDelta = GAME_CONFIG.rankedWinDelta;
         const loseDelta = GAME_CONFIG.rankedLoseDelta;
+        try {
+            await Promise.all([
+                db.query(
+                    'UPDATE users SET match_making_rating = GREATEST(0, match_making_rating + ?) WHERE id = ?',
+                    [winDelta, result.winnerUserId]
+                ),
+                db.query(
+                    'UPDATE users SET match_making_rating = GREATEST(0, match_making_rating + ?) WHERE id = ?',
+                    [loseDelta, result.loserUserId]
+                )
+            ]);
+        } catch (error) {
+            console.error('MMR update failed', error);
+        }
+    }
+
+    const playerA = match.players[0];
+    const playerB = match.players[1];
+    if (playerA && playerB) {
+        const winnerId = result.winnerUserId || null;
         db.query(
-            'UPDATE users SET match_making_rating = GREATEST(0, match_making_rating + ?) WHERE id = ?',
-            [winDelta, result.winnerUserId]
-        );
-        db.query(
-            'UPDATE users SET match_making_rating = GREATEST(0, match_making_rating + ?) WHERE id = ?',
-            [loseDelta, result.loserUserId]
+            'INSERT INTO match_history (mode, player1_id, player2_id, winner_id, reason) VALUES (?, ?, ?, ?, ?)',
+            [match.mode, playerA.userId, playerB.userId, winnerId, result.reason || null]
         );
     }
 
@@ -182,11 +198,11 @@ function endMatch(match, io, result) {
 function checkWin(match, io) {
     const [p1, p2] = match.players;
     if (p1.hp <= 0 && p2.hp <= 0) {
-        endMatch(match, io, { reason: 'draw' });
+        void endMatch(match, io, { reason: 'draw' });
         return true;
     }
     if (p1.hp <= 0) {
-        endMatch(match, io, {
+        void endMatch(match, io, {
             reason: 'hp',
             winnerSocketId: p2.socketId,
             loserSocketId: p1.socketId,
@@ -196,7 +212,7 @@ function checkWin(match, io) {
         return true;
     }
     if (p2.hp <= 0) {
-        endMatch(match, io, {
+        void endMatch(match, io, {
             reason: 'hp',
             winnerSocketId: p1.socketId,
             loserSocketId: p2.socketId,
@@ -371,7 +387,7 @@ async function handleFriendInviteAccept(io, socket, payload) {
 
     playerB.deck = shuffle(deckB).map(card => makeBattleCard(playerB, card));
 
-    createMatch(io, 'casual', playerA, playerB);
+    createMatch(io, 'friend', playerA, playerB);
     io.to(fromSocketId).emit('friend_invite_cancel');
 }
 
@@ -475,7 +491,7 @@ function handleLeaveMatch(io, socket) {
     const match = getMatchBySocket(socket.id);
     if (!match) return;
     const opponent = match.players.find(p => p.socketId !== socket.id);
-    endMatch(match, io, {
+    void endMatch(match, io, {
         reason: 'forfeit',
         winnerSocketId: opponent.socketId,
         loserSocketId: socket.id,
@@ -496,7 +512,7 @@ function handleDisconnect(io, socket) {
     }
 
     const opponent = match.players.find(p => p.socketId !== socket.id);
-    endMatch(match, io, {
+    void endMatch(match, io, {
         reason: 'disconnect',
         winnerSocketId: opponent.socketId,
         loserSocketId: socket.id,

@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
 
-const CURRENT_CODE_VERSION = 2; 
+const CURRENT_CODE_VERSION = 3; 
 
 async function autoInitDatabase() {
     let connection;

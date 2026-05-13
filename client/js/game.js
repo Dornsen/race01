@@ -45,6 +45,11 @@ let queueMode = null;
 let queueTimerId = null;
 let queueStartAt = null;
 let pendingInvite = null;
+let historyCache = [];
+let hasShownOnlineTurn = false;
+let historyDelta = { win: 0, lose: 0 };
+let autoEndTurnId = null;
+let currentMoney = 0;
 
 // --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ ОТРИСОВКИ КАРТ ---
 function getRarityColor(rarity) {
@@ -160,6 +165,362 @@ if (btnBackLobby) {
         document.getElementById('deck-builder').classList.add('hidden');
         document.getElementById('main-menu').classList.remove('hidden');
     };
+}
+
+const btnHistory = document.getElementById('btn-history');
+if (btnHistory) {
+    btnHistory.onclick = async () => {
+        leaveQueue();
+        document.getElementById('main-menu').classList.add('hidden');
+        document.getElementById('match-history').classList.remove('hidden');
+        await fetchMatchHistory();
+    };
+}
+
+const btnLeaderboard = document.getElementById('btn-leaderboard');
+if (btnLeaderboard) {
+    btnLeaderboard.onclick = async () => {
+        leaveQueue();
+        document.getElementById('main-menu').classList.add('hidden');
+        document.getElementById('leaderboard').classList.remove('hidden');
+        await fetchLeaderboard();
+    };
+}
+
+const btnQuests = document.getElementById('btn-quests');
+if (btnQuests) {
+    btnQuests.onclick = () => {
+        leaveQueue();
+        document.getElementById('main-menu').classList.add('hidden');
+        document.getElementById('quests').classList.remove('hidden');
+    };
+}
+
+const btnShop = document.getElementById('btn-shop');
+if (btnShop) {
+    btnShop.onclick = () => {
+        leaveQueue();
+        refreshBalance();
+        document.getElementById('main-menu').classList.add('hidden');
+        document.getElementById('shop').classList.remove('hidden');
+    };
+}
+
+const btnGacha = document.getElementById('btn-gacha');
+if (btnGacha) {
+    btnGacha.onclick = () => {
+        leaveQueue();
+        refreshBalance();
+        document.getElementById('main-menu').classList.add('hidden');
+        document.getElementById('gacha').classList.remove('hidden');
+    };
+}
+
+const btnBackHistory = document.getElementById('btn-back-history');
+if (btnBackHistory) {
+    btnBackHistory.onclick = () => {
+        document.getElementById('match-history').classList.add('hidden');
+        document.getElementById('main-menu').classList.remove('hidden');
+    };
+}
+
+const btnBackLeaderboard = document.getElementById('btn-back-leaderboard');
+if (btnBackLeaderboard) {
+    btnBackLeaderboard.onclick = () => {
+        document.getElementById('leaderboard').classList.add('hidden');
+        document.getElementById('main-menu').classList.remove('hidden');
+    };
+}
+
+const btnBackGacha = document.getElementById('btn-back-gacha');
+if (btnBackGacha) {
+    btnBackGacha.onclick = () => {
+        document.getElementById('gacha').classList.add('hidden');
+        document.getElementById('main-menu').classList.remove('hidden');
+        resetGachaUI();
+    };
+}
+
+const btnBackQuests = document.getElementById('btn-back-quests');
+if (btnBackQuests) {
+    btnBackQuests.onclick = () => {
+        document.getElementById('quests').classList.add('hidden');
+        document.getElementById('main-menu').classList.remove('hidden');
+    };
+}
+
+const btnBackShop = document.getElementById('btn-back-shop');
+if (btnBackShop) {
+    btnBackShop.onclick = () => {
+        document.getElementById('shop').classList.add('hidden');
+        document.getElementById('main-menu').classList.remove('hidden');
+    };
+}
+
+const gachaStage = document.getElementById('gacha-stage');
+const gachaBeam = document.getElementById('gacha-beam');
+const gachaCards = document.getElementById('gacha-cards');
+const gachaHint = document.getElementById('gacha-hint');
+const omamori = document.getElementById('omamori');
+const omamoriKnot = document.getElementById('omamori-knot');
+const btnGachaOpen = document.getElementById('btn-gacha-open');
+const btnGachaOpen10 = document.getElementById('btn-gacha-open-10');
+const btnGachaFlip = document.getElementById('btn-gacha-flip');
+const btnGachaReset = document.getElementById('btn-gacha-reset');
+
+const gachaState = {
+    opening: false,
+    dragging: false,
+    startY: 0
+};
+
+function updateMoneyUI(amount) {
+    const moneyEl = document.getElementById('user-money');
+    const shopMoneyEl = document.getElementById('shop-money');
+    const safeAmount = Number(amount) || 0;
+    currentMoney = safeAmount;
+    if (moneyEl) moneyEl.innerText = safeAmount;
+    if (shopMoneyEl) shopMoneyEl.innerText = safeAmount;
+    updateGachaPriceLabels();
+}
+
+function updateGachaPriceLabels() {
+    const gachaConfig = (window.GAME_CONFIG && window.GAME_CONFIG.gacha) || {};
+    const packCost = gachaConfig.packCost || 100;
+    const packCost10 = gachaConfig.packCost10 || 900;
+    if (btnGachaOpen) btnGachaOpen.innerText = `Открыть (⛩️ ${packCost})`;
+    if (btnGachaOpen10) btnGachaOpen10.innerText = `Ритуал x10 (⛩️ ${packCost10})`;
+}
+
+window.setUserMoney = updateMoneyUI;
+
+async function refreshBalance() {
+    try {
+        const res = await fetch('/api/me');
+        const data = await res.json();
+        if (data && data.isLoggedIn && data.user && data.user.money !== undefined) {
+            updateMoneyUI(data.user.money);
+        }
+    } catch (e) {
+        console.warn('Balance refresh failed', e);
+    }
+}
+
+window.refreshBalance = refreshBalance;
+
+function setGachaButtonsDisabled(disabled) {
+    [btnGachaOpen, btnGachaOpen10, btnGachaFlip, btnGachaReset].forEach(btn => {
+        if (btn) btn.disabled = disabled;
+    });
+}
+
+function clearGachaBeam() {
+    if (!gachaBeam) return;
+    gachaBeam.className = 'gacha-beam';
+}
+
+function resetGachaUI() {
+    if (gachaStage) {
+        gachaStage.classList.remove('opening', 'revealed');
+        gachaStage.classList.remove('count-5', 'count-10');
+    }
+    if (gachaCards) gachaCards.innerHTML = '';
+    clearGachaBeam();
+    if (gachaHint) gachaHint.innerText = 'Зажми узелок и потяни вниз';
+    if (omamori) omamori.style.transform = '';
+    gachaState.opening = false;
+    setGachaButtonsDisabled(false);
+}
+
+function getHighestRarity(cards) {
+    const order = ['common', 'rare', 'epic', 'legendary'];
+    let maxIndex = 0;
+    cards.forEach(card => {
+        const idx = order.indexOf(card.rarity);
+        if (idx > maxIndex) maxIndex = idx;
+    });
+    return order[maxIndex];
+}
+
+function buildGachaCard(card) {
+    const cardEl = document.createElement('div');
+    cardEl.className = 'gacha-card';
+
+    const cardImage = card.avatar_url || card.image || '';
+    const inner = document.createElement('div');
+    inner.className = 'gacha-card-inner';
+
+    const back = document.createElement('div');
+    back.className = 'gacha-card-face gacha-card-back';
+    back.innerText = '✦';
+
+    const front = document.createElement('div');
+    front.className = `gacha-card-face gacha-card-front ${card.rarity}`;
+    front.innerHTML = `
+        <div class="gacha-card-title">${card.name}</div>
+        <div class="gacha-card-rarity">${card.rarity}</div>
+        <div class="gacha-card-art">
+            <img src="${cardImage}" alt="${card.name}">
+        </div>
+        <div class="gacha-card-stats">
+            <span>⚔️ ${card.attack}</span>
+            <span>🛡️ ${card.defense}</span>
+        </div>
+    `;
+
+    inner.appendChild(back);
+    inner.appendChild(front);
+    cardEl.appendChild(inner);
+
+    cardEl.onclick = () => {
+        cardEl.classList.toggle('flipped');
+    };
+
+    return cardEl;
+}
+
+function renderGachaCards(cards) {
+    if (!gachaCards) return;
+    gachaCards.innerHTML = '';
+    cards.forEach((card, index) => {
+        const cardEl = buildGachaCard(card);
+        gachaCards.appendChild(cardEl);
+        setTimeout(() => cardEl.classList.add('reveal'), 80 * index);
+    });
+}
+
+function getNewCards(cards) {
+    if (!cardDatabase || cardDatabase.length === 0) return [];
+    const ownedSet = new Set(cardDatabase.filter(card => card.owned).map(card => card.id));
+    const newSet = new Set();
+    cards.forEach(card => {
+        if (!ownedSet.has(card.id)) newSet.add(card.id);
+    });
+    return cards.filter(card => newSet.has(card.id)).filter((card, index, arr) => (
+        arr.findIndex(item => item.id === card.id) === index
+    ));
+}
+
+function markOwnedCards(cards) {
+    if (!cardDatabase || cardDatabase.length === 0) return;
+    const ownedIds = new Set(cards.map(card => card.id));
+    cardDatabase = cardDatabase.map(card => (
+        ownedIds.has(card.id) ? { ...card, owned: true } : card
+    ));
+    if (hasLoadedCollection && !document.getElementById('deck-builder').classList.contains('hidden')) {
+        renderDeckBuilder();
+    }
+}
+
+async function requestGachaOpen(count) {
+    if (gachaState.opening) return;
+    const gachaConfig = (window.GAME_CONFIG && window.GAME_CONFIG.gacha) || {};
+    const packCost = gachaConfig.packCost || 100;
+    const packCost10 = gachaConfig.packCost10 || 900;
+    const totalCost = count >= 10 ? packCost10 : packCost * count;
+    if (currentMoney < totalCost) {
+        if (gachaHint) gachaHint.innerText = 'Недостаточно валюты';
+        return;
+    }
+    gachaState.opening = true;
+    setGachaButtonsDisabled(true);
+    if (gachaHint) gachaHint.innerText = 'Открываем пак...';
+    if (gachaStage) gachaStage.classList.remove('revealed');
+    if (gachaCards) gachaCards.innerHTML = '';
+    clearGachaBeam();
+
+    try {
+        const res = await fetch('/api/gacha/open', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ count })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Ошибка открытия пака');
+
+        if (gachaStage) gachaStage.classList.add('opening');
+        if (gachaStage) {
+            gachaStage.classList.remove('count-5', 'count-10');
+            gachaStage.classList.add(count >= 10 ? 'count-10' : 'count-5');
+        }
+        const rarity = getHighestRarity(data.cards || []);
+        if (gachaBeam) {
+            gachaBeam.className = `gacha-beam visible ${rarity}`;
+        }
+
+        setTimeout(() => {
+            renderGachaCards(data.cards || []);
+            if (gachaStage) gachaStage.classList.add('revealed');
+            const newCards = getNewCards(data.cards || []);
+            if (gachaHint) {
+                gachaHint.innerText = newCards.length > 0
+                    ? `Новые карты: ${newCards.length}`
+                    : 'Новых карт нет';
+            }
+            markOwnedCards(data.cards || []);
+            if (data.balance !== undefined) updateMoneyUI(data.balance);
+            gachaState.opening = false;
+            setGachaButtonsDisabled(false);
+        }, 700);
+    } catch (error) {
+        if (gachaHint) gachaHint.innerText = error.message || 'Не удалось открыть пак';
+        gachaState.opening = false;
+        setGachaButtonsDisabled(false);
+    }
+}
+
+if (btnGachaOpen) {
+    btnGachaOpen.onclick = () => requestGachaOpen(1);
+}
+
+if (btnGachaOpen10) {
+    btnGachaOpen10.onclick = () => requestGachaOpen(10);
+}
+
+if (btnGachaFlip) {
+    btnGachaFlip.onclick = () => {
+        if (!gachaCards) return;
+        gachaCards.querySelectorAll('.gacha-card').forEach(card => {
+            card.classList.add('flipped');
+        });
+    };
+}
+
+if (btnGachaReset) {
+    btnGachaReset.onclick = () => resetGachaUI();
+}
+
+updateGachaPriceLabels();
+
+if (omamoriKnot && omamori) {
+    omamoriKnot.addEventListener('pointerdown', (event) => {
+        if (gachaState.opening) return;
+        gachaState.dragging = true;
+        gachaState.startY = event.clientY;
+        omamoriKnot.setPointerCapture(event.pointerId);
+    });
+
+    omamoriKnot.addEventListener('pointermove', (event) => {
+        if (!gachaState.dragging || gachaState.opening) return;
+        const delta = Math.max(0, event.clientY - gachaState.startY);
+        const clamped = Math.min(delta, 120);
+        omamori.style.transform = `translateY(${clamped}px)`;
+        if (delta > 70) {
+            gachaState.dragging = false;
+            omamori.style.transform = '';
+            requestGachaOpen(1);
+        }
+    });
+
+    const stopDrag = () => {
+        if (!gachaState.dragging) return;
+        gachaState.dragging = false;
+        omamori.style.transform = '';
+    };
+
+    omamoriKnot.addEventListener('pointerup', stopDrag);
+    omamoriKnot.addEventListener('pointercancel', stopDrag);
+    omamoriKnot.addEventListener('pointerleave', stopDrag);
 }
 
 // --- 3. ОТРИСОВКА И ЛОГИКА СБОРКИ ---
@@ -371,6 +732,7 @@ function initSocket(user) {
         battleState.isOnline = true;
         battleState.mode = payload.mode || 'casual';
         battleState.inBattle = true;
+        hasShownOnlineTurn = false;
         hideQueuePanel();
         hideInviteModal();
         setBattleScreenVisible(true);
@@ -491,7 +853,9 @@ function startQueueTimer() {
     stopQueueTimer();
     const timeEl = document.getElementById('queue-time');
     if (!timeEl) return;
+    if (!queueStartAt) queueStartAt = Date.now();
     queueTimerId = setInterval(() => {
+        if (!queueStartAt) queueStartAt = Date.now();
         const elapsed = Math.floor((Date.now() - queueStartAt) / 1000);
         const mins = Math.floor(elapsed / 60);
         const secs = `${elapsed % 60}`.padStart(2, '0');
@@ -542,6 +906,12 @@ function applyServerState(state) {
     const opponentName = document.getElementById('opponent-name');
     if (playerName) playerName.innerText = state.you.name || 'Player';
     if (opponentName) opponentName.innerText = state.opponent.name || 'Opponent';
+
+    if (!hasShownOnlineTurn && state.turn) {
+        const text = state.turn === 'you' ? 'Ваш ход' : 'Ход соперника';
+        showCoinFlip(text);
+        hasShownOnlineTurn = true;
+    }
 
     startTimer();
     renderBattle();
@@ -734,7 +1104,7 @@ function coinFlipStart() {
 
         setTimeout(() => {
             const starter = Math.random() > 0.5 ? 'player' : 'opponent';
-            text.innerText = starter === 'player' ? 'You start!' : 'Opponent starts!';
+            text.innerText = starter === 'player' ? 'Ваш ход' : 'Ход соперника';
             setTimeout(() => {
                 coin.classList.add('hidden');
                 startTurn(starter);
@@ -800,9 +1170,17 @@ function exitBattle(skipServer) {
     if (battleState.isOnline && !skipServer && socket) {
         socket.emit('leave_match');
     }
+    const battleScreen = document.getElementById('battle-screen');
+    if (battleScreen) {
+        battleScreen.classList.remove('turn-player', 'turn-opponent');
+    }
     battleState.inBattle = false;
     battleState.isOnline = false;
     battleState.mode = 'practice';
+    if (autoEndTurnId) {
+        clearTimeout(autoEndTurnId);
+        autoEndTurnId = null;
+    }
     if (battleState.timerId) clearInterval(battleState.timerId);
     battleState.timerId = null;
     setBattleScreenVisible(false);
@@ -813,11 +1191,30 @@ function renderBattle() {
     renderBattleBoard('player');
     renderBattleBoard('opponent');
     renderBattleHand();
+    scheduleAutoEndTurn();
+}
+
+function scheduleAutoEndTurn() {
+    if (autoEndTurnId) {
+        clearTimeout(autoEndTurnId);
+        autoEndTurnId = null;
+    }
+    if (!battleState.inBattle || battleState.turn !== 'player') return;
+
+    if (battleState.player.hand.length > 0) return;
+    const canAttack = battleState.player.board.some(card => !card.hasAttacked && !card.summoningSick);
+    if (canAttack) return;
+
+    autoEndTurnId = setTimeout(() => {
+        if (battleState.inBattle && battleState.turn === 'player') endTurn();
+    }, 600);
 }
 
 function updateBattleHeader() {
+    const battleScreen = document.getElementById('battle-screen');
     const turnOwner = document.getElementById('turn-owner');
     const timer = document.getElementById('turn-timer');
+    const turnIndicator = document.getElementById('turn-indicator');
     const playerHp = document.getElementById('player-hp');
     const opponentHp = document.getElementById('opponent-hp');
     const playerEnergy = document.getElementById('player-energy');
@@ -826,6 +1223,15 @@ function updateBattleHeader() {
     const opponentHand = document.getElementById('opponent-hand-count');
 
     if (turnOwner) turnOwner.innerText = battleState.turn === 'player' ? 'Player' : 'Opponent';
+    if (battleScreen) {
+        battleScreen.classList.toggle('turn-player', battleState.turn === 'player');
+        battleScreen.classList.toggle('turn-opponent', battleState.turn === 'opponent');
+    }
+    if (turnIndicator) {
+        const isPlayerTurn = battleState.turn === 'player';
+        turnIndicator.innerText = isPlayerTurn ? 'Ваш ход' : 'Ход соперника';
+        turnIndicator.classList.toggle('opponent', !isPlayerTurn);
+    }
     if (timer) timer.innerText = `${battleState.timer}`;
     if (playerHp) playerHp.innerText = `${battleState.player.hp}`;
     if (opponentHp) opponentHp.innerText = `${battleState.opponent.hp}`;
@@ -1033,9 +1439,177 @@ function checkWin() {
 function endBattle(message) {
     showNotification(message, false);
     battleState.inBattle = false;
+    if (autoEndTurnId) {
+        clearTimeout(autoEndTurnId);
+        autoEndTurnId = null;
+    }
     if (battleState.timerId) clearInterval(battleState.timerId);
     battleState.timerId = null;
     setTimeout(() => {
         setBattleScreenVisible(false);
     }, 1200);
 }
+
+async function fetchMatchHistory() {
+    try {
+        const res = await fetch('/api/matches/history');
+        const data = await res.json();
+        if (!res.ok) {
+            showNotification(data.error || 'Ошибка истории', true);
+            return;
+        }
+        historyCache = data.matches || [];
+        historyDelta = data.mmrDelta || { win: 0, lose: 0 };
+        applyHistoryFilters();
+    } catch (e) {
+        showNotification('Ошибка истории', true);
+    }
+}
+
+async function fetchLeaderboard() {
+    try {
+        const res = await fetch('/api/leaderboard');
+        const data = await res.json();
+        if (!res.ok) {
+            showNotification(data.error || 'Ошибка лидерборда', true);
+            return;
+        }
+        renderLeaderboard(data.leaderboard || []);
+    } catch (e) {
+        showNotification('Ошибка лидерборда', true);
+    }
+}
+
+function renderLeaderboard(items) {
+    const list = document.getElementById('leaderboard-list');
+    if (!list) return;
+    list.innerHTML = '';
+
+    if (!items.length) {
+        list.innerHTML = '<div class="history-empty">Нет данных</div>';
+        return;
+    }
+
+    items.forEach((row, index) => {
+        const item = document.createElement('div');
+        item.className = 'leaderboard-item';
+        item.innerHTML = `
+            <div><span class="leaderboard-rank">#${index + 1}</span> ${row.username}</div>
+            <div>${row.match_making_rating}</div>
+        `;
+        list.appendChild(item);
+    });
+}
+
+function renderMatchHistory(matches) {
+    const list = document.getElementById('history-list');
+    if (!list) return;
+    list.innerHTML = '';
+
+    if (!matches.length) {
+        list.innerHTML = '<div class="history-empty">Нет матчей</div>';
+        return;
+    }
+
+    matches.forEach(match => {
+        const item = document.createElement('div');
+        item.className = 'history-item';
+
+        const avatar = match.opponent_avatar ? `assets/avatars/${match.opponent_avatar}` : 'assets/avatars/avatar1.png';
+        const createdAt = new Date(match.created_at).toLocaleString('ru-RU');
+        const resultClass = match.result || 'draw';
+        const resultLabel = match.result === 'win' ? 'победа' : (match.result === 'lose' ? 'поражение' : 'ничья');
+        const modeLabel = match.mode === 'ranked' ? 'Рейтинговый' : (match.mode === 'casual' ? 'Обычный' : 'Дружеский');
+
+        item.innerHTML = `
+            <div class="history-left">
+                <div class="history-avatar" style="background-image: url('${avatar}')"></div>
+                <div>
+                    <div class="history-name">${match.opponent_name || 'Opponent'}</div>
+                    <div class="history-meta">${modeLabel} • ${createdAt}</div>
+                </div>
+            </div>
+            <div class="history-result ${resultClass}">${resultLabel}</div>
+        `;
+        item.onclick = () => showHistoryDetail(match);
+        list.appendChild(item);
+    });
+}
+
+function applyHistoryFilters() {
+    const modeEl = document.getElementById('history-filter-mode');
+    const searchEl = document.getElementById('history-search');
+    const sortEl = document.getElementById('history-sort');
+    if (!modeEl || !searchEl || !sortEl) return;
+
+    const mode = modeEl.value;
+    const query = searchEl.value.trim().toLowerCase();
+    const sort = sortEl.value;
+
+    let filtered = historyCache.slice();
+    if (mode !== 'all') {
+        filtered = filtered.filter(item => item.mode === mode);
+    }
+    if (query) {
+        filtered = filtered.filter(item => (item.opponent_name || '').toLowerCase().includes(query));
+    }
+
+    if (sort === 'date_asc') {
+        filtered.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+    } else if (sort === 'name_asc') {
+        filtered.sort((a, b) => (a.opponent_name || '').localeCompare(b.opponent_name || ''));
+    } else if (sort === 'name_desc') {
+        filtered.sort((a, b) => (b.opponent_name || '').localeCompare(a.opponent_name || ''));
+    } else {
+        filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    }
+
+    renderMatchHistory(filtered);
+}
+
+function showHistoryDetail(match) {
+    const modal = document.getElementById('history-detail');
+    const body = document.getElementById('history-detail-body');
+    if (!modal || !body) return;
+
+    const createdAt = new Date(match.created_at).toLocaleString('ru-RU');
+    const resultLabel = match.result === 'win' ? 'Победа' : (match.result === 'lose' ? 'Поражение' : 'Ничья');
+    const modeLabel = match.mode === 'ranked' ? 'Рейтинговый' : (match.mode === 'casual' ? 'Обычный' : 'Дружеский');
+    const reason = match.reason || '—';
+    const deltaValue = match.mode === 'ranked'
+        ? (match.result === 'win' ? historyDelta.win : (match.result === 'lose' ? historyDelta.lose : 0))
+        : 0;
+    const delta = deltaValue > 0 ? `+${deltaValue}` : `${deltaValue}`;
+
+    body.innerHTML = `
+        <div><strong>Оппонент:</strong> ${match.opponent_name || 'Opponent'}</div>
+        <div><strong>Режим:</strong> ${modeLabel}</div>
+        <div><strong>Результат:</strong> ${resultLabel}</div>
+        <div><strong>Дата:</strong> ${createdAt}</div>
+        <div><strong>Причина:</strong> ${reason}</div>
+        <div><strong>Рейтинг:</strong> ${delta}</div>
+    `;
+    modal.classList.remove('hidden');
+}
+
+const historyDetail = document.getElementById('history-detail');
+if (historyDetail) {
+    historyDetail.onclick = (e) => {
+        if (e.target === historyDetail) historyDetail.classList.add('hidden');
+    };
+}
+
+const historyDetailClose = document.getElementById('history-detail-close');
+if (historyDetailClose) {
+    historyDetailClose.onclick = () => {
+        const modal = document.getElementById('history-detail');
+        if (modal) modal.classList.add('hidden');
+    };
+}
+
+const historyFilterMode = document.getElementById('history-filter-mode');
+if (historyFilterMode) historyFilterMode.onchange = applyHistoryFilters;
+const historySearch = document.getElementById('history-search');
+if (historySearch) historySearch.oninput = applyHistoryFilters;
+const historySort = document.getElementById('history-sort');
+if (historySort) historySort.onchange = applyHistoryFilters;

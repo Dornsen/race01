@@ -17,6 +17,18 @@ function updatePlayerUI(user) {
         mmr.innerText = user.mmr;
     }
 
+    if (user.money !== undefined) {
+        if (typeof window.setUserMoney === 'function') {
+            window.setUserMoney(user.money);
+        } else {
+            const moneyEl = document.getElementById('user-money');
+            const shopMoneyEl = document.getElementById('shop-money');
+            if (moneyEl) moneyEl.innerText = user.money;
+            if (shopMoneyEl) shopMoneyEl.innerText = user.money;
+            window.currentMoney = Number(user.money) || 0;
+        }
+    }
+
     const avatarPlaceholder = document.querySelector('.avatar-placeholder');
     if (avatarPlaceholder && user.avatar) {
         avatarPlaceholder.style.backgroundImage = `url('assets/avatars/${user.avatar}')`;
@@ -57,6 +69,7 @@ window.onload = async () => {
             updatePlayerUI(result.user);
             showBox('main-menu');
             loadFriends();
+            if (typeof window.refreshBalance === 'function') window.refreshBalance();
             if (typeof fetchCardsFromDB === 'function') fetchCardsFromDB();
             if (typeof fetchMyDeck === 'function') fetchMyDeck();
             if (typeof initSocket === 'function') initSocket(result.user);
@@ -81,6 +94,7 @@ function showBox(boxId) {
             if (!friendPollInterval) {
                 friendPollInterval = setInterval(loadFriends, 5000);
             }
+            if (typeof window.refreshBalance === 'function') window.refreshBalance();
         } else {
             mainMenu.classList.add('hidden');
             if (typeof leaveQueue === 'function') leaveQueue();

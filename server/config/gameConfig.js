@@ -7,5 +7,16 @@ module.exports = {
     turnTimeSec: 30,
     deckSize: 10,
     rankedWinDelta: 20,
-    rankedLoseDelta: -20
+    rankedLoseDelta: -20,
+    gacha: {
+        packSize: 5,
+        packCost: 100,
+        packCost10: 900,
+        odds: {
+            common: 70,
+            rare: 20,
+            epic: 8,
+            legendary: 2
+        }
+    }
 };

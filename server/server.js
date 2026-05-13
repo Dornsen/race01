@@ -45,6 +45,9 @@ app.get('/api/cards', gameController.getAllCards);
 app.get('/api/cards/collection', gameController.getCardCollection);
 app.post('/api/decks/save', gameController.saveDeck);
 app.get('/api/decks/mine', gameController.getMyDeck);
+app.get('/api/matches/history', gameController.getMatchHistory);
+app.get('/api/leaderboard', gameController.getLeaderboard);
+app.post('/api/gacha/open', gameController.openGacha);
 
 
 // stay logged in

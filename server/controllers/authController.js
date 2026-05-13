@@ -109,7 +109,8 @@ exports.login = async (req, res) => {
                 id: user.id,
                 username: user.username,
                 avatar: user.avatar_url,
-                mmr: user.match_making_rating
+                mmr: user.match_making_rating,
+                money: user.money
             }
         });
     } catch (error) {
@@ -124,19 +125,23 @@ exports.checkAuth = async (req, res) => {
         try {
             // Достаем актуальные данные (аватарку и MMR) из базы 
             const [users] = await db.query(
-                'SELECT username, avatar_url, match_making_rating FROM users WHERE id = ?', 
+                'SELECT username, avatar_url, match_making_rating, status, money FROM users WHERE id = ?',
                 [req.session.userId]
             );
             
             if (users.length > 0) {
                 const user = users[0];
+                if (user.status === 'offline') {
+                    db.query('UPDATE users SET status = "online" WHERE id = ?', [req.session.userId]);
+                }
                 res.json({ 
                     isLoggedIn: true, 
                     user: { 
                         id: req.session.userId, 
                         username: user.username,
                         avatar: user.avatar_url, // Возвращаем путь к аватару [cite: 63, 69, 98]
-                        mmr: user.match_making_rating
+                        mmr: user.match_making_rating,
+                        money: user.money
                     } 
                 });
             } else {
