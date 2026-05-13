@@ -324,35 +324,31 @@
 
 .card {
     width: 160px;
-    height: 240px;
-    background: #000;
+    height: auto;
+    aspect-ratio: 2/3;
+    background: transparent !important; /* Убираем черный фон, чтобы видеть арт целиком */
     border: 1px solid rgba(139, 126, 109, 0.3);
-    border-radius: 4px;
-    overflow: hidden;
+    border-radius: 8px;
+    overflow: visible;
     position: relative;
     display: flex;
     flex-direction: column;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    transition: all 0.3s ease;
     cursor: pointer;
 }
 
 .card:hover {
-    transform: translateY(-10px) scale(1.05);
+    transform: translateY(-8px); /* Карта просто приподнимается */
     border-color: #633D3D;
-    box-shadow: 0 15px 40px rgba(99, 61, 61, 0.4);
+    /* Багровое свечение вместо зума */
+    filter: drop-shadow(0 0 12px rgba(99, 61, 61, 0.6)); 
     z-index: 20;
 }
 
 .card::after,
 .card::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 40%);
-    opacity: 0;
-    transition: opacity 0.3s;
-    pointer-events: none;
+    display: none !important;
 }
 
 .card:hover::after,
@@ -364,50 +360,60 @@
 .card-art {
     position: absolute;
     inset: 0;
-    overflow: hidden;
     z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .card-art img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
-    filter: sepia(0.2) contrast(1.1);
-    transition: filter 0.4s ease, transform 0.4s ease;
+    object-fit: cover !important;
+    transition: filter 0.3s ease;
+    border-radius: 7px;
 }
 
 .card:hover .card-art img {
-    filter: sepia(0) contrast(1.2) brightness(1.05);
-    transform: scale(1.05);
+    filter: brightness(1.1) contrast(1.1);
 }
 
 /* ── TOP BAR: cost icon (left) + name (right) ── */
 .card-top-bar {
     position: absolute;
-    top: 0;
+    top: -8px;
     left: 0;
     right: 0;
     z-index: 5;
     display: flex;
-    align-items: flex-start;
-    gap: 6px;
-    padding: 6px 7px 0;
-    background: linear-gradient(to bottom, rgba(0,0,0,0.72) 0%, transparent 100%);
+    justify-content: space-between; 
+    align-items: center;
+    gap: 10px;
+    padding: 8px 8px 0;
+    /* Убираем черный градиент и делаем фон прозрачным */
+    background: transparent !important; 
+    text-align: right;
+    
 }
 
 /* Cost icon wrapper */
 .card-cost-wrap {
     position: relative;
     flex-shrink: 0;
-    width: 34px;
-    height: 21px; /* 34 × (696/1137) ≈ 21 */
+    width: 42px;
+    height: 42px;
+    margin-left: -8px; /* Небольшой отступ от левого края карты */
+    margin-top: -5px;
 }
 
 .card-cost-icon {
-    width: 34px;
-    height: 21px;
+    width: 48px;  /* Было 34px */
+    height: 48px;
     display: block;
     filter: drop-shadow(0 1px 3px rgba(0,0,0,0.9));
+    fill: #633D3D !important;
+    transform: rotate(-45deg);
+
 }
 
 .card-cost-icon svg {
@@ -421,39 +427,45 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 11px;
+    font-size: 16px;
     font-weight: 800;
     color: #F4F1E1;
     text-shadow: 0 1px 3px rgba(0,0,0,1);
     line-height: 1;
+    transform: translate(1px, 1px);
 }
 
 /* Character name */
 .card-name {
     flex: 1;
     font-family: 'Marcellus', Georgia, serif;
+    color: #000000;
     font-size: 11px;
-    font-weight: 400;
-    color: #F4F1E1;
-    text-shadow: 0 1px 4px rgba(0,0,0,1), 0 0 8px rgba(0,0,0,0.8);
+    font-weight: 800;
     letter-spacing: 0.5px;
     line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
     word-break: break-word;
     padding-top: 2px;
+    white-space: nowrap;
+    text-align: right;
+    transform: translateY(-11px);
 }
 
 /* ── BOTTOM BAR: kunai+ATK | clan | shield+DEF ── */
 .card-bottom-bar {
     position: absolute;
-    bottom: 0;
+    bottom: -8px;
     left: 0;
     right: 0;
     z-index: 5;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 4px 6px 5px;
-    background: linear-gradient(to top, rgba(0,0,0,0.82) 0%, transparent 100%);
+    padding: 0 8px 8px;
+    /* Убираем черный градиент и делаем фон прозрачным */
+    background: transparent !important;
 }
 
 .card-stat {
@@ -468,11 +480,13 @@
     display: block;
     filter: drop-shadow(0 1px 2px rgba(0,0,0,0.9));
     flex-shrink: 0;
+    fill: #000000 !important;
 }
 
 .card-stat-icon svg {
     width: 100%;
     height: 100%;
+    fill: #000000 !important;
 }
 
 /* Kunai icon proportions: 2000×2000 — 20×20 */
@@ -484,7 +498,7 @@
 .card-stat-num {
     font-size: 13px;
     font-weight: 800;
-    color: #F4F1E1;
+    color: #000000;
     text-shadow: 0 1px 4px rgba(0,0,0,1);
     line-height: 1;
 }
@@ -664,4 +678,55 @@
     font-size: 0.8rem;
     display: block;
     margin-bottom: 8px;
+}
+
+.card-name, 
+.card-stat-num, 
+.card-cost-num,
+.card-stat-icon,
+.card-stat-icon svg {
+    text-shadow: none !important;
+    filter: none !important;
+    box-shadow: none !important;
+}
+
+.card-cost-icon, 
+.card-stat-icon, 
+.card-clan, 
+.card-cost-wrap {
+    box-shadow: none !important;
+    filter: none !important;
+}
+
+.card-top-bar, 
+.card-bottom-bar {
+    background: transparent !important;
+}
+
+/* Базовый стиль для всех иконок клана */
+.clan-icon-svg {
+    width: 26px; /* или твой размер */
+    height: 26px;
+    display: block;
+}
+
+/* 1. Двигаем Wild Spirits (Дикие Духи) */
+.clan-icon-svg.wild-spirits {
+    transform: translate(0px, 1px); /* Сдвиг на 2px влево и на 5px вниз */
+}
+
+/* 2. Двигаем Elemental Sovereigns (Повелители Стихий) */
+.clan-icon-svg.elemental-sovereigns {
+    transform: translate(-2px, -1px);
+    scale: 1.1; /* Можно даже немного увеличить, если иконка кажется мелкой */
+}
+
+/* 3. Двигаем Shadow Realm (Царство Теней) */
+.clan-icon-svg.shadow-realm {
+    transform: translate(0px, 0px); /* Вправо на 4px и вниз на 2px */
+}
+
+/* 4. Двигаем Celestial Court (Небесный Двор) */
+.clan-icon-svg.celestial-court {
+    transform: translate(0, -0.5px); /* Только влево на 5px */
 }
