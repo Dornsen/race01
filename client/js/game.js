@@ -84,7 +84,7 @@ function createCardElement(cardData, options = {}) {
             <span>ATK: ${cardData.attack}</span>
             <span>DEF: ${cardData.defense}</span>
         </div>
-        ${isOwned ? '' : '<div class="card-locked-overlay">ЗАБЛОКИРОВАНО</div>'}
+        ${isOwned ? '' : '<div class="card-locked-overlay">LOCKED</div>'}
     `;
 
     // Клик для показа деталей в модалке (на иконку 'i' больше не полагаемся, кликаем по всей карте)
@@ -170,7 +170,7 @@ function renderDeckBuilder() {
     // Левая панель (Коллекция)
     const ownedCount = cardDatabase.filter(card => card.owned).length;
     if (collectionCount) {
-        collectionCount.innerText = `Коллекция: ${ownedCount} / ${cardDatabase.length}`;
+        collectionCount.innerText = `Collection: ${ownedCount} / ${cardDatabase.length}`;
     }
 
     const filteredCards = cardDatabase.filter(card => {
@@ -259,8 +259,8 @@ function wireCollectionFilters() {
 }
 
 function addToDeck(card) {
-    if (myDeck.length >= MAX_DECK_SIZE) return showNotification(`Максимум ${MAX_DECK_SIZE} карт!`, true);
-    if (myDeck.some(c => c.id === card.id)) return showNotification('Эта карта уже в колоде!', true);
+    if (myDeck.length >= MAX_DECK_SIZE) return showNotification(`Max ${MAX_DECK_SIZE} cards!`, true);
+    if (myDeck.some(c => c.id === card.id)) return showNotification('Card already in deck!', true);
     
     myDeck.push(card);
     renderDeckBuilder();
@@ -276,7 +276,7 @@ const btnSaveDeck = document.getElementById('btn-save-deck');
 if (btnSaveDeck) {
     btnSaveDeck.onclick = async () => {
         if (myDeck.length !== MAX_DECK_SIZE) {
-            return showNotification(`Собери ровно ${MAX_DECK_SIZE} карт! (У тебя: ${myDeck.length})`, true);
+            return showNotification(`Collect exactly ${MAX_DECK_SIZE} cards! (You have: ${myDeck.length})`, true);
         }
         
         const cardIds = myDeck.map(card => card.id);
@@ -293,7 +293,7 @@ if (btnSaveDeck) {
             const result = await res.json();
             showNotification(result.message || result.error, res.ok ? 'success' : 'error');
         } catch (e) {
-            showNotification('Ошибка сохранения', true);
+            showNotification('Save failed', true);
         } finally {
             btnSaveDeck.innerText = prevText;
             btnSaveDeck.disabled = false;
@@ -310,10 +310,10 @@ function showCardDetails(card) {
 
     title.innerText = card.name;
     const parts = [];
-    if (card.description) parts.push(`<div><strong>Описание:</strong> ${card.description}</div>`);
-    if (card.ability) parts.push(`<div><strong>Способность:</strong> ${card.ability}</div>`);
-    if (card.clan) parts.push(`<div><strong>Клан:</strong> ${card.clan}</div>`);
-    parts.push(`<div><strong>Статы:</strong> ATK ${card.attack} / DEF ${card.defense} / COST ${card.cost}</div>`);
+    if (card.description) parts.push(`<div><strong>Description:</strong> ${card.description}</div>`);
+    if (card.ability) parts.push(`<div><strong>Ability:</strong> ${card.ability}</div>`);
+    if (card.clan) parts.push(`<div><strong>Clan:</strong> ${card.clan}</div>`);
+    parts.push(`<div><strong>Stats:</strong> ATK ${card.attack} / DEF ${card.defense} / COST ${card.cost}</div>`);
 
     body.innerHTML = parts.join('');
     modal.classList.remove('hidden');
@@ -446,7 +446,7 @@ function showInviteModal(name) {
     const inviteModal = document.getElementById('friend-invite-modal');
     const inviteText = document.getElementById('invite-text');
     if (!inviteModal || !inviteText) return;
-    inviteText.innerText = `${name || 'Игрок'} приглашает вас в бой.`;
+    inviteText.innerText = `${name || 'Player'} invites you to battle.`;
     inviteModal.classList.remove('hidden');
 }
 
@@ -458,18 +458,18 @@ function hideInviteModal() {
 
 function sendFriendInvite(friendId, friendName) {
     if (!socket) {
-        showNotification('Нет соединения', true);
+        showNotification('No connection', true);
         return;
     }
     socket.emit('friend_invite', { targetUserId: friendId });
-    showNotification(`Запрос на бой отправлен игроку ${friendName || ''}`);
+    showNotification(`Battle request sent to ${friendName || ''}`);
 }
 
 function showQueuePanel(mode) {
     const panel = document.getElementById('queue-panel');
     const modeEl = document.getElementById('queue-mode');
     if (!panel || !modeEl) return;
-    const label = mode === 'ranked' ? 'Рейтинговый' : (mode === 'casual' ? 'Обычный' : '-');
+    const label = mode === 'ranked' ? 'Ranked' : (mode === 'casual' ? 'Casual' : '-');
     modeEl.innerText = label;
     panel.classList.remove('hidden');
     queueStartAt = Date.now();

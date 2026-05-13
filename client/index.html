@@ -117,13 +117,13 @@
                 </div>
                 <button id="btn-play-main" class="play-btn-huge">PLAY</button>
                 <div id="queue-panel" class="queue-panel hidden">
-                    <div class="queue-title">Поиск игры...</div>
-                    <div class="queue-meta">Режим: <span id="queue-mode">-</span></div>
-                    <div class="queue-meta">Время: <span id="queue-time">0:00</span></div>
+                    <div class="queue-title">Searching for a game...</div>
+                    <div class="queue-meta">Mode: <span id="queue-mode">-</span></div>
+                    <div class="queue-meta">Time: <span id="queue-time">0:00</span></div>
                     <div class="queue-loader" aria-hidden="true">
                         <span></span><span></span><span></span>
                     </div>
-                    <button id="btn-cancel-queue" class="queue-cancel">Отменить</button>
+                    <button id="btn-cancel-queue" class="queue-cancel">Cancel</button>
                 </div>
             </div>
         </main>
@@ -147,70 +147,70 @@
     </div>
     
     <div id="friend-context-menu" class="context-menu hidden">
-        <button id="ctx-invite" class="ctx-btn">⚔️ Предложить бой</button>
-        <button id="ctx-remove" class="ctx-btn danger">🗑️ Удалить из друзей</button>
+        <button id="ctx-invite" class="ctx-btn">⚔️ Challenge to Battle</button>
+        <button id="ctx-remove" class="ctx-btn danger">🗑️ Remove Friend</button>
     </div>
 
     <div id="deck-builder" class="deck-container hidden">
         <header class="deck-header">
             <div class="deck-info">
-                <h2>Сборка Колоды</h2>
-                <p>Выбрано: <span id="deck-count" style="color: #2ecc71; font-weight: bold;">0</span> / <span id="deck-max">10</span></p>
+                <h2>Deck Builder</h2>
+                <p>Selected: <span id="deck-count" style="color: #2ecc71; font-weight: bold;">0</span> / <span id="deck-max">10</span></p>
             </div>
-            <div style="display: flex; gap: 15px;">
-                <button id="btn-save-deck" style="background: #27ae60; color: white; padding: 10px; border: none; cursor: pointer; border-radius: 5px;">💾 Сохранить</button>
-                <button id="btn-back-lobby" style="background: #e74c3c; color: white; padding: 10px; border: none; cursor: pointer; border-radius: 5px;">❌ В Лобби</button>
+            <div class="deck-header-actions">
+                <button id="btn-save-deck" class="btn-deck-save">💾 Save</button>
+                <button id="btn-back-lobby" class="btn-deck-back">← Lobby</button>
             </div>
         </header>
 
-        <main style="display: flex; height: calc(100vh - 100px); overflow: hidden;">
-        <div style="flex: 2; padding: 24px; overflow-y: auto; background: rgba(20, 22, 26, 0.4);">
+        <main style="display: flex; height: calc(100vh - 80px); overflow: hidden;">
+        <div class="collection-panel">
             <div class="collection-toolbar">
-                <h3 style="color: #F4F1E1; margin: 0; text-transform: uppercase; letter-spacing: 1px;">Коллекция</h3>
-                <div id="collection-count" class="collection-count">Коллекция: 0 / 0</div>
+                <h3 style="color: #F4F1E1; margin: 0; text-transform: uppercase; letter-spacing: 1px;">Collection</h3>
+                <div id="collection-count" class="collection-count">Collection: 0 / 0</div>
             </div>
             
-            <div class="collection-hint">Кликните правой кнопкой мыши, чтобы просмотреть детали</div>
+            <div class="collection-hint">Right-click a card to view details</div>
             
             <div class="collection-filters">
                 <div class="filters-row">
                     <label class="filter-label"> 
-                        <span>Поиск</span>
-                        <input id="filter-search" type="text" placeholder="Имя или клан...">
+                        <span>Search</span>
+                        <input id="filter-search" type="text" placeholder="Name or clan...">
                     </label>
                     <label class="filter-label">
-                        <span>Редкость</span>
+                        <span>Rarity</span>
                         <select id="filter-rarity">
-                            <option value="all">Все</option>
-                            <option value="common">Обычная</option>
-                            <option value="rare">Редкая</option>
-                            <option value="epic">Эпическая</option>
-                            <option value="legendary">Легендарная</option>
+                            <option value="all">All</option>
+                            <option value="common">Common</option>
+                            <option value="rare">Rare</option>
+                            <option value="epic">Epic</option>
+                            <option value="legendary">Legendary</option>
                         </select>
                     </label>
                     <label class="filter-label">
-                        <span>Стоимость</span>
+                        <span>Cost</span>
                         <div class="filter-range">
-                            <input id="filter-cost-min" type="number" placeholder="Мин" min="0" max="15">
+                            <input id="filter-cost-min" type="number" placeholder="Min" min="0" max="15">
                             <span>–</span>
-                            <input id="filter-cost-max" type="number" placeholder="Макс" min="0" max="15">
+                            <input id="filter-cost-max" type="number" placeholder="Max" min="0" max="15">
                         </div>
                     </label>
                 </div>
                 <div class="filters-row">
                     <label class="filter-check">
                         <input id="filter-owned" type="checkbox">
-                        <span>Только мои</span>
+                        <span>Owned only</span>
                     </label>
-                    <button id="filter-reset" class="filter-reset">Очистить</button>
+                    <button id="filter-reset" class="filter-reset">Clear</button>
                 </div>
             </div>
 
             <div id="collection-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 20px; margin-top: 20px;"></div>
         </div>
 
-            <div class="my-deck-panel">
-                <h3>Моя колода (Кликните, чтобы убрать)</h3>
+                <div class="my-deck-panel">
+                <h3>My Deck <span style="opacity:0.5; font-size:0.8rem;">(click to remove)</span></h3>
                 <div id="current-deck-grid" class="deck-grid"></div>
             </div>
         </main>
@@ -283,11 +283,11 @@
 
     <div id="friend-invite-modal" class="invite-modal hidden">
         <div class="invite-card">
-            <div class="invite-title">Приглашение в бой</div>
-            <div class="invite-text" id="invite-text">Игрок приглашает вас в бой.</div>
+            <div class="invite-title">Battle Invitation</div>
+            <div class="invite-text" id="invite-text">Player invites you to battle.</div>
             <div class="invite-actions">
-                <button id="btn-invite-accept" class="invite-accept">Принять</button>
-                <button id="btn-invite-decline" class="invite-decline">Отклонить</button>
+                <button id="btn-invite-accept" class="invite-accept">Accept</button>
+                <button id="btn-invite-decline" class="invite-decline">Decline</button>
             </div>
         </div>
     </div>

@@ -544,6 +544,8 @@ button:active {
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     gap: 16px;
 }
+
+.collection-toolbar {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -1322,14 +1324,73 @@ button:active {
 }
 /* --- ОБНОВЛЕННЫЙ DECK BUILDER --- */
 .deck-container {
-    background: radial-gradient(circle at center, #1a1c20 0%, #0a0c0f 100%) !important;
+    background: transparent !important;
 }
 
 .deck-header {
     background: rgba(20, 22, 26, 0.8) !important;
     backdrop-filter: blur(20px);
-    border-bottom: 1px solid #633D3D !important;
-    padding: 20px 40px !important;
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(99, 61, 61, 0.4) !important;
+    padding: 18px 36px !important;
+}
+
+.deck-header-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.btn-deck-save {
+    background: linear-gradient(180deg, #27ae60 0%, #1a8c4c 100%);
+    color: #fff;
+    padding: 10px 22px;
+    border: 1px solid #1f9955;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.15), 0 4px 12px rgba(0,0,0,0.3);
+    transition: all 0.2s ease;
+    width: auto;
+    margin: 0;
+}
+
+.btn-deck-save:hover {
+    background: linear-gradient(180deg, #2ecc71 0%, #22a85c 100%);
+    transform: translateY(-1px);
+}
+
+.btn-deck-back {
+    background: rgba(231, 76, 60, 0.15);
+    color: #e74c3c;
+    padding: 10px 22px;
+    border: 1px solid rgba(231, 76, 60, 0.35);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: auto;
+    margin: 0;
+    box-shadow: none;
+}
+
+.btn-deck-back:hover {
+    background: rgba(231, 76, 60, 0.25);
+    border-color: #e74c3c;
+    transform: translateY(-1px);
+}
+
+/* Левая панель коллекции */
+.collection-panel {
+    flex: 2;
+    padding: 24px;
+    overflow-y: auto;
+    background: rgba(10, 12, 15, 0.35);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
 }
 
 /* --- КАРТОЧКИ: ARTWORK-ONLY --- */
@@ -1398,14 +1459,14 @@ button:active {
     left: auto !important;
     right: 30px !important;
     top: 30px !important;
-    transform: translateX(100px); /* Выезжает справа */
+    transform: translateX(120px);
     border-top: none !important;
     border-left: 4px solid #633D3D !important;
     background: rgba(15, 15, 15, 0.95) !important;
-    color: #D0CBB5 !important;
+    color: #D0CBB5;
     text-transform: uppercase;
     letter-spacing: 1px;
-    padding: 20px 40px !important;
+    padding: 20px 28px !important;
     box-shadow: -10px 10px 30px rgba(0,0,0,0.5) !important;
 }
 
@@ -1413,6 +1474,16 @@ button:active {
     transform: translateX(0) !important;
     opacity: 1 !important;
     visibility: visible !important;
+}
+
+.message.is-success {
+    border-left-color: #2ECC71 !important;
+    color: #2ECC71;
+}
+
+.message.is-error {
+    border-left-color: #E74C3C !important;
+    color: #E74C3C;
 }
 
 /* Стилизация скроллбара */
