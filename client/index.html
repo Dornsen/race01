@@ -163,48 +163,55 @@
             </div>
         </header>
 
-        <main style="display: flex; height: calc(100vh - 70px);">
-            <div style="flex: 2; padding: 20px; overflow-y: auto; background: #1a1a1a;">
-                <div class="collection-toolbar">
-                    <h3 style="color: white; margin: 0;">Все карты</h3>
-                    <div id="collection-count" class="collection-count">Коллекция: 0 / 0</div>
-                </div>
-                <div class="collection-hint">Нажми на карту, чтобы добавить в колоду</div>
-                <div class="collection-filters">
-                    <label class="filter-check">
-                        <input id="filter-owned" type="checkbox">
-                        Только мои
+        <main style="display: flex; height: calc(100vh - 100px); overflow: hidden;">
+        <div style="flex: 2; padding: 24px; overflow-y: auto; background: rgba(20, 22, 26, 0.4);">
+            <div class="collection-toolbar">
+                <h3 style="color: #F4F1E1; margin: 0; text-transform: uppercase; letter-spacing: 1px;">Коллекция</h3>
+                <div id="collection-count" class="collection-count">Коллекция: 0 / 0</div>
+            </div>
+            
+            <div class="collection-hint">Кликните правой кнопкой мыши, чтобы просмотреть детали</div>
+            
+            <div class="collection-filters">
+                <div class="filters-row">
+                    <label class="filter-label"> 
+                        <span>Поиск</span>
+                        <input id="filter-search" type="text" placeholder="Имя или клан...">
                     </label>
                     <label class="filter-label">
-                        Редкость
+                        <span>Редкость</span>
                         <select id="filter-rarity">
                             <option value="all">Все</option>
-                            <option value="common">common</option>
-                            <option value="rare">rare</option>
-                            <option value="epic">epic</option>
-                            <option value="legendary">legendary</option>
+                            <option value="common">Обычная</option>
+                            <option value="rare">Редкая</option>
+                            <option value="epic">Эпическая</option>
+                            <option value="legendary">Легендарная</option>
                         </select>
                     </label>
                     <label class="filter-label">
-                        Цена
+                        <span>Стоимость</span>
                         <div class="filter-range">
-                            <input id="filter-cost-min" type="number" min="0" placeholder="от">
+                            <input id="filter-cost-min" type="number" placeholder="Мин" min="0" max="15">
                             <span>–</span>
-                            <input id="filter-cost-max" type="number" min="0" placeholder="до">
+                            <input id="filter-cost-max" type="number" placeholder="Макс" min="0" max="15">
                         </div>
                     </label>
-                    <label class="filter-label">
-                        Поиск
-                        <input id="filter-search" type="text" placeholder="имя, клан...">
-                    </label>
-                    <button id="filter-reset" class="filter-reset" type="button">Сброс</button>
                 </div>
-                <div id="collection-grid" style="display: flex; flex-wrap: wrap; gap: 15px; margin-top: 15px;"></div>
+                <div class="filters-row">
+                    <label class="filter-check">
+                        <input id="filter-owned" type="checkbox">
+                        <span>Только мои</span>
+                    </label>
+                    <button id="filter-reset" class="filter-reset">Очистить</button>
+                </div>
             </div>
 
-            <div style="flex: 1; padding: 20px; overflow-y: auto; background: #111; border-left: 2px solid #333;">
-                <h3 style="color: white;">Моя колода (Нажми, чтобы убрать)</h3>
-                <div id="current-deck-grid" class="deck-grid" style="margin-top: 15px;"></div>
+            <div id="collection-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 20px; margin-top: 20px;"></div>
+        </div>
+
+            <div class="my-deck-panel">
+                <h3>Моя колода (Кликните, чтобы убрать)</h3>
+                <div id="current-deck-grid" class="deck-grid"></div>
             </div>
         </main>
 

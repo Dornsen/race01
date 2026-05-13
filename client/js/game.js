@@ -57,46 +57,41 @@ function getRarityColor(rarity) {
     }
 }
 
+// Находим функцию createCardElement и заменяем её полностью
 function createCardElement(cardData, options = {}) {
     const cardEl = document.createElement('div');
     cardEl.className = 'card';
-    cardEl.style.borderColor = getRarityColor(cardData.rarity);
     cardEl.setAttribute('data-id', cardData.id);
-    cardEl.setAttribute('data-cost', cardData.cost);
 
     const isOwned = options.owned !== false;
     const inDeck = options.inDeck === true;
 
     if (!isOwned) cardEl.classList.add('card-locked');
-    if (inDeck) cardEl.classList.add('card-in-deck');
+    if (inDeck) {
+        cardEl.style.borderColor = '#633D3D';
+        cardEl.style.boxShadow = '0 0 15px rgba(99, 61, 61, 0.6)';
+    }
     
-    // Очищаем путь от любых невидимых пробелов и переносов строк из БД
     const cleanUrl = encodeURI(cardData.image.trim());
 
-    // Вместо background-image используем 100% надежный тег <img>
     cardEl.innerHTML = `
-        <div class="card-cost" style="background: ${getRarityColor(cardData.rarity)}">${cardData.cost}</div>
-        <div class="card-title">${cardData.name}</div>
-        <button class="card-info-btn" type="button" aria-label="Подробнее">i</button>
-        
-        <div class="card-art" style="background-color: #2c3e50; overflow: hidden; display: flex; justify-content: center; align-items: center;">
+        <div class="card-cost">${cardData.cost}</div>
+        <div class="card-art">
             <img src="${cleanUrl}" alt="${cardData.name}" style="width: 100%; height: 100%; object-fit: cover;">
         </div>
-        
+        <div class="card-title">${cardData.name}</div>
         <div class="card-stats">
-            <span class="attack">⚔️ ${cardData.attack}</span>
-            <span class="defense">🛡️ ${cardData.defense}</span>
+            <span>ATK: ${cardData.attack}</span>
+            <span>DEF: ${cardData.defense}</span>
         </div>
-        ${isOwned ? '' : '<div class="card-locked-overlay">Нет карты</div>'}
+        ${isOwned ? '' : '<div class="card-locked-overlay">ЗАБЛОКИРОВАНО</div>'}
     `;
 
-    const infoBtn = cardEl.querySelector('.card-info-btn');
-    if (infoBtn) {
-        infoBtn.onclick = (e) => {
-            e.stopPropagation();
-            showCardDetails(cardData);
-        };
-    }
+    // Клик для показа деталей в модалке (на иконку 'i' больше не полагаемся, кликаем по всей карте)
+    cardEl.oncontextmenu = (e) => {
+        e.preventDefault();
+        showCardDetails(cardData);
+    };
 
     return cardEl;
 }
@@ -318,7 +313,7 @@ function showCardDetails(card) {
     if (card.description) parts.push(`<div><strong>Описание:</strong> ${card.description}</div>`);
     if (card.ability) parts.push(`<div><strong>Способность:</strong> ${card.ability}</div>`);
     if (card.clan) parts.push(`<div><strong>Клан:</strong> ${card.clan}</div>`);
-    parts.push(`<div><strong>Статы:</strong> ⚔️ ${card.attack} / 🛡️ ${card.defense} / 💠 ${card.cost}</div>`);
+    parts.push(`<div><strong>Статы:</strong> ATK ${card.attack} / DEF ${card.defense} / COST ${card.cost}</div>`);
 
     body.innerHTML = parts.join('');
     modal.classList.remove('hidden');

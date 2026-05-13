@@ -123,7 +123,9 @@ function showNotification(text, isError = false) {
     if (!msgBox) return;
 
     msgBox.innerText = text;
-    msgBox.style.color = isError ? '#e74c3c' : '#2ecc71';
+    msgBox.style.color = isError ? '#E74C3C' : '#2ECC71';
+    msgBox.style.textTransform = 'uppercase';
+    msgBox.style.letterSpacing = '0.5px';
     
     // Добавляем класс видимости
     msgBox.classList.add('show');
