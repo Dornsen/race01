@@ -175,7 +175,7 @@ function createCardElement(cardData, options = {}) {
 
     return cardEl;
 }
-// --- 1. ЗАГРУЗКА ДАННЫХ ПРИ ВХОДЕ ---
+
 async function fetchCardsFromDB() {
     try {
         const res = await fetch('/api/cards/collection');
@@ -216,7 +216,6 @@ async function fetchMyDeck() {
     } catch (e) { console.error("Ошибка загрузки моей колоды", e); }
 }
 
-// --- 2. УПРАВЛЕНИЕ ОКНАМИ ---
 const btnDeck = document.getElementById('btn-deck');
 if (btnDeck) {
     btnDeck.onclick = async () => {

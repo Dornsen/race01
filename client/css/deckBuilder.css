@@ -710,23 +710,23 @@
     display: block;
 }
 
-/* 1. Двигаем Wild Spirits (Дикие Духи) */
+
 .clan-icon-svg.wild-spirits {
-    transform: translate(0px, 1px); /* Сдвиг на 2px влево и на 5px вниз */
+    transform: translate(0px, 1px);
 }
 
-/* 2. Двигаем Elemental Sovereigns (Повелители Стихий) */
+
 .clan-icon-svg.elemental-sovereigns {
     transform: translate(-2px, -1px);
-    scale: 1.1; /* Можно даже немного увеличить, если иконка кажется мелкой */
+    scale: 1.1;
 }
 
-/* 3. Двигаем Shadow Realm (Царство Теней) */
+
 .clan-icon-svg.shadow-realm {
-    transform: translate(0px, 0px); /* Вправо на 4px и вниз на 2px */
+    transform: translate(0px, 0px);
 }
 
-/* 4. Двигаем Celestial Court (Небесный Двор) */
+
 .clan-icon-svg.celestial-court {
-    transform: translate(0, -0.5px); /* Только влево на 5px */
+    transform: translate(0, -0.5px);
 }
