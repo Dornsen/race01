@@ -1,5 +1,6 @@
 const db = require('../config/database');
 const GAME_CONFIG = require('../config/gameConfig');
+const questController = require('../controllers/questController');
 
 /* =========================================
    GLOBAL STATE & QUEUES
@@ -225,6 +226,10 @@ async function endMatch(match, io, result) {
     
     match.players.forEach(player => {
         const outcome = isDraw ? 'draw' : (player.socketId === result.winnerSocketId ? 'win' : 'lose');
+        questController.updateProgress(player.userId, 'play_match', 1);
+        if (outcome === 'win') {
+            questController.updateProgress(player.userId, 'win_match', 1);
+        }
         io.to(player.socketId).emit('match_end', {
             result: outcome,
             reason: result.reason || 'finished'
@@ -468,6 +473,8 @@ function handlePlayCard(io, socket, payload) {
     card.summoningSick = true;
     card.hasAttacked = false;
     player.board.push(card);
+
+    questController.updateProgress(socket.data.userId, 'play_card', 1);
 
     emitState(match, io);
 }

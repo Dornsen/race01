@@ -24,6 +24,7 @@ const authController = require('./controllers/authController');
 const friendController = require('./controllers/friendController');
 const gameController = require('./controllers/gameController');
 const { setupSocket } = require('./game/socketGame');
+const questController = require('./controllers/questController');
 
 
 // --- Authentication Routes ---
@@ -57,6 +58,9 @@ app.get('/api/matches/history', gameController.getMatchHistory);
 app.get('/api/leaderboard', gameController.getLeaderboard);
 app.post('/api/gacha/open', gameController.openGacha);
 
+// --- Quest Routes ---
+app.get('/api/quests', questController.getQuests);
+app.post('/api/quests/claim', questController.claimReward);
 
 const PORT = process.env.PORT || 3000;
 const server = http.createServer(app);

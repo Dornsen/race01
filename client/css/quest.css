@@ -23,15 +23,98 @@
     border-radius: 12px;
     padding: 14px 16px;
     display: grid;
-    gap: 6px;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 16px;
 }
 
 .quest-title {
     font-weight: 600;
     color: #f4f1e1;
+    margin-bottom: 4px;
 }
 
 .quest-desc {
     font-size: 0.9rem;
     color: #9aa5b1;
+}
+
+.quest-category-title {
+    color: #eab308;
+    font-size: 1.1rem;
+    margin-top: 16px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid rgba(234, 179, 8, 0.2);
+    padding-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.quest-progress-wrap {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    margin-top: 12px;
+    overflow: hidden;
+}
+
+.quest-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6, #60a5fa); /* Приятный синий градиент */
+    border-radius: 4px;
+    transition: width 0.4s ease-out;
+}
+
+.quest-progress-text {
+    font-size: 0.8rem;
+    color: #9aa5b1;
+    text-align: right;
+    margin-top: 4px;
+    font-family: monospace;
+}
+
+.quest-reward-zone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.quest-reward {
+    font-weight: bold;
+    color: #fbbf24;
+    font-size: 1.1rem;
+}
+
+.quest-claim-btn {
+    background: #10b981;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.quest-claim-btn:hover:not(:disabled) {
+    background: #059669;
+    transform: translateY(-1px);
+}
+
+.quest-claim-btn:active:not(:disabled) {
+    transform: translateY(1px);
+}
+
+.quest-claim-btn:disabled {
+    background: rgba(255, 255, 255, 0.05);
+    color: #6b7280;
+    cursor: not-allowed;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.quest-card.completed {
+    border-color: rgba(16, 185, 129, 0.4);
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.05);
 }

@@ -2,7 +2,7 @@ CREATE DATABASE IF NOT EXISTS KIRIdatabase CHARACTER SET utf8mb4 COLLATE utf8mb4
 
 USE KIRIdatabase;
 
--- 1. Таблица версий
+-- 1. Versions table for shema migrations
 CREATE TABLE IF NOT EXISTS schema_version (
     id INT PRIMARY KEY,
     version INT NOT NULL,
@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS schema_version (
 );
 INSERT IGNORE INTO schema_version (id, version) VALUES (1, 1);
 
--- 2. Таблица пользователей
+-- 2. Users table
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS users (
     money INT DEFAULT 0
 );
 
--- 3. Таблица карт (добавлено UNIQUE на name)
+-- 3. Cards table
 CREATE TABLE IF NOT EXISTS cards (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL UNIQUE,
@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS cards (
     ability_description TEXT NOT NULL
 );
 
--- 4. Таблица инвентаря
+-- 4. Inventory table
 CREATE TABLE IF NOT EXISTS user_cards (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS user_cards (
     UNIQUE KEY unique_user_card (user_id, card_id) 
 );
 
--- 5. Таблица деки
+-- 5. Deck table
 CREATE TABLE IF NOT EXISTS active_decks (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS active_decks (
     UNIQUE KEY unique_deck_card (user_id, card_id) 
 );
 
--- 6. Таблица друзей
+-- 6. Friends table
 CREATE TABLE IF NOT EXISTS friendships (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -78,7 +78,7 @@ CREATE TABLE IF NOT EXISTS friendships (
     UNIQUE KEY unique_friendship (user_id, friend_id)
 );
 
--- 6.1 Таблица истории матчей
+-- 7 Match history table
 CREATE TABLE IF NOT EXISTS match_history (
     id INT AUTO_INCREMENT PRIMARY KEY,
     mode ENUM('ranked', 'casual', 'friend') NOT NULL,
@@ -95,7 +95,30 @@ CREATE TABLE IF NOT EXISTS match_history (
     INDEX idx_match_created (created_at)
 );
 
--- 7. Вставка и синхронизация карт (Оптимизированный вариант)
+-- 8 Quests table
+CREATE TABLE IF NOT EXISTS quests (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
+    quest_type ENUM('daily', 'weekly', 'event', 'achievement') DEFAULT 'daily',
+    action_type VARCHAR(50) NOT NULL,
+    target_amount INT NOT NULL,
+    reward_coins INT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS user_quests (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    quest_id INT NOT NULL,
+    current_progress INT DEFAULT 0,
+    is_completed BOOLEAN DEFAULT FALSE,
+    is_claimed BOOLEAN DEFAULT FALSE,
+    assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (quest_id) REFERENCES quests(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_user_quest (user_id, quest_id)
+);
+
 INSERT INTO cards (name, description, avatar_url, attack, cost, defense, rarity, is_basic, clan, ability_code, ability_description) VALUES
 -- 🟢 COMMON
 ('Kodama', 'Tiny forest spirits that dwell in ancient trees. Their presence brings peace to the fractured world.', 'assets/cards/Kodama_Card.png', 1, 1, 2, 'common', TRUE, 'Wild Spirits', 'HEAL_AVATAR', 'Harmony: Restores 1 HP to your avatar at the end of the turn.'),
@@ -129,7 +152,6 @@ INSERT INTO cards (name, description, avatar_url, attack, cost, defense, rarity,
 ('Izanagi', 'The Great Creator God, whose spear raised the islands from primordial chaos. In the world of KIRI, he is the embodiment of will, summoning reinforcements from the heart of the deepest haze.', 'assets/cards/Izanagi_Card.png', 8, 10, 8, 'legendary', FALSE, 'Celestial Court', 'SUMMON_2_RANDOM_FROM_DECK_MAX_COST_4', 'Primogeniture: When played, summons 2 random friendly cards from your deck (cost 4 or less).'),
 ('Benzaiten', 'The only goddess among the Seven Lucky Gods, patron of all that flows — water, music, and time. Her melody mends broken souls, much like the golden lacquer of kintsugi.Patron of all that flows — water, music, and time. Her melody guides lost souls, piercing through the eternal mists of KIRI like a beacon of pure light.', 'assets/cards/Benzaiten_Card.png', 5, 9, 11, 'legendary', FALSE, 'Celestial Court', 'HEAL_CLEANSE_ALL_ALLIES', 'Patron of all that flows — water, music, and time. Her melody guides lost souls, piercing through the eternal mists of KIRI like a beacon of pure light.')
 
--- Синхронизация данных: если имя совпало, обновляем все статы
 ON DUPLICATE KEY UPDATE 
     description = VALUES(description),
     avatar_url = VALUES(avatar_url),
@@ -141,3 +163,24 @@ ON DUPLICATE KEY UPDATE
     clan = VALUES(clan),
     ability_code = VALUES(ability_code),
     ability_description = VALUES(ability_description);
+
+
+INSERT INTO quests (id, title, description, quest_type, action_type, target_amount, reward_coins) VALUES
+(1, 'First blood', 'Win 1 match', 'daily', 'win_match', 1, 50),
+(2, 'Gladiator', 'Play 3 matches', 'daily', 'play_match', 3, 100),
+(3, 'Gambler', 'Open 1 omamori pack', 'daily', 'open_pack', 1, 50),
+
+(4, 'Card thrower', 'Play 10 cards', 'weekly', 'play_card', 10, 150),
+(5, 'Weekly grind', 'Play 10 matches', 'weekly', 'play_match', 10, 300),
+(6, 'Gacha addict', 'Open 5 omamori packs', 'weekly', 'open_pack', 5, 250),
+
+(7, 'Thirst for victory', 'Win 10 matches', 'achievement', 'win_match', 10, 500),
+(8, 'Deck master', 'Play 50 cards', 'achievement', 'play_card', 50, 500)
+
+ON DUPLICATE KEY UPDATE 
+    title = VALUES(title),
+    description = VALUES(description),
+    quest_type = VALUES(quest_type),
+    action_type = VALUES(action_type),
+    target_amount = VALUES(target_amount),
+    reward_coins = VALUES(reward_coins);

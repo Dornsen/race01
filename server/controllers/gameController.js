@@ -1,6 +1,6 @@
 const db = require('../config/database');
 const GAME_CONFIG = require('../config/gameConfig');
-
+const questController = require('./questController');
 
 exports.getAllCards = async (req, res) => {
     try {
@@ -213,6 +213,8 @@ exports.openGacha = async (req, res) => {
 
         const [[userRow]] = await db.query('SELECT money FROM users WHERE id = ?', [userId]);
 
+        questController.updateProgress(userId, 'open_pack', 1);
+        
         res.json({
             count,
             packSize,

@@ -2,6 +2,7 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const db = require('../config/database');
 const transporter = require('../config/mailer');
+const questController = require('./questController');
 
 exports.register = async (req, res) => {
     const { username, email, password, avatar_url } = req.body; 
@@ -16,10 +17,14 @@ exports.register = async (req, res) => {
         
         const finalAvatar = avatar_url || 'avatar1.png';
 
-        await db.query(
+        const [result] = await db.query(
             'INSERT INTO users (username, email, password, verification_code, avatar_url) VALUES (?, ?, ?, ?, ?)',
             [username, email, hashedPassword, verificationCode, finalAvatar]
         );
+
+        if (result && result.insertId) {
+            await questController.ensureUserQuests(result.insertId);
+        }
 
         const mailOptions = {
             from: process.env.EMAIL_USER,
@@ -67,6 +72,8 @@ exports.verifyEmail = async (req, res) => {
             await db.query('INSERT IGNORE INTO user_cards (user_id, card_id) VALUES ?', [inventoryData]);
         }
 
+        await questController.ensureUserQuests(userId);
+
         res.json({ message: 'Email verified! Your starter deck is ready.' });
     } catch (error) {
         console.error(error);
@@ -99,6 +106,8 @@ exports.login = async (req, res) => {
 
         req.session.userId = user.id;
         req.session.username = user.username;
+
+        await questController.ensureUserQuests(user.id);
 
         res.json({
             message: 'Login successful! Welcome to Kiri!',
