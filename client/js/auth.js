@@ -8,9 +8,21 @@ let selectedTargetName = null;
 // ==========================================================================
 // 1. PLAYER UI UPDATE
 // ==========================================================================
+async function refreshPlayerStats() {
+    try {
+        const response = await fetch('/api/me');
+        const result = await response.json();
+        if (result.isLoggedIn && result.user) {
+            updatePlayerUI(result.user);
+        }
+    } catch (e) {
+        console.error('Failed to refresh player stats:', e);
+    }
+}
+
 function updatePlayerUI(user) {
     if (!user) return;
-    
+
     const greeting = document.getElementById('user-greeting');
     const mmr = document.getElementById('user-mmr');
     
@@ -486,7 +498,7 @@ const btnRemove = document.getElementById('ctx-remove');
 if (btnRemove) {
     btnRemove.onclick = async () => {
         if (!confirm(`Remove ${selectedTargetName} from friends?`)) return;
-        
+
         try {
             const res = await fetch('/api/friends/remove', {
                 method: 'POST',
@@ -494,7 +506,7 @@ if (btnRemove) {
                 body: JSON.stringify({ friendId: selectedTargetId })
             });
             const result = await res.json();
-            
+
             showNotification(result.message || result.error, res.ok ? 'success' : 'error');
             if (res.ok) loadFriends();
         } catch (e) {
@@ -502,3 +514,6 @@ if (btnRemove) {
         }
     };
 }
+
+// Expose refreshPlayerStats globally
+window.refreshPlayerStats = refreshPlayerStats;
