@@ -1,14 +1,21 @@
 const db = require('../config/database');
 const GAME_CONFIG = require('../config/gameConfig');
 
+/* =========================================
+   GLOBAL STATE & QUEUES
+   ========================================= */
 const queues = {
     ranked: [],
     casual: []
 };
 
-const matches = new Map();
-const playerMatch = new Map();
-const onlineUsers = new Map();
+const matches = new Map();       // matchId -> matchState
+const playerMatch = new Map();   // socketId -> matchId
+const onlineUsers = new Map();   // userId -> socketId
+
+/* =========================================
+   UTILITY & HELPERS
+   ========================================= */
 
 function setUserStatus(userId, status) {
     if (!userId) return;
@@ -24,6 +31,25 @@ function shuffle(array) {
     return arr;
 }
 
+function getSocketIdByUserId(userId) {
+    return onlineUsers.get(Number(userId));
+}
+
+function getMatchBySocket(socketId) {
+    const matchId = playerMatch.get(socketId);
+    if (!matchId) return null;
+    return matches.get(matchId);
+}
+
+function removeFromQueue(socketId) {
+    Object.keys(queues).forEach(mode => {
+        queues[mode] = queues[mode].filter(entry => entry.socketId !== socketId);
+    });
+}
+
+/* =========================================
+   CARD & DECK LOGIC
+   ========================================= */
 async function loadDeckForUser(userId) {
     const [rows] = await db.query(
         `
@@ -57,12 +83,6 @@ function makeBattleCard(owner, card) {
     };
 }
 
-function drawUpToLimit(player) {
-    while (player.hand.length < GAME_CONFIG.handLimit && player.deck.length > 0) {
-        player.hand.push(player.deck.shift());
-    }
-}
-
 function buildPublicCard(card) {
     return {
         id: card.id,
@@ -79,6 +99,15 @@ function buildPublicCard(card) {
     };
 }
 
+function drawUpToLimit(player) {
+    while (player.hand.length < GAME_CONFIG.handLimit && player.deck.length > 0) {
+        player.hand.push(player.deck.shift());
+    }
+}
+
+/* =========================================
+   MATCH STATE & BROADCASTING
+   ========================================= */
 function buildStateForPlayer(match, socketId) {
     const you = match.players.find(p => p.socketId === socketId);
     const opponent = match.players.find(p => p.socketId !== socketId);
@@ -117,6 +146,9 @@ function emitState(match, io) {
     });
 }
 
+/* =========================================
+   TURN MANAGEMENT
+   ========================================= */
 function clearTurnTimer(match) {
     if (match.turnTimerId) {
         clearTimeout(match.turnTimerId);
@@ -134,11 +166,15 @@ function scheduleTurnTimer(match, io) {
 
 function startTurn(match, player, io) {
     player.energy = Math.min(GAME_CONFIG.energyMax, player.energy + GAME_CONFIG.energyPerRound);
+    
+    // Reset attack states for cards on the board
     player.board.forEach(card => {
         card.hasAttacked = false;
         card.summoningSick = false;
     });
+
     drawUpToLimit(player);
+    
     match.turnSocketId = player.socketId;
     scheduleTurnTimer(match, io);
     emitState(match, io);
@@ -150,9 +186,43 @@ function endTurn(match, io) {
     startTurn(match, nextPlayer, io);
 }
 
+/* =========================================
+   MATCH RESOLUTION & MMR
+   ========================================= */
+function checkWin(match, io) {
+    const [p1, p2] = match.players;
+    
+    if (p1.hp <= 0 && p2.hp <= 0) {
+        void endMatch(match, io, { reason: 'draw' });
+        return true;
+    }
+    if (p1.hp <= 0) {
+        void endMatch(match, io, {
+            reason: 'hp',
+            winnerSocketId: p2.socketId,
+            loserSocketId: p1.socketId,
+            winnerUserId: p2.userId,
+            loserUserId: p1.userId
+        });
+        return true;
+    }
+    if (p2.hp <= 0) {
+        void endMatch(match, io, {
+            reason: 'hp',
+            winnerSocketId: p1.socketId,
+            loserSocketId: p2.socketId,
+            winnerUserId: p1.userId,
+            loserUserId: p2.userId
+        });
+        return true;
+    }
+    return false;
+}
+
 async function endMatch(match, io, result) {
     clearTurnTimer(match);
     const isDraw = !result.winnerSocketId;
+    
     match.players.forEach(player => {
         const outcome = isDraw ? 'draw' : (player.socketId === result.winnerSocketId ? 'win' : 'lose');
         io.to(player.socketId).emit('match_end', {
@@ -195,45 +265,9 @@ async function endMatch(match, io, result) {
     matches.delete(match.id);
 }
 
-function checkWin(match, io) {
-    const [p1, p2] = match.players;
-    if (p1.hp <= 0 && p2.hp <= 0) {
-        void endMatch(match, io, { reason: 'draw' });
-        return true;
-    }
-    if (p1.hp <= 0) {
-        void endMatch(match, io, {
-            reason: 'hp',
-            winnerSocketId: p2.socketId,
-            loserSocketId: p1.socketId,
-            winnerUserId: p2.userId,
-            loserUserId: p1.userId
-        });
-        return true;
-    }
-    if (p2.hp <= 0) {
-        void endMatch(match, io, {
-            reason: 'hp',
-            winnerSocketId: p1.socketId,
-            loserSocketId: p2.socketId,
-            winnerUserId: p1.userId,
-            loserUserId: p2.userId
-        });
-        return true;
-    }
-    return false;
-}
-
-function removeFromQueue(socketId) {
-    Object.keys(queues).forEach(mode => {
-        queues[mode] = queues[mode].filter(entry => entry.socketId !== socketId);
-    });
-}
-
-function getSocketIdByUserId(userId) {
-    return onlineUsers.get(Number(userId));
-}
-
+/* =========================================
+   MATCHMAKING & QUEUE
+   ========================================= */
 function createMatch(io, mode, playerA, playerB) {
     const matchId = `match_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     const match = {
@@ -245,6 +279,7 @@ function createMatch(io, mode, playerA, playerB) {
         turnTimerId: null,
         nextUid: 1
     };
+    
     matches.set(matchId, match);
     playerMatch.set(playerA.socketId, matchId);
     playerMatch.set(playerB.socketId, matchId);
@@ -269,7 +304,7 @@ async function handleQueueJoin(io, socket, payload) {
     removeFromQueue(socket.id);
 
     if (playerMatch.has(socket.id)) {
-        socket.emit('queue_status', { status: 'error', message: 'Already in match.' });
+        socket.emit('queue_status', { status: 'error', message: 'You are already in a match.' });
         return;
     }
 
@@ -277,12 +312,12 @@ async function handleQueueJoin(io, socket, payload) {
     try {
         deck = await loadDeckForUser(socket.data.userId);
     } catch (error) {
-        socket.emit('queue_status', { status: 'error', message: 'Deck load failed.' });
+        socket.emit('queue_status', { status: 'error', message: 'Failed to load deck.' });
         return;
     }
 
     if (deck.length !== GAME_CONFIG.deckSize) {
-        socket.emit('queue_status', { status: 'error', message: `Need ${GAME_CONFIG.deckSize} cards in your deck.` });
+        socket.emit('queue_status', { status: 'error', message: `You need exactly ${GAME_CONFIG.deckSize} cards in your deck.` });
         return;
     }
 
@@ -297,9 +332,8 @@ async function handleQueueJoin(io, socket, payload) {
         hand: [],
         board: [],
         nextUid: 1,
-        deck: []
+        deck: shuffle(deck).map(card => makeBattleCard({nextUid: 1}, card))
     };
-    player.deck = shuffle(deck).map(card => makeBattleCard(player, card));
 
     const queue = queues[mode];
     if (queue.length > 0) {
@@ -311,12 +345,24 @@ async function handleQueueJoin(io, socket, payload) {
     }
 }
 
+function handleQueueLeave(socket) {
+    removeFromQueue(socket.id);
+    if (socket.data && socket.data.userId) {
+        setUserStatus(socket.data.userId, 'online');
+    }
+    socket.emit('queue_status', { status: 'idle' });
+}
+
+/* =========================================
+   FRIEND INVITES
+   ========================================= */
 async function handleFriendInvite(io, socket, payload) {
     const targetUserId = payload && payload.targetUserId;
     if (!targetUserId) return;
+    
     const targetSocketId = getSocketIdByUserId(targetUserId);
     if (!targetSocketId) {
-        socket.emit('friend_invite_error', { message: 'Игрок не в сети' });
+        socket.emit('friend_invite_error', { message: 'Player is offline.' });
         return;
     }
 
@@ -329,13 +375,14 @@ async function handleFriendInvite(io, socket, payload) {
 async function handleFriendInviteAccept(io, socket, payload) {
     const fromUserId = payload && payload.fromUserId;
     const fromSocketId = getSocketIdByUserId(fromUserId);
+    
     if (!fromSocketId) {
-        socket.emit('friend_invite_error', { message: 'Приглашение устарело' });
+        socket.emit('friend_invite_error', { message: 'Invite has expired.' });
         return;
     }
 
     if (playerMatch.has(socket.id) || playerMatch.has(fromSocketId)) {
-        socket.emit('friend_invite_error', { message: 'Игрок уже в бою' });
+        socket.emit('friend_invite_error', { message: 'Player is already in a match.' });
         return;
     }
 
@@ -348,8 +395,8 @@ async function handleFriendInviteAccept(io, socket, payload) {
     ]);
 
     if (deckA.length !== GAME_CONFIG.deckSize || deckB.length !== GAME_CONFIG.deckSize) {
-        socket.emit('friend_invite_error', { message: 'Колода не готова' });
-        io.to(fromSocketId).emit('friend_invite_error', { message: 'Колода не готова' });
+        socket.emit('friend_invite_error', { message: 'Deck is not ready.' });
+        io.to(fromSocketId).emit('friend_invite_error', { message: 'Deck is not ready.' });
         return;
     }
 
@@ -382,7 +429,7 @@ async function handleFriendInviteAccept(io, socket, payload) {
         const [users] = await db.query('SELECT username FROM users WHERE id = ?', [fromUserId]);
         if (users.length > 0) playerB.username = users[0].username;
     } catch (e) {
-        // ignore
+        console.error("Failed to fetch opponent username:", e);
     }
 
     playerB.deck = shuffle(deckB).map(card => makeBattleCard(playerB, card));
@@ -395,31 +442,20 @@ function handleFriendInviteDecline(io, socket, payload) {
     const fromUserId = payload && payload.fromUserId;
     const fromSocketId = getSocketIdByUserId(fromUserId);
     if (fromSocketId) {
-        io.to(fromSocketId).emit('friend_invite_error', { message: 'Приглашение отклонено' });
+        io.to(fromSocketId).emit('friend_invite_error', { message: 'Invite declined.' });
     }
 }
 
-function handleQueueLeave(socket) {
-    removeFromQueue(socket.id);
-    if (socket.data && socket.data.userId) {
-        setUserStatus(socket.data.userId, 'online');
-    }
-    socket.emit('queue_status', { status: 'idle' });
-}
-
-function getMatchBySocket(socketId) {
-    const matchId = playerMatch.get(socketId);
-    if (!matchId) return null;
-    return matches.get(matchId);
-}
-
+/* =========================================
+   IN-GAME ACTIONS
+   ========================================= */
 function handlePlayCard(io, socket, payload) {
     const match = getMatchBySocket(socket.id);
-    if (!match) return;
-    if (match.turnSocketId !== socket.id) return;
+    if (!match || match.turnSocketId !== socket.id) return;
 
     const player = match.players.find(p => p.socketId === socket.id);
     const cardIndex = player.hand.findIndex(card => card.uid === payload.uid);
+    
     if (cardIndex === -1) return;
 
     const card = player.hand[cardIndex];
@@ -427,6 +463,7 @@ function handlePlayCard(io, socket, payload) {
 
     player.energy -= card.cost;
     player.hand.splice(cardIndex, 1);
+    
     card.summoningSick = true;
     card.hasAttacked = false;
     player.board.push(card);
@@ -436,15 +473,15 @@ function handlePlayCard(io, socket, payload) {
 
 function handleAttackCard(io, socket, payload) {
     const match = getMatchBySocket(socket.id);
-    if (!match) return;
-    if (match.turnSocketId !== socket.id) return;
+    if (!match || match.turnSocketId !== socket.id) return;
 
     const attackerPlayer = match.players.find(p => p.socketId === socket.id);
     const defenderPlayer = match.players.find(p => p.socketId !== socket.id);
+    
     const attacker = attackerPlayer.board.find(card => card.uid === payload.attackerUid);
     const defender = defenderPlayer.board.find(card => card.uid === payload.targetUid);
-    if (!attacker || !defender) return;
-    if (attacker.hasAttacked || attacker.summoningSick) return;
+    
+    if (!attacker || !defender || attacker.hasAttacked || attacker.summoningSick) return;
 
     attacker.currentHp -= defender.attack;
     defender.currentHp -= attacker.attack;
@@ -463,11 +500,11 @@ function handleAttackCard(io, socket, payload) {
 
 function handleAttackAvatar(io, socket, payload) {
     const match = getMatchBySocket(socket.id);
-    if (!match) return;
-    if (match.turnSocketId !== socket.id) return;
+    if (!match || match.turnSocketId !== socket.id) return;
 
     const attackerPlayer = match.players.find(p => p.socketId === socket.id);
     const defenderPlayer = match.players.find(p => p.socketId !== socket.id);
+    
     if (defenderPlayer.board.length > 0) return;
 
     const attacker = attackerPlayer.board.find(card => card.uid === payload.attackerUid);
@@ -482,14 +519,14 @@ function handleAttackAvatar(io, socket, payload) {
 
 function handleEndTurn(io, socket) {
     const match = getMatchBySocket(socket.id);
-    if (!match) return;
-    if (match.turnSocketId !== socket.id) return;
+    if (!match || match.turnSocketId !== socket.id) return;
     endTurn(match, io);
 }
 
 function handleLeaveMatch(io, socket) {
     const match = getMatchBySocket(socket.id);
     if (!match) return;
+    
     const opponent = match.players.find(p => p.socketId !== socket.id);
     void endMatch(match, io, {
         reason: 'forfeit',
@@ -498,6 +535,7 @@ function handleLeaveMatch(io, socket) {
         winnerUserId: opponent.userId,
         loserUserId: socket.data.userId
     });
+    
     setUserStatus(socket.data.userId, 'online');
     setUserStatus(opponent.userId, 'online');
 }
@@ -505,6 +543,7 @@ function handleLeaveMatch(io, socket) {
 function handleDisconnect(io, socket) {
     removeFromQueue(socket.id);
     onlineUsers.delete(Number(socket.data.userId));
+    
     const match = getMatchBySocket(socket.id);
     if (!match) {
         setUserStatus(socket.data.userId, 'offline');
@@ -519,15 +558,20 @@ function handleDisconnect(io, socket) {
         winnerUserId: opponent.userId,
         loserUserId: socket.data.userId
     });
+    
     setUserStatus(socket.data.userId, 'offline');
     setUserStatus(opponent.userId, 'online');
 }
 
+/* =========================================
+   SOCKET INITIALIZATION
+   ========================================= */
 function setupSocket(io) {
     io.on('connection', (socket) => {
         const auth = socket.handshake.auth || {};
+        
         if (!auth.userId || !auth.username) {
-            socket.emit('queue_status', { status: 'error', message: 'Unauthorized' });
+            socket.emit('queue_status', { status: 'error', message: 'Unauthorized connection' });
             socket.disconnect(true);
             return;
         }
@@ -539,14 +583,17 @@ function setupSocket(io) {
 
         socket.on('queue_join', (payload) => handleQueueJoin(io, socket, payload));
         socket.on('queue_leave', () => handleQueueLeave(socket));
+
         socket.on('play_card', (payload) => handlePlayCard(io, socket, payload));
         socket.on('attack_card', (payload) => handleAttackCard(io, socket, payload));
         socket.on('attack_avatar', (payload) => handleAttackAvatar(io, socket, payload));
         socket.on('end_turn', () => handleEndTurn(io, socket));
         socket.on('leave_match', () => handleLeaveMatch(io, socket));
+
         socket.on('friend_invite', (payload) => handleFriendInvite(io, socket, payload));
         socket.on('friend_invite_accept', (payload) => handleFriendInviteAccept(io, socket, payload));
         socket.on('friend_invite_decline', (payload) => handleFriendInviteDecline(io, socket, payload));
+
         socket.on('disconnect', () => handleDisconnect(io, socket));
     });
 }
