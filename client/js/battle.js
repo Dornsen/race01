@@ -62,17 +62,8 @@ function syncBattleAvatars() {
 }
 
 function showCoinFlip(text) {
-    const coin = document.getElementById('coin-flip');
-    const coinText = document.getElementById('coin-text');
-    
-    if (!coin || !coinText) return;
-    
-    coinText.innerText = text || 'Flipping...';
-    coin.classList.remove('hidden');
-    
-    setTimeout(() => {
-        coin.classList.add('hidden');
-    }, 1200);
+    // Оставляем пустой. 
+    // Стартовая анимация теперь обрабатывается в новой функции coinFlipStart().
 }
 
 // --- 2. MATCH INITIALIZATION & STATE ---
@@ -120,28 +111,40 @@ async function startPracticeMatch() {
 
 function coinFlipStart() {
     return new Promise((resolve) => {
-        const coin = document.getElementById('coin-flip');
-        const text = document.getElementById('coin-text');
+        const coinOverlay = document.getElementById('coin-flip-overlay');
+        const centerCoin = document.getElementById('coin-flip-center');
         
-        if (!coin || !text) {
+        if (!coinOverlay || !centerCoin) {
             startTurn(Math.random() > 0.5 ? 'player' : 'opponent');
             resolve();
             return;
         }
 
-        coin.classList.remove('hidden');
-        text.innerText = 'Flipping...';
+        coinOverlay.classList.remove('hidden');
+        centerCoin.classList.add('spinning-fast');
 
         setTimeout(() => {
             const starter = Math.random() > 0.5 ? 'player' : 'opponent';
-            text.innerText = starter === 'player' ? 'Your Turn' : 'Opponent\'s Turn';
+            centerCoin.classList.remove('spinning-fast');
+            
+            // Assign facing direction
+            centerCoin.innerHTML = starter === 'player' 
+                ? `<svg class="turn-arrow" style="transform:rotate(180deg)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 19V5M5 12l7-7 7 7"/></svg>`
+                : `<svg class="turn-arrow" style="transform:rotate(0deg)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 19V5M5 12l7-7 7 7"/></svg>`;
             
             setTimeout(() => {
-                coin.classList.add('hidden');
-                startTurn(starter);
-                resolve();
+                // Shoot the coin towards the left indicator spot
+                centerCoin.classList.add('move-to-indicator');
+                
+                setTimeout(() => {
+                    coinOverlay.classList.add('hidden');
+                    centerCoin.classList.remove('move-to-indicator');
+                    centerCoin.innerHTML = ''; // reset 
+                    startTurn(starter);
+                    resolve();
+                }, 700);
             }, 800);
-        }, 900);
+        }, 1000);
     });
 }
 
@@ -270,40 +273,190 @@ function renderBattle() {
 
 function updateBattleHeader() {
     const battleScreen = document.getElementById('battle-screen');
-    const turnOwner = document.getElementById('turn-owner');
     const timer = document.getElementById('turn-timer');
-    const turnIndicator = document.getElementById('turn-indicator');
+    const btnEndTurn = document.getElementById('btn-end-turn');
     
     const playerHp = document.getElementById('player-hp');
     const opponentHp = document.getElementById('opponent-hp');
-    const playerEnergy = document.getElementById('player-energy');
-    const opponentEnergy = document.getElementById('opponent-energy');
-    const playerHand = document.getElementById('player-hand-count');
-    const opponentHand = document.getElementById('opponent-hand-count');
 
-    if (turnOwner) turnOwner.innerText = battleState.turn === 'player' ? 'Player' : 'Opponent';
-    
     if (battleScreen) {
         battleScreen.classList.toggle('turn-player', battleState.turn === 'player');
         battleScreen.classList.toggle('turn-opponent', battleState.turn === 'opponent');
     }
     
-    if (turnIndicator) {
-        const isPlayerTurn = battleState.turn === 'player';
-        turnIndicator.innerText = isPlayerTurn ? 'Your Turn' : 'Opponent\'s Turn';
-        turnIndicator.classList.toggle('opponent', !isPlayerTurn);
+    // Timer text and Warning Pulse
+    if (timer) {
+        timer.innerText = `${battleState.timer}`;
+        if (battleState.timer <= 5) {
+            timer.parentElement.classList.add('timer-warning');
+        } else {
+            timer.parentElement.classList.remove('timer-warning');
+        }
     }
     
-    if (timer) timer.innerText = `${battleState.timer}`;
-    if (playerHp) playerHp.innerText = `${battleState.player.hp}`;
-    if (opponentHp) opponentHp.innerText = `${battleState.opponent.hp}`;
-    if (playerEnergy) playerEnergy.innerText = `${battleState.player.energy}`;
-    if (opponentEnergy) opponentEnergy.innerText = `${battleState.opponent.energy}`;
-    if (playerHand) playerHand.innerText = `${battleState.player.hand.length}`;
+    // HP Updates with Damage Flash Animation
+    if (playerHp && playerHp.innerText !== `${battleState.player.hp}`) {
+        playerHp.parentElement.classList.remove('hp-damage');
+        void playerHp.parentElement.offsetWidth; // trigger reflow
+        playerHp.parentElement.classList.add('hp-damage');
+        playerHp.innerText = `${battleState.player.hp}`;
+    }
+    if (opponentHp && opponentHp.innerText !== `${battleState.opponent.hp}`) {
+        opponentHp.parentElement.classList.remove('hp-damage');
+        void opponentHp.parentElement.offsetWidth; // trigger reflow
+        opponentHp.parentElement.classList.add('hp-damage');
+        opponentHp.innerText = `${battleState.opponent.hp}`;
+    }
+
+    // Update End Turn Button State
+    if (btnEndTurn) {
+        if (battleState.turn === 'player') {
+            btnEndTurn.classList.remove('disabled');
+            btnEndTurn.disabled = false;
+        } else {
+            btnEndTurn.classList.add('disabled');
+            btnEndTurn.disabled = true;
+        }
+    }
+
+    // Call new Visual Presentation Sub-routines
+    renderManaArc();
+    renderOpponentHandVisually();
+    updateTurnCoin();
+}
+
+function updateTurnCoin() {
+    const coin = document.getElementById('turn-coin');
+    if (!coin) return;
+    const arrow = coin.querySelector('.turn-arrow');
     
-    if (opponentHand) {
-        const count = battleState.isOnline ? battleState.opponentHandCount : battleState.opponent.hand.length;
-        opponentHand.innerText = `${count}`;
+    if (battleState.turn === 'player') {
+        arrow.style.transform = 'rotate(180deg)'; // Arrow Down
+        coin.classList.remove('opponent-turn');
+        coin.classList.add('player-turn');
+    } else {
+        arrow.style.transform = 'rotate(0deg)'; // Arrow Up
+        coin.classList.add('opponent-turn');
+        coin.classList.remove('player-turn');
+    }
+}
+
+function renderManaArc() {
+    const arcContainer = document.getElementById('player-mana-arc');
+    if (!arcContainer) return;
+    arcContainer.innerHTML = '';
+    
+    const totalMana = GAME_CONFIG.energyMax || 10;
+    const currentMana = battleState.player.energy;
+    
+    // ==========================================
+    // НАСТРОЙКИ ДУГИ
+    // ==========================================
+    
+    const startPercent = { x: 8, y: 60 };
+    const endPercent = { x: 78, y: 105 };
+
+    const rect = arcContainer.getBoundingClientRect();
+    const startPx = { x: rect.left + (startPercent.x / 100) * rect.width, y: rect.top + (startPercent.y / 100) * rect.height };
+    const endPx = { x: rect.left + (endPercent.x / 100) * rect.width, y: rect.top + (endPercent.y / 100) * rect.height };
+
+    const curveStrengthPx = -Math.max(rect.width, rect.height) * 0.18;
+    const verticalOffsetPx = rect.height * 0.18; 
+    const rotateDeg = 165;
+    
+    // === ВОТ РЕШЕНИЕ ТВОЕЙ ПРОБЛЕМЫ === 
+    // Смещение ГОТОВОЙ дуги (уже после переворота)
+    const finalShiftX = 0;   // Сдвиг вправо/влево
+    const finalShiftY = 675; // Сдвиг ВНИЗ (увеличь это число, например до 300, если нужно опустить еще ниже)
+
+    const tStart = 0.38;
+    const tEnd = 0.62;
+
+    for (let i = 0; i < totalMana; i++) {
+        const baseT = totalMana > 1 ? i / (totalMana - 1) : 0.5;
+        const t = tStart + (tEnd - tStart) * baseT;
+
+        const midBase = { x: (startPx.x + endPx.x) / 2, y: (startPx.y + endPx.y) / 2 };
+        const dir = { x: endPx.x - startPx.x, y: endPx.y - startPx.y };
+        const len = Math.hypot(dir.x, dir.y) || 1;
+        const ndir = { x: dir.x / len, y: dir.y / len };
+
+        const perp = { x: -ndir.y, y: ndir.x };
+        const midPx = { x: midBase.x + perp.x * curveStrengthPx, y: midBase.y + perp.y * curveStrengthPx };
+
+        let x = (1 - t) * (1 - t) * startPx.x + 2 * (1 - t) * t * midPx.x + t * t * endPx.x;
+        let y = (1 - t) * (1 - t) * startPx.y + 2 * (1 - t) * t * midPx.y + t * t * endPx.y;
+
+        y += verticalOffsetPx;
+
+        const dx = 2 * (1 - t) * (midPx.x - startPx.x) + 2 * t * (endPx.x - midPx.x);
+        const dy = 2 * (1 - t) * (midPx.y - startPx.y) + 2 * t * (endPx.y - midPx.y);
+        const angle = Math.atan2(dy, dx);
+        let rot = angle * (180 / Math.PI) - 90;
+        
+        const manaIcon = document.createElement('div');
+        manaIcon.className = `mana-icon ${i < currentMana ? 'active' : 'inactive'}`;
+        
+        manaIcon.innerHTML = `
+        <svg width="100%" height="100%" viewBox="0 0 517 504" version="1.1" xmlns="http://www.w3.org/2000/svg">
+            <g transform="matrix(1,0,0,1,-281.190002,-1247.77002)">
+                <path d="M548.624,1483.54C740.065,1421.1 719.771,1343.88 689.53,1269.33L654.728,1286.49L657.266,1247.77C601.855,1248.18 547.087,1253.43 523.443,1322.24C529.829,1335.16 534.956,1350.12 538.913,1367.34C546.129,1398.74 549.328,1436.91 548.624,1483.54Z" style="fill:rgb(255,108,149);"/>
+                <path d="M797.803,1529.09C780.292,1476.52 758.375,1426.05 685.619,1424.83C678.255,1432.01 669.697,1438.91 659.874,1445.59C633.208,1463.73 598.011,1479.8 552.271,1494.72L540.056,1498.71C658.568,1661.39 725.717,1618.23 787.271,1566.44L760.195,1538.65L797.803,1529.09Z" style="fill:rgb(255,108,149);"/>
+                <path d="M617.389,1597.85C589.814,1578.16 561.409,1547.99 530.55,1505.63L522.925,1495.17C404.832,1658.15 466.625,1708.67 534.902,1751.21L552.97,1716.87L573.675,1749.69C618.268,1716.78 659.494,1680.34 638.164,1610.76C631.311,1607.16 624.396,1602.86 617.389,1597.85Z" style="fill:rgb(255,108,149);"/>
+                <path d="M375.777,1444.8C383.961,1443.61 392.65,1443.01 401.868,1443.01C435.431,1443.01 475.583,1450.72 524.621,1466.59L536.943,1470.57C536.684,1269.31 456.994,1264.75 376.754,1270.47L382.322,1308.87L346.282,1294.49C329.544,1347.32 317.611,1401.04 375.777,1444.8Z" style="fill:rgb(255,108,149);"/>
+                <path d="M521,1477.78C329.503,1415.83 300.544,1490.21 281.19,1568.29L319.432,1574.86L294.62,1604.7C339.689,1636.94 387.084,1664.88 446.662,1623.1C448.4,1612.98 451.264,1602.38 455.277,1591.21C466.175,1560.88 485.188,1527.2 513.401,1488.27L521,1477.78Z" style="fill:rgb(255,108,149);"/>
+            </g>
+        </svg>`;
+        
+        if (rotateDeg % 360 !== 0) {
+            const theta = (rotateDeg * Math.PI) / 180;
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+            const dx = x - cx;
+            const dy = y - cy;
+            
+            let rx = cx + Math.cos(theta) * dx - Math.sin(theta) * dy;
+            let ry = cy + Math.sin(theta) * dx + Math.cos(theta) * dy;
+            
+            // ДОБАВЛЯЕМ СМЕЩЕНИЕ ПОСЛЕ ПОВОРОТА
+            rx += finalShiftX;
+            ry += finalShiftY;
+
+            manaIcon.style.left = `${Math.round(rx)}px`;
+            manaIcon.style.top = `${Math.round(ry)}px`;
+            rot += rotateDeg;
+        } else {
+            // И здесь на всякий случай, если ты уберешь поворот
+            manaIcon.style.left = `${Math.round(x + finalShiftX)}px`;
+            manaIcon.style.top = `${Math.round(y + finalShiftY)}px`;
+        }
+
+        manaIcon.style.setProperty('--rot', `${rot}deg`);
+        manaIcon.style.transform = `rotate(${rot}deg)`;
+        
+        arcContainer.appendChild(manaIcon);
+    }
+}
+
+function renderOpponentHandVisually() {
+    const handEl = document.getElementById('opponent-hand');
+    if (!handEl) return;
+    handEl.innerHTML = '';
+    
+    const count = battleState.isOnline ? battleState.opponentHandCount : battleState.opponent.hand.length;
+    const displayCount = Math.min(count, 5); // Limit visual render overlap
+    
+    for (let i = 0; i < displayCount; i++) {
+        const cardEl = document.createElement('div');
+        cardEl.className = 'opponent-card-back';
+        cardEl.style.backgroundImage = "url('assets/card_back.png')";
+        
+        const rot = (Math.random() * 14) - 7; // -7 to +7 degrees variance
+        cardEl.style.setProperty('--rot-offset', `${rot}deg`);
+        cardEl.style.zIndex = i;
+        // Animation is handled entirely through the idle-float keyframes in CSS
+        
+        handEl.appendChild(cardEl);
     }
 }
 
@@ -336,12 +489,31 @@ function renderBattleHand() {
     if (!handEl) return;
     handEl.innerHTML = '';
 
-    battleState.player.hand.forEach(card => {
+    const total = battleState.player.hand.length;
+    
+    // === НАСТРОЙКИ ВЕЕРА ===
+    // Уменьшили угол, чтобы карты не так сильно наклонялись (было 18, стало 8)
+    const maxAngle = 8; 
+    const angleStep = total > 1 ? (maxAngle * 2) / (total - 1) : 0;
+    const startAngle = -maxAngle;
+
+    battleState.player.hand.forEach((card, index) => {
         const cardEl = buildBattleCard(card);
         const canPlay = battleState.turn === 'player' && card.cost <= battleState.player.energy;
         
         if (!canPlay) cardEl.classList.add('disabled');
         cardEl.onclick = () => playCardFromHand(card.uid);
+        
+        // Считаем угол для текущей карты
+        const rotation = total > 1 ? startAngle + (index * angleStep) : 0;
+        
+        // === ПЛОСКАЯ ДУГА ===
+        // Убрали сильное закругление. Теперь карты сдвигаются вниз совсем чуть-чуть.
+        // Если хочешь еще ровнее, поменяй 1.5 на 0.5 или 1.
+        const yOffset = Math.abs(rotation) * 1.5; 
+        
+        cardEl.style.transform = `rotate(${rotation}deg) translateY(${yOffset}px)`;
+        cardEl.style.zIndex = index + 1;
         
         handEl.appendChild(cardEl);
     });
@@ -349,32 +521,134 @@ function renderBattleHand() {
 
 function buildBattleCard(card) {
     const el = document.createElement('div');
-    el.className = 'battle-card';
+    // ВАЖНО: Добавляем сразу два класса! 
+    // 'card' - чтобы подтянулась красота из cards.js
+    // 'battle-card' - чтобы работали боевые анимации, ховеры и размеры
+    el.className = 'card battle-card';
     
+    // Цвет рамки по редкости
     if (typeof getRarityColor === 'function') {
         el.style.borderColor = getRarityColor(card.rarity);
     }
     
-    const color = typeof getRarityColor === 'function' ? getRarityColor(card.rarity) : '#7f8c8d';
+    const cleanUrl = encodeURI((card.image || '').trim());
 
+    // Переносим HTML-структуру из createCardElement (cards.js)
     el.innerHTML = `
-        <div class="battle-title">${card.name}</div>
-        <div class="battle-cost" style="background: ${color}">${card.cost}</div>
-        <div style="flex: 1; display: flex; align-items: center; justify-content: center;">
-            <img src="${encodeURI((card.image || '').trim())}" alt="${card.name}" style="width: 100%; height: 90px; object-fit: cover; border-radius: 8px;">
+        <div class="card-art">
+            <img src="${cleanUrl}" alt="${card.name}">
         </div>
-        <div class="battle-stats">
-            <span>⚔️ ${card.attack}</span>
-            <span class="battle-hp">🛡️ ${card.currentHp}</span>
+
+        <div class="card-top-bar">
+            <div class="card-cost-wrap">
+                <div class="card-cost-icon">${typeof SVG_SHURIKEN !== 'undefined' ? SVG_SHURIKEN : '⭐'}</div>
+                <span class="card-cost-num">${card.cost}</span>
+            </div>
+            <div class="card-name">${card.name}</div>
+        </div>
+
+        <div class="card-bottom-bar">
+            <div class="card-stat card-atk">
+                <div class="card-stat-icon">${typeof SVG_KUNAI !== 'undefined' ? SVG_KUNAI : '⚔️'}</div>
+                <span class="card-stat-num">${card.attack}</span>
+            </div>
+            <div class="card-clan">
+                ${typeof getClanIcon === 'function' ? getClanIcon(card.clan) : ''}
+            </div>
+            <div class="card-stat card-def">
+                <div class="card-stat-icon">${typeof SVG_SHIELD !== 'undefined' ? SVG_SHIELD : '🛡️'}</div>
+                <span class="card-stat-num battle-hp-value">${card.currentHp}</span>
+            </div>
         </div>
     `;
 
+    // Правый клик по карте — посмотреть детали
     el.oncontextmenu = (e) => {
         e.preventDefault();
-        if (typeof showCardDetails === 'function') showCardDetails(card);
+        // Вызываем нашу новую функцию для красивого визуала
+        if (typeof showBigCardPreview === 'function') showBigCardPreview(card);
     };
 
+    // Делаем ХП красным, если карта ранена
+    if (card.currentHp < card.defense) {
+        const hpSpan = el.querySelector('.battle-hp-value');
+        if (hpSpan) hpSpan.classList.add('wounded');
+    }
+
+    // 1. Проверка на обычный клик левой кнопкой мыши
+    el.addEventListener('click', (e) => {
+        if (el.classList.contains('disabled')) {
+            e.preventDefault(); // Останавливаем любые другие действия
+            
+            // Вызываем твою глобальную функцию уведомлений из global.js
+            if (typeof showMessage === 'function') {
+                showMessage('Not enough mana!', 'error');
+            } else if (typeof showNotification === 'function') {
+                showNotification('Not enough mana!', 'error');
+            } else {
+                // На всякий случай, если функция называется иначе
+                alert('Not enough mana!'); 
+            }
+        }
+    });
+
+    // 2. Проверка на попытку перетащить карту на доску (Drag & Drop)
+    el.addEventListener('dragstart', (e) => {
+        if (el.classList.contains('disabled')) {
+            e.preventDefault(); // Намертво запрещаем тащить карту
+            
+            if (typeof showMessage === 'function') {
+                showMessage('Not enough mana!', 'error');
+            } else if (typeof showNotification === 'function') {
+                showNotification('Not enough mana!', 'error');
+            }
+        }
+    });
+
     return el;
+}
+
+function showBigCardPreview(card) {
+    let overlay = document.getElementById('card-preview-overlay');
+    
+    // Создаем оверлей, если его еще нет на странице
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'card-preview-overlay';
+        overlay.className = 'card-preview-overlay hidden';
+        
+        // Закрываем окно на любой клик (ЛКМ или ПКМ)
+        overlay.onclick = () => overlay.classList.add('hidden');
+        overlay.oncontextmenu = (e) => { e.preventDefault(); overlay.classList.add('hidden'); };
+        
+        document.body.appendChild(overlay);
+    }
+    
+    overlay.innerHTML = ''; // Очищаем прошлую карту
+    
+    // Создаем "копию" данных карты, но подменяем базовую защиту (defense) 
+    // на текущее ХП в бою (currentHp), чтобы на большой карте отражался урон!
+    const previewData = { ...card, defense: card.currentHp };
+    
+    // Используем функцию из cards.js, которая рисует ИДЕАЛЬНЫЕ большие карты
+    const bigCard = createCardElement(previewData, { owned: true });
+    
+    // Отключаем лишние клики на самой карте и вешаем спец-класс
+    bigCard.oncontextmenu = null;
+    bigCard.onclick = null;
+    bigCard.classList.add('preview-mode');
+    
+    // Маленькая фишка: если карта ранена, делаем текст ХП на большой карте красным
+    if (card.currentHp < card.defense) {
+        const hpSpan = bigCard.querySelector('.card-def .card-stat-num');
+        if (hpSpan) {
+            hpSpan.style.color = '#ff4d4d';
+            hpSpan.style.textShadow = '0 0 5px #ff0000, 0 1px 4px #000';
+        }
+    }
+    
+    overlay.appendChild(bigCard);
+    overlay.classList.remove('hidden');
 }
 
 // --- 5. COMBAT LOGIC ---
