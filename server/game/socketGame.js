@@ -332,8 +332,9 @@ async function handleQueueJoin(io, socket, payload) {
         hand: [],
         board: [],
         nextUid: 1,
-        deck: shuffle(deck).map(card => makeBattleCard({nextUid: 1}, card))
+        deck: []
     };
+    player.deck = shuffle(deck).map(card => makeBattleCard(player, card));
 
     const queue = queues[mode];
     if (queue.length > 0) {
