@@ -325,7 +325,7 @@
 .card {
     width: 160px;
     height: auto;
-    aspect-ratio: 2/3;
+    aspect-ratio: 600 / 984;
     background: transparent !important; /* Убираем черный фон, чтобы видеть арт целиком */
     border: 1px solid rgba(139, 126, 109, 0.3);
     border-radius: 8px;
