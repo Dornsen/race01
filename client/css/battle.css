@@ -6,14 +6,14 @@
     color: #d0cbb5;
     z-index: 60;
     overflow: hidden;
+    font-size: 16px;
 }
 
 /* --- Layers --- */
 .battle-bg {
     position: absolute;
     inset: 0;
-    /* Убираем cover, чтобы картинка не зумилась и не обрезалась */
-    background-size: 100% 100%; 
+    background-size: 100% 100%;
     background-position: center;
     background-repeat: no-repeat;
     z-index: 1;
@@ -23,22 +23,42 @@
     position: absolute;
     inset: 0;
     display: flex;
-    flex-direction: row; 
+    flex-direction: row;
     align-items: center;
     justify-content: center;
-    gap: 80px; 
-    padding-bottom: 5%; 
-    z-index: 10; /* Доски ниже всего */
+    gap: 4vw;
+    padding-bottom: 5%;
+    z-index: 10;
 }
 
 .battle-overlay {
     position: absolute;
-    inset: 0;
-    background-size: 100% 100%; 
-    background-position: center;
+    left: 0;
+    right: 0;
     background-repeat: no-repeat;
     pointer-events: none;
-    z-index: 30; /* КРЫША НАКРЫВАЕТ РУКИ! */
+    z-index: 30;
+}
+
+/* Top and bottom split overlays (uimatch1 / uimatch2) */
+.battle-overlay.battle-overlay-top {
+    top: 0;
+    /* Уменьшаем высоту, чтобы не перекрывать пол-экрана */
+    height: 28.9vh; 
+    width: 100%;
+    /* 'contain' сохранит пропорции, 'top' прижмет к верхнему краю */
+    background-size: contain;
+    background-position: left top;
+}
+
+.battle-overlay.battle-overlay-bottom {
+    bottom: 0;
+    /* Уменьшаем высоту нижнего оверлея */
+    height: 28.9vh; 
+    width: 100%;
+    /* 'contain' сохранит пропорции, 'bottom' прижмет к нижнему краю */
+    background-size: contain;
+    background-position: right bottom;
 }
 
 .battle-ui-layer {
@@ -54,17 +74,16 @@
 
 /* --- Boards --- */
 .battle-side {
-    width: 45vw; /* Даем доскам много места в ширину */
-    max-width: 650px;
+    width: 44vw;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 15px;
+    gap: 1vh;
 }
 
 .board-label {
     font-family: 'Marcellus', serif;
-    font-size: 1.2rem;
+    font-size: 1.1vw;
     color: rgba(255, 255, 255, 0.5);
     text-transform: uppercase;
     letter-spacing: 2px;
@@ -72,18 +91,21 @@
 
 .battle-board {
     display: flex;
-    flex-wrap: nowrap; /* ЗАПРЕЩАЕМ КАРТАМ ПРЫГАТЬ ВНИЗ! Только в один ряд. */
-    gap: 8px;
-    min-height: 180px;
+    flex-wrap: nowrap;
+    gap: 0.6vw;
+    min-height: 13vh;
     width: 100%;
-    padding: 15px;
+    padding: 1vw;
     background: rgba(10, 15, 20, 0.4);
     border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 16px;
+    border-radius: 1.2vw;
     backdrop-filter: blur(4px);
     transition: all 0.3s ease;
     align-items: center;
+    overflow-x: auto;
+    scrollbar-width: none;
 }
+.battle-board::-webkit-scrollbar { display: none; }
 
 .turn-player #player-board {
     border-color: rgba(46, 204, 113, 0.4);
@@ -95,80 +117,85 @@
     box-shadow: 0 0 25px rgba(231, 76, 60, 0.15);
 }
 
-/* --- Profiles & Avatars --- */
+/* --- Profiles & Avatars ---
+   ФИКС: заменяем gap:515px и gap:450px на clamp */
 .opponent-profile {
     position: absolute;
-    top: 15px; /* Прижимаем в самый верх */
-    left: 15px; /* Прижимаем в самый левый край */
+    top: 1.5vh;
+    left: 1.5vw;
     display: flex;
-    flex-direction: row-reverse; /* Меняем местами: ХП слева (в углу), Аватарка справа */
+    flex-direction: row-reverse;
     align-items: flex-start;
-    gap: 515px;
+    gap: 25.7vw;
     z-index: 5;
+    pointer-events: none;
 }
+.opponent-profile > * { pointer-events: auto; }
 
-/* Игрок: Нижний правый угол */
 .player-profile {
     position: absolute;
-    bottom: 15px; /* Прижимаем в самый низ */
-    right: 15px; /* Прижимаем в самый правый край */
+    bottom: 1.5vh;
+    right: 1.5vw;
     display: flex;
-    flex-direction: row; /* Нормальный порядок: Аватарка слева, ХП справа (в углу) */
+    flex-direction: row;
     align-items: flex-end;
-    gap: 450px;
+    gap: 25.7vw;
     z-index: 5;
+    pointer-events: none;
 }
+.player-profile > * { pointer-events: auto; }
 
 .battle-avatar {
-    width: 90px;
-    height: 90px;
-    border-radius: 12px;
-    border: 3px solid #2c3e50;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.8), 0 0 15px rgba(44, 62, 80, 0.5);
+    width: 15vmin;
+    height: 15vmin;
+    border-radius: 1.2vw;
+    border: 0.25vw solid #2c3e50;
+    box-shadow: 0 1vw 2vw rgba(0,0,0,0.8), 0 0 1.5vw rgba(44, 62, 80, 0.5);
     background-size: cover;
     background-position: center;
     position: relative;
     cursor: pointer;
     transition: transform 0.2s;
 }
-/* Увеличиваем аватарку оппонента */
+
 #opponent-avatar {
-    width: 140px;  /* Ширина (можешь поставить любую нужную) */
-    height: 140px; /* Высота (должна быть равна ширине, чтобы был квадрат) */
+    width: 15vmin;
+    height: 15vmin;
 }
 
 .battle-avatar:hover { transform: scale(1.05); }
+
 .player-avatar-large {
-    width: 140px;
-    height: 140px;
+    width: 15vmin;
+    height: 15vmin;
     border-color: #f1c40f;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.8), 0 0 20px rgba(241, 196, 15, 0.4);
+    box-shadow: 0 1vw 2vw rgba(0,0,0,0.8), 0 0 2vw rgba(241, 196, 15, 0.4);
 }
 
 .health-orb {
-    width: 120px;       /* Увеличили размер кружка (было 60px) */
-    height: 120px;      /* Высота должна быть равна ширине */
-    font-size: 2.2rem;
+    width: 8vmin;
+    height: 8vmin;
+    font-size: 2.2vmin;
     border-radius: 50%;
     background: radial-gradient(circle at 30% 30%, #491711, #8b0000);
-    border: 3px solid #4a0000;
+    border: 0.3vw solid #4a0000;
     display: flex;
     align-items: center;
     justify-content: center;
     font-family: 'Marcellus', serif;
     font-weight: bold;
     color: white;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-    box-shadow: 0 0 15px rgba(231, 76, 60, 0.5), inset -5px -5px 10px rgba(0,0,0,0.5);
+    text-shadow: 0 0.2vw 0.4vw rgba(0,0,0,0.8);
+    box-shadow: 0 0 1.5vw rgba(231, 76, 60, 0.5), inset -0.5vw -0.5vw 1vw rgba(0,0,0,0.5);
     transition: transform 0.2s, filter 0.2s;
 }
 
 .hp-damage { animation: hp-hit 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both; }
 
 @keyframes hp-hit {
-    0% { transform: scale(1); filter: brightness(1); }
-    50% { transform: scale(1.3); filter: brightness(1.8); box-shadow: 0 0 30px #e74c3c; }
-    100% { transform: scale(1); filter: brightness(1); }
+    0%   { transform: scale(1);   filter: brightness(1); }
+    50%  { transform: scale(1.3); filter: brightness(1.8); box-shadow: 0 0 30px #e74c3c; }
+    100% { transform: scale(1);   filter: brightness(1); }
 }
 
 /* --- Mana Arc --- */
@@ -179,21 +206,21 @@
     width: 100vw;
     height: 100vh;
     pointer-events: none;
-    z-index: 50; 
+    z-index: 100;
 }
 
 .mana-icon {
     position: absolute;
-    width: 36px;
-    height: 36px;
-    margin-left: -18px;
-    margin-top: -18px;
+    width: 2.8vmin;
+    height: 2.8vmin;
+    margin-left: -1.4vmin;
+    margin-top: -1.4vmin;
     transition: all 0.22s ease;
 }
 
 .mana-icon.inactive {
     filter: grayscale(1) opacity(0.35);
-    transform: rotate(var(--rot)); 
+    transform: rotate(var(--rot));
 }
 
 .mana-icon.active {
@@ -202,13 +229,13 @@
 
 @keyframes mana-pulse-glow {
     from { filter: drop-shadow(0 0 5px rgba(255, 108, 149, 0.5)); transform: rotate(var(--rot)); }
-    to { filter: drop-shadow(0 0 20px rgba(255, 108, 149, 1)); transform: rotate(var(--rot)); }
+    to   { filter: drop-shadow(0 0 20px rgba(255, 108, 149, 1));  transform: rotate(var(--rot)); }
 }
 
-/* --- Opponent Hand (Top Left) --- */
+/* --- Opponent Hand --- */
 .opponent-hand-container {
     position: absolute;
-    top: 80px;
+    top: 9vh;
     left: 22%;
     display: flex;
     perspective: 1000px;
@@ -217,75 +244,75 @@
 }
 
 .opponent-card-back {
-    width: 100px;
-    height: 140px;
+    width: 7.5vmin;
+    height: 10.5vmin;
     background-size: cover;
     background-position: center;
-    border-radius: 6px;
+    border-radius: 0.6vw;
     border: 1px solid #1a1a1a;
-    box-shadow: -4px 6px 12px rgba(0,0,0,0.6);
-    margin-left: -40px;
+    box-shadow: -0.4vw 0.6vw 1.2vw rgba(0,0,0,0.6);
+    margin-left: -3.5vmin;
     animation: idle-float 4s ease-in-out infinite alternate;
 }
 
 @keyframes idle-float {
-    0% { transform: translateY(0) rotate(calc(var(--rot-offset) - 2deg)); }
+    0%   { transform: translateY(0)    rotate(calc(var(--rot-offset) - 2deg)); }
     100% { transform: translateY(-10px) rotate(calc(var(--rot-offset) + 2deg)); }
 }
 
 /* --- Player Hand Fan --- */
 .player-hand-fan {
     position: absolute !important;
-    bottom: 85px !important;
+    bottom: 8vh !important;
     right: -1% !important;
-    width: 650px !important; /* ФИКСИРОВАННАЯ ШИРИНА: теперь веер никуда не уедет! */
+    width: 50vw !important;
     transform: translateX(-10%) !important;
     display: flex !important;
     justify-content: center !important;
     align-items: flex-end !important;
-    height: 180px !important;
+    height: 17vh !important;
     z-index: 20 !important;
     pointer-events: auto !important;
 }
 
 .player-hand-fan .battle-card {
-    width: 80px !important;   /* Ставим такую же ширину, как у рубашек оппонента */
-    height: 115px !important; /* Ставим такую же высоту */
-    min-width: 80px;
-    margin: 0 -20px; /* Делаем их чуть ближе друг к другу, так как они стали меньше */
+    width: 7vmin !important;
+    height: 10.5vmin !important;
+    min-width: 7vmin;
+    margin: 0 -2.5vmin;
     transform-origin: bottom center;
     transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+    box-shadow: 0 1vw 2vw rgba(0,0,0,0.5);
 }
 
 .player-hand-fan .battle-card:hover {
-    transform: translateY(-40px) scale(1.5) rotate(0deg) !important;
+    transform: translateY(-4vh) scale(1.5) rotate(0deg) !important;
     z-index: 100 !important;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.8), 0 0 20px rgba(241, 196, 15, 0.4);
+    box-shadow: 0 1.5vw 3.5vw rgba(0,0,0,0.8), 0 0 2vw rgba(241, 196, 15, 0.4);
 }
 
-/* --- Controls & Buttons --- */
+/* --- Controls --- */
 .battle-controls-right {
     position: absolute;
-    right: 40px;
+    right: 2.5vw;
     top: 50%;
     transform: translateY(-50%);
     display: flex;
     flex-direction: column;
-    gap: 25px;
+    gap: 2vh;
     align-items: center;
 }
 
 .battle-btn-end {
     background: linear-gradient(135deg, #27ae60, #2ecc71);
-    border: 2px solid #a8e6cf;
-    box-shadow: 0 0 20px rgba(46, 204, 113, 0.5), inset 0 0 10px rgba(255,255,255,0.3);
+    border: 0.2vw solid #a8e6cf;
+    box-shadow: 0 0 2vw rgba(46, 204, 113, 0.5), inset 0 0 1vw rgba(255,255,255,0.3);
     border-radius: 50%;
-    width: 110px;
-    height: 110px;
+    width: 8vmin;
+    height: 8vmin;
     font-family: 'Marcellus', serif;
     font-weight: bold;
-    font-size: 1.1rem;
+    font-size: 1vw;
     color: white;
     text-transform: uppercase;
     cursor: pointer;
@@ -294,7 +321,7 @@
 
 .battle-btn-end:hover:not(:disabled) {
     transform: scale(1.08);
-    box-shadow: 0 0 30px rgba(46, 204, 113, 0.9);
+    box-shadow: 0 0 3vw rgba(46, 204, 113, 0.9);
 }
 
 .battle-btn-end:disabled, .battle-btn-end.disabled {
@@ -310,8 +337,8 @@
 }
 
 @keyframes end-turn-pulse {
-    0% { box-shadow: 0 0 15px rgba(46, 204, 113, 0.5); }
-    50% { box-shadow: 0 0 25px rgba(46, 204, 113, 0.8); }
+    0%   { box-shadow: 0 0 15px rgba(46, 204, 113, 0.5); }
+    50%  { box-shadow: 0 0 25px rgba(46, 204, 113, 0.8); }
     100% { box-shadow: 0 0 15px rgba(46, 204, 113, 0.5); }
 }
 
@@ -319,10 +346,12 @@
     background: rgba(0,0,0,0.5);
     border: 1px solid rgba(255,255,255,0.1);
     color: #9aa5b1;
-    padding: 8px 20px;
-    border-radius: 20px;
+    padding: 0.8vh 1.2vw;
+    border-radius: 2vw;
     cursor: pointer;
     transition: all 0.2s;
+    font-size: 0.9vw;
+    white-space: nowrap;
 }
 
 .battle-btn-exit:hover {
@@ -331,48 +360,111 @@
     border-color: #e74c3c;
 }
 
-/* --- Turn Tracker & Coin --- */
+/* --- Turn Tracker --- */
 .turn-tracker {
     position: absolute;
-    left: 40px;
+    left: 2.5vw;
     top: 50%;
     transform: translateY(-50%);
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 15px;
+    gap: 1.5vh;
 }
 
+/* ==================================================
+   ЯПОНСКАЯ МОНЕТА ХОДА
+   ================================================== */
+
 .turn-coin {
-    width: 80px;
-    height: 80px;
+    width: 7vmin;
+    height: 7vmin;
     border-radius: 50%;
-    background: radial-gradient(circle at 30% 30%, #f1c40f, #d35400);
-    border: 4px solid #f39c12;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.6), inset -5px -5px 15px rgba(0,0,0,0.4);
+    background:
+        radial-gradient(circle at 32% 24%,
+            #fff8c0 0%,
+            #e8b800 22%,
+            #c89600 42%,
+            #8a6200 65%,
+            #583c00 85%,
+            #352200 100%
+        );
+    border: 0.2vw solid #ddb830;
+    box-shadow:
+        0 0 0 0.1vw rgba(90, 60, 0, 0.85),
+        0 0.8vw 2vw rgba(0,0,0,0.85),
+        inset -0.4vw -0.4vw 1.2vw rgba(0,0,0,0.55),
+        inset 0.2vw 0.2vw 0.8vw rgba(255,255,200,0.38);
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
+    overflow: hidden;
     transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s;
+    cursor: default;
+    flex-shrink: 0;
 }
 
-.turn-coin.player-turn { box-shadow: 0 0 30px rgba(46, 204, 113, 0.6); }
-.turn-coin.opponent-turn { box-shadow: 0 0 30px rgba(231, 76, 60, 0.6); }
+/* Гравированное кольцо внутри */
+.turn-coin::before {
+    content: '';
+    position: absolute;
+    inset: 0.5vw;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 218, 70, 0.38);
+    pointer-events: none;
+    z-index: 0;
+}
 
-.turn-arrow {
-    width: 40px;
-    height: 40px;
-    color: white;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
-    transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+/* Кандзи на маленькой монете — 先 (senkou=first) / 後 (koukou=second) */
+.turn-coin-kanji {
+    position: relative;
+    z-index: 1;
+    font-size: 2.3vmin;
+    font-family: 'Hiragino Mincho Pro', 'Yu Mincho', 'Noto Serif JP', Georgia, serif;
+    font-weight: 900;
+    color: #fff8c0;
+    text-shadow:
+        0 0 0.6vw rgba(255, 220, 80, 0.8),
+        0 0.2vw 0.4vw rgba(0,0,0,0.9);
+    line-height: 1;
+    letter-spacing: -1px;
+    user-select: none;
+}
+
+/* Для обратной совместимости: если turn-arrow ещё где-то инжектится */
+.turn-coin .turn-arrow {
+    width: 70%;
+    height: 70%;
+    position: relative;
+    z-index: 1;
+    overflow: visible;
+}
+
+.turn-coin.player-turn {
+    box-shadow:
+        0 0 0 1px rgba(90, 60, 0, 0.85),
+        0 0 28px rgba(46, 204, 113, 0.9),
+        0 8px 20px rgba(0,0,0,0.85),
+        inset -4px -4px 12px rgba(0,0,0,0.55),
+        inset 2px 2px 8px rgba(255,255,200,0.38);
+}
+
+.turn-coin.opponent-turn {
+    box-shadow:
+        0 0 0 1px rgba(90, 60, 0, 0.85),
+        0 0 28px rgba(231, 76, 60, 0.9),
+        0 8px 20px rgba(0,0,0,0.85),
+        inset -4px -4px 12px rgba(0,0,0,0.55),
+        inset 2px 2px 8px rgba(255,255,200,0.38);
 }
 
 .turn-timer-container {
     font-family: 'Marcellus', serif;
-    font-size: 2.2rem;
+    font-size: 2.2vmin;
     font-weight: bold;
     color: #f4f1e1;
-    text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+    text-shadow: 0 0.2vw 1vw rgba(0,0,0,0.8);
     transition: color 0.3s, text-shadow 0.3s;
 }
 
@@ -382,116 +474,251 @@
 }
 
 @keyframes timer-pulse {
-    0% { transform: scale(1); text-shadow: 0 0 10px rgba(231, 76, 60, 0.8); }
-    50% { transform: scale(1.2); text-shadow: 0 0 25px rgba(231, 76, 60, 1); }
-    100% { transform: scale(1); text-shadow: 0 0 10px rgba(231, 76, 60, 0.8); }
+    0%   { transform: scale(1);   text-shadow: 0 0 10px rgba(231, 76, 60, 0.8); }
+    50%  { transform: scale(1.2); text-shadow: 0 0 25px rgba(231, 76, 60, 1);   }
+    100% { transform: scale(1);   text-shadow: 0 0 10px rgba(231, 76, 60, 0.8); }
 }
 
-/* --- Start Animation --- */
+/* ==================================================
+   ОВЕРЛЕЙ ПОДБРАСЫВАНИЯ МОНЕТЫ — японский стиль
+   ================================================== */
+
 .coin-flip-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.7);
+    background:
+        radial-gradient(ellipse at 50% 44%, rgba(28, 12, 4, 0.93) 0%, rgba(0, 0, 0, 0.98) 100%);
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-direction: column;
+    gap: 3.5vh;
     z-index: 200;
 }
 
-.start-coin {
-    width: 150px;
-    height: 150px;
-    transform: scale(1.5);
-    box-shadow: 0 0 50px rgba(241, 196, 15, 0.8);
+/* Тонкие горизонтальные линии — атмосфера свитка */
+.coin-flip-overlay::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 62px,
+            rgba(255, 195, 40, 0.015) 62px,
+            rgba(255, 195, 40, 0.015) 63px
+        );
+    pointer-events: none;
 }
 
-.spinning-fast { animation: spin-y 0.4s linear infinite; }
+/* Декоративные углы свитка */
+.coin-flip-overlay::after {
+    content: '';
+    position: absolute;
+    inset: 2vw;
+    border: 1px solid rgba(200, 150, 0, 0.12);
+    border-radius: 0.4vw;
+    pointer-events: none;
+}
+
+/* БОЛЬШАЯ монета */
+.start-coin {
+    width: 18vmin;
+    height: 18vmin;
+    border-radius: 50%;
+    background:
+        radial-gradient(circle at 30% 22%,
+            #fff8c0 0%,
+            #e8b800 18%,
+            #c89600 38%,
+            #8a6200 60%,
+            #583c00 80%,
+            #352200 100%
+        );
+    border: 0.4vw solid #ddb830;
+    box-shadow:
+        0 0 0 0.2vw rgba(80, 52, 0, 0.9),
+        0 0 7vw rgba(232, 184, 0, 0.65),
+        0 3vw 6vw rgba(0,0,0,0.98),
+        inset -0.8vw -0.8vw 2.4vw rgba(0,0,0,0.68),
+        inset 0.4vw 0.4vw 1.4vw rgba(255,255,200,0.48);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+/* Два гравированных кольца */
+.start-coin::before {
+    content: '';
+    position: absolute;
+    inset: 1vw;
+    border-radius: 50%;
+    border: 0.2vw solid rgba(255, 220, 70, 0.28);
+    z-index: 0;
+}
+.start-coin::after {
+    content: '';
+    position: absolute;
+    inset: 2vw;
+    border-radius: 50%;
+    border: 0.1vw solid rgba(255, 220, 70, 0.16);
+    z-index: 0;
+}
+
+/* Кандзи на большой монете */
+.start-coin-kanji {
+    position: relative;
+    z-index: 2;
+    font-size: 8vmin;
+    font-family: 'Hiragino Mincho Pro', 'Yu Mincho', 'Noto Serif JP', Georgia, serif;
+    font-weight: 900;
+    color: #fff8c0;
+    text-shadow:
+        0 0 2vw rgba(255, 220, 80, 0.95),
+        0 0 5vw rgba(255, 200, 40, 0.5),
+        0 0.4vw 0.8vw rgba(0,0,0,0.98);
+    line-height: 1;
+    user-select: none;
+}
+
+/* Для обратной совместимости */
+.start-coin .turn-arrow {
+    width: 78%;
+    height: 78%;
+    position: relative;
+    z-index: 2;
+    overflow: visible;
+}
+
+/* Анимации монеты */
+.spinning-fast {
+    animation: spin-y 0.36s linear infinite;
+}
 
 @keyframes spin-y {
-    0% { transform: scale(1.5) rotateY(0deg); }
-    100% { transform: scale(1.5) rotateY(360deg); }
+    0%   { transform: scale(1.4) rotateY(0deg);   }
+    100% { transform: scale(1.4) rotateY(360deg); }
 }
 
 .move-to-indicator {
     transition: all 0.7s cubic-bezier(0.5, 0, 0.1, 1);
-    transform: translate(-42vw, 0) scale(0.5); /* Move leftwards */
+    transform: translate(-42vw, 0) scale(0.4);
     opacity: 0;
 }
 
-/* Reused basic card styles from existing, just adapting to new UI */
+/* Результат */
+.coin-flip-result {
+    font-family: 'Hiragino Mincho Pro', 'Yu Mincho', 'Noto Serif JP', Georgia, serif;
+    text-align: center;
+    line-height: 1.4;
+    pointer-events: none;
+}
+
+.kanji-big {
+    display: block;
+    font-size: 9vmin;
+    color: #f5d060;
+    text-shadow:
+        0 0 2.2vw rgba(232, 184, 0, 0.95),
+        0 0 5.5vw rgba(232, 184, 0, 0.5),
+        0 0.4vw 0.8vw rgba(0,0,0,0.98);
+    letter-spacing: 0.1em;
+    animation: kanji-land 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.kanji-sub {
+    display: block;
+    font-size: 1.9vmin;
+    color: rgba(245, 208, 90, 0.55);
+    letter-spacing: 5px;
+    margin-top: 0.8vh;
+    animation: kanji-land 0.5s 0.12s ease both;
+    opacity: 0;
+}
+
+.kanji-ruby {
+    display: block;
+    font-size: 1.5vmin;
+    color: rgba(245, 208, 90, 0.35);
+    letter-spacing: 3px;
+    margin-top: 0.4vh;
+    animation: kanji-land 0.5s 0.22s ease both;
+    opacity: 0;
+}
+
+@keyframes kanji-land {
+    from { opacity: 0; transform: scale(0.6) translateY(20px); filter: blur(8px); }
+    to   { opacity: 1; transform: scale(1)   translateY(0);    filter: blur(0);   }
+}
+
+/* ==================================================
+   КАРТЫ
+   ================================================== */
+
 .battle-card {
-    width: 130px;
-    height: 213px;
+    width: 9vmin;
+    height: 15vmin;
     background: #121417;
-    border: 2px solid #2c3e50;
-    border-radius: 12px;
-    padding: 8px;
+    border: 0.2vw solid #2c3e50;
+    border-radius: 1.2vw;
+    padding: 0.8vw;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 0.6vw;
     cursor: pointer;
     position: relative;
 }
-.battle-card.selected { outline: 2px solid #f1c40f; outline-offset: 2px; box-shadow: 0 0 20px #f1c40f; }
-.battle-cost { position: absolute; top: 6px; right: 6px; width: 22px; height: 22px; border-radius: 50%; background: #f1c40f; color: #1a1a1a; font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; box-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+
+.battle-card.selected { outline: 0.2vw solid #f1c40f; outline-offset: 0.2vw; box-shadow: 0 0 2vw #f1c40f; }
+.battle-cost { position: absolute; top: 0.6vw; right: 0.6vw; width: 2.2vw; height: 2.2vw; border-radius: 50%; background: #f1c40f; color: #1a1a1a; font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; box-shadow: 0 0.2vw 0.4vw rgba(0,0,0,0.5); }
 .battle-title { font-size: 0.85rem; font-weight: 600; color: #f4f1e1; text-shadow: 0 1px 2px #000; }
 .battle-stats { margin-top: auto; font-size: 0.8rem; display: flex; justify-content: space-between; color: #d0cbb5; }
 .battle-hp { color: #2ecc71; }
 
-.opponent-side .battle-board {
-    justify-content: flex-end; 
-}
-
-/* Твоя доска прижимает карты к центру и растет вправо */
-.player-side .battle-board {
-    justify-content: flex-start; 
-}
+.opponent-side .battle-board { justify-content: flex-end; }
+.player-side   .battle-board { justify-content: flex-start; }
 
 .battle-board .battle-card {
-    width: 95px !important;  /* Уменьшенная ширина */
-    height: 155px !important; /* Уменьшенная высота */
-    min-width: 95px; /* Чтобы карты не сплющивались, если их много */
+    width: 7.5vmin !important;
+    height: 12vmin !important;
+    min-width: 7.5vmin;
 }
 
-/* Делаем текст внутри маленьких карт чуть аккуратнее */
 .battle-board .battle-title { font-size: 0.75rem; }
-.battle-board .battle-cost { width: 18px; height: 18px; font-size: 0.7rem; }
+.battle-board .battle-cost  { width: 1.8vw; height: 1.8vw; font-size: 0.7rem; }
 
-/* =========================================
-   БОЕВЫЕ КАРТЫ (Увеличенные и читаемые)
-   ========================================= */
-
-/* 1. Размеры карт: Увеличили руку (веер) и доску */
 #player-hand.player-hand-fan .battle-card {
-    width: 110px !important;      /* Сделали карты в руке больше */
-    height: 180px !important;
-    min-width: 110px !important;
-    border-radius: 6px !important;
-    margin: 0 -30px !important;   /* Дали картам больше воздуха, веер станет шире */
+    width: 9.5vmin !important;
+    height: 15.5vmin !important;
+    min-width: 9.5vmin !important;
+    border-radius: 0.6vw !important;
+    margin: 0 -3.5vmin !important;
 }
 
-/* Приподнимаем сам контейнер веера, чтобы большие карты поместились */
 .player-hand-fan {
-    height: 180px !important;
-    bottom: 85px !important;
+    height: clamp(120px, 17vh, 180px) !important;
+    bottom: clamp(50px, 8vh, 85px) !important;
 }
 
 .battle-board .battle-card {
-    width: 90px !important;       /* Доску тоже чуть-чуть увеличили */
-    height: 148px !important;
-    min-width: 90px !important;
-    border-radius: 5px !important;
+    width: 7.5vmin !important;
+    height: 12vmin !important;
+    min-width: 7.5vmin !important;
+    border-radius: 0.5vw !important;
 }
 
 .battle-card {
     background: transparent !important;
     border: 1px solid rgba(139, 126, 109, 0.4) !important;
     padding: 0 !important;
-    overflow: visible !important; 
+    overflow: visible !important;
     position: relative !important;
 }
 
-/* 2. Арт карты */
 .battle-card .card-art {
     position: absolute !important;
     inset: 0 !important;
@@ -507,33 +734,32 @@
     object-fit: cover !important;
 }
 
-/* 3. ВЕРХНЯЯ ПАНЕЛЬ (Мана и Имя) */
 .battle-card .card-top-bar {
     position: absolute !important;
-    top: -6px !important;
+    top: -0.6vw !important;
     left: 0 !important;
     right: 0 !important;
     z-index: 5 !important;
     display: flex !important;
     justify-content: space-between !important;
     align-items: center !important;
-    gap: 5px !important;
-    padding: 5px 6px 0 !important;
+    gap: 0.5vw !important;
+    padding: 0.5vw 0.6vw 0 !important;
     background: transparent !important;
 }
 
 .battle-card .card-cost-wrap {
     position: relative !important;
     flex-shrink: 0 !important;
-    width: 26px !important;
-    height: 26px !important;
-    margin-left: -5px !important;
-    margin-top: -3px !important;
+    width: 2.6vw !important;
+    height: 2.6vw !important;
+    margin-left: -0.5vw !important;
+    margin-top: -0.3vw !important;
 }
 
 .battle-card .card-cost-icon {
-    width: 30px !important;
-    height: 30px !important;
+    width: 3vw !important;
+    height: 3vw !important;
     transform: rotate(-45deg) !important;
 }
 
@@ -543,86 +769,77 @@
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    font-size: 12px !important; /* МАГИЯ: Мана стала крупной и четкой */
+    font-size: 1.2vw !important;
     font-weight: 900 !important;
     color: #F4F1E1 !important;
-    text-shadow: 0 1px 3px #000, 0 0 2px #000 !important; 
-    transform: translate(0px, 1px) !important;
+    text-shadow: 0 0.1vw 0.3vw #000, 0 0 0.2vw #000 !important;
+    transform: translate(0, 0.1vw) !important;
 }
 
 .battle-card .card-name {
     flex: 1 !important;
     font-family: 'Marcellus', Georgia, serif !important;
     color: #000 !important;
-    font-size: 9px !important; /* Имя стало больше */
+    font-size: 0.9vw !important;
     font-weight: 800 !important;
-    letter-spacing: 0.5px !important;
+    letter-spacing: 0.05vw !important;
     line-height: 1.1 !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
     text-align: right !important;
-    transform: translateY(-8px) !important;
-    text-shadow: 0 0 3px rgba(255,255,255,0.9), 0 0 1px rgba(255,255,255,1) !important; /* Белая обводка, чтобы читалось на черном фоне */
+    transform: translateY(-0.8vw) !important;
+    text-shadow: 0 0 0.3vw rgba(255,255,255,0.9), 0 0 0.1vw rgba(255,255,255,1) !important;
 }
 
-/* 4. НИЖНЯЯ ПАНЕЛЬ (Статы) */
 .battle-card .card-bottom-bar {
     position: absolute !important;
-    bottom: -6px !important;
+    bottom: -0.6vw !important;
     left: 0 !important;
     right: 0 !important;
     z-index: 5 !important;
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    padding: 0 6px 6px !important;
+    padding: 0 0.6vw 0.6vw !important;
     background: transparent !important;
 }
 
 .battle-card .card-stat {
     display: flex !important;
     align-items: center !important;
-    gap: 3px !important;
+    gap: 0.3vw !important;
 }
 
-.battle-card .card-atk .card-stat-icon {
-    width: 14px !important;
-    height: 14px !important;
-}
-
-.battle-card .card-def .card-stat-icon {
-    width: 11px !important;
-    height: 14px !important;
-}
+.battle-card .card-atk .card-stat-icon { width: 1.4vw !important; height: 1.4vw !important; }
+.battle-card .card-def .card-stat-icon { width: 1.1vw !important; height: 1.4vw !important; }
 
 .battle-card .card-stat-num {
-    font-size: 11px !important; /* Цифры статов стали огромными и читаемыми */
+    font-size: 1.1vw !important;
     font-weight: 900 !important;
     color: #000 !important;
-    text-shadow: 0 0 3px rgba(255,255,255,0.9), 0 1px 2px rgba(255,255,255,0.8) !important; /* Белая обводка */
+    text-shadow: 0 0 0.3vw rgba(255,255,255,0.9), 0 0.1vw 0.2vw rgba(255,255,255,0.8) !important;
     line-height: 1 !important;
 }
 
 .battle-card .card-clan {
-    width: 16px !important;
-    height: 16px !important;
+    width: 1.6vw !important;
+    height: 1.6vw !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
 }
 
-/* 5. СОСТОЯНИЕ КАРТ */
 .battle-card.disabled {
-    opacity: 1 !important; 
-    pointer-events: auto !important; /* ВАЖНО: Разрешаем мышку! Теперь работает ховер и ПКМ */
+    opacity: 1 !important;
+    pointer-events: auto !important;
     transition: filter 0.3s ease, transform 0.3s ease !important;
 }
 
 #player-hand.player-hand-fan .battle-card.disabled:hover {
-    transform: translateY(-40px) scale(1.6) rotate(0deg) !important;
+    transform: translateY(-4vh) scale(1.6) rotate(0deg) !important;
     z-index: 100 !important;
-    filter: brightness(0.65) !important; 
+    filter: brightness(0.65) !important;
 }
 
 #player-hand.player-hand-fan .battle-card.disabled {
@@ -630,12 +847,13 @@
 }
 
 .battle-board .battle-card.disabled {
-    filter: brightness(0.8) !important; 
+    filter: brightness(0.8) !important;
 }
 
-/* =========================================
-   ОВЕРЛЕЙ ДЛЯ ПРЕДПРОСМОТРА КАРТЫ (ПКМ)
-   ========================================= */
+/* ==================================================
+   ПРЕДПРОСМОТР КАРТЫ (ПКМ)
+   ================================================== */
+
 .card-preview-overlay {
     position: fixed;
     inset: 0;
@@ -646,7 +864,6 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    /* Плавное затемнение фона */
     opacity: 1;
     transition: opacity 0.3s ease, backdrop-filter 0.3s ease;
 }
@@ -656,24 +873,65 @@
     pointer-events: none !important;
     backdrop-filter: blur(0px) !important;
 }
-/* Увеличиваем базовую карточку для предпросмотра в 2.5 раза */
+
 .card-preview-overlay .card.preview-mode {
     margin: 0 !important;
-    pointer-events: none !important; 
+    pointer-events: none !important;
     border: 1px solid rgba(241, 196, 15, 0.6) !important;
-    /* Подключаем анимацию */
     animation: card-inspect-pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
 }
 
 @keyframes card-inspect-pop {
-    0% { 
-        transform: scale(0.5) translateY(200px) rotateX(-40deg); 
-        opacity: 0; 
-        box-shadow: 0 0 0 rgba(0,0,0,0); 
+    0%   { transform: scale(0.5) translateY(20vh) rotateX(-40deg); opacity: 0; box-shadow: 0 0 0 rgba(0,0,0,0); }
+    100% { transform: scale(2.4) translateY(0) rotateX(0deg);       opacity: 1; box-shadow: 0 3vw 6vw rgba(0,0,0,0.9), 0 0 5vw rgba(241, 196, 15, 0.5); }
+}
+
+/* ==================================================
+   МЕДИА-ЗАПРОСЫ
+   ================================================== */
+
+@media (max-width: 820px) {
+    .battle-field-split { gap: 2vw; }
+    .battle-side { width: 43vw; }
+
+    .player-hand-fan  { width: 56vw !important; }
+    .battle-btn-end   { width: 7.5vmin; height: 7.5vmin; }
+    .turn-tracker         { left: 1.5vw; }
+    .battle-controls-right { right: 1.5vw; }
+}
+
+@media (max-width: 540px) {
+    .battle-field-split {
+        flex-direction: column;
+        justify-content: center;
+        gap: 0.8vh;
+        padding: 0.8vh 0.4vw 30%;
     }
-    100% { 
-        transform: scale(2.4) translateY(0) rotateX(0deg); 
-        opacity: 1; 
-        box-shadow: 0 30px 60px rgba(0,0,0,0.9), 0 0 50px rgba(241, 196, 15, 0.5); 
+
+    .battle-side { width: 92vw; }
+
+    .player-hand-fan {
+        width: 96vw !important;
+        right: 50% !important;
+        transform: translateX(50%) !important;
+        bottom: 5.5vh !important;
+    }
+
+    .turn-tracker {
+        top: auto;
+        transform: none;
+        bottom: 2vh;
+        left: 2vw;
+        flex-direction: row;
+        gap: 0.6vh;
+    }
+
+    .battle-controls-right {
+        top: auto;
+        transform: none;
+        bottom: 2vh;
+        right: 2vw;
+        flex-direction: row;
+        gap: 0.6vh;
     }
 }

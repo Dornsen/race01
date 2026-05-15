@@ -113,38 +113,66 @@ function coinFlipStart() {
     return new Promise((resolve) => {
         const coinOverlay = document.getElementById('coin-flip-overlay');
         const centerCoin = document.getElementById('coin-flip-center');
-        
+
         if (!coinOverlay || !centerCoin) {
             startTurn(Math.random() > 0.5 ? 'player' : 'opponent');
             resolve();
             return;
         }
 
+        // Очищаем предыдущий результат и запускаем спин
+        coinOverlay.innerHTML = '';
         coinOverlay.classList.remove('hidden');
-        centerCoin.classList.add('spinning-fast');
 
+        // Большая монета — вопрос (知: «знание/судьба»)
+        const bigCoin = document.createElement('div');
+        bigCoin.id = 'coin-flip-center';
+        bigCoin.className = 'turn-coin start-coin spinning-fast';
+        bigCoin.innerHTML = `<span class="start-coin-kanji">命</span>`;
+        coinOverlay.appendChild(bigCoin);
+
+        // Через 1.1s — останавливаем, показываем результат
         setTimeout(() => {
             const starter = Math.random() > 0.5 ? 'player' : 'opponent';
-            centerCoin.classList.remove('spinning-fast');
-            
-            // Assign facing direction
-            centerCoin.innerHTML = starter === 'player' 
-                ? `<svg class="turn-arrow" style="transform:rotate(180deg)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 19V5M5 12l7-7 7 7"/></svg>`
-                : `<svg class="turn-arrow" style="transform:rotate(0deg)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 19V5M5 12l7-7 7 7"/></svg>`;
-            
+            bigCoin.classList.remove('spinning-fast');
+
+            // 先攻 (senkou) = ходишь первым | 後攻 (koukou) = вторым
+            if (starter === 'player') {
+                bigCoin.innerHTML = `<span class="start-coin-kanji">先</span>`;
+            } else {
+                bigCoin.innerHTML = `<span class="start-coin-kanji">後</span>`;
+            }
+
+            // Текст-результат под монетой
+            const resultEl = document.createElement('div');
+            resultEl.className = 'coin-flip-result';
+            resultEl.innerHTML = starter === 'player'
+                ? `<span class="kanji-big">先攻</span>
+                   <span class="kanji-sub">SENKOU</span>
+                   <span class="kanji-ruby">Your turn first</span>`
+                : `<span class="kanji-big">後攻</span>
+                   <span class="kanji-sub">KOUKOU</span>
+                   <span class="kanji-ruby">Opponent goes first</span>`;
+            coinOverlay.appendChild(resultEl);
+
+            // Обновляем маленькую монету на трекере заранее
+            const smallCoin = document.getElementById('turn-coin');
+            if (smallCoin) {
+                smallCoin.innerHTML = `<span class="turn-coin-kanji">${starter === 'player' ? '先' : '後'}</span>`;
+            }
+
+            // Через 1.4s — монета улетает влево к трекеру
             setTimeout(() => {
-                // Shoot the coin towards the left indicator spot
-                centerCoin.classList.add('move-to-indicator');
-                
+                bigCoin.classList.add('move-to-indicator');
+
                 setTimeout(() => {
                     coinOverlay.classList.add('hidden');
-                    centerCoin.classList.remove('move-to-indicator');
-                    centerCoin.innerHTML = ''; // reset 
+                    bigCoin.classList.remove('move-to-indicator');
                     startTurn(starter);
                     resolve();
-                }, 700);
-            }, 800);
-        }, 1000);
+                }, 750);
+            }, 1400);
+        }, 1100);
     });
 }
 
@@ -328,14 +356,19 @@ function updateBattleHeader() {
 function updateTurnCoin() {
     const coin = document.getElementById('turn-coin');
     if (!coin) return;
-    const arrow = coin.querySelector('.turn-arrow');
-    
+
+    // Заменяем SVG-стрелку кандзи (先 = первый / 後 = второй)
+    const existingKanji = coin.querySelector('.turn-coin-kanji');
+    if (!existingKanji) {
+        coin.innerHTML = `<span class="turn-coin-kanji">${battleState.turn === 'player' ? '先' : '後'}</span>`;
+    } else {
+        existingKanji.textContent = battleState.turn === 'player' ? '先' : '後';
+    }
+
     if (battleState.turn === 'player') {
-        arrow.style.transform = 'rotate(180deg)'; // Arrow Down
         coin.classList.remove('opponent-turn');
         coin.classList.add('player-turn');
     } else {
-        arrow.style.transform = 'rotate(0deg)'; // Arrow Up
         coin.classList.add('opponent-turn');
         coin.classList.remove('player-turn');
     }
@@ -364,10 +397,9 @@ function renderManaArc() {
     const verticalOffsetPx = rect.height * 0.18; 
     const rotateDeg = 165;
     
-    // === ВОТ РЕШЕНИЕ ТВОЕЙ ПРОБЛЕМЫ === 
-    // Смещение ГОТОВОЙ дуги (уже после переворота)
-    const finalShiftX = 0;   // Сдвиг вправо/влево
-    const finalShiftY = 675; // Сдвиг ВНИЗ (увеличь это число, например до 300, если нужно опустить еще ниже)
+    // Смещение ГОТОВОЙ дуги — адаптивно под высоту экрана
+    const finalShiftX = 0;
+    const finalShiftY = window.innerHeight * 0.695; // ~675px при 1080px, масштабируется
 
     const tStart = 0.38;
     const tEnd = 0.62;
@@ -858,6 +890,90 @@ function exitBattle(skipServer) {
     setBattleScreenVisible(false);
 }
 
+// --- 8. SURRENDER CONFIRMATION OVERLAY ---
+
+function showSurrenderConfirmation() {
+    let overlay = document.getElementById('surrender-confirm-overlay');
+    
+    // Create the overlay dynamically if it doesn't exist yet
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'surrender-confirm-overlay';
+        overlay.className = 'card-preview-overlay'; // Reuse your existing overlay class
+        
+        // Inline fallback styling to ensure it centers correctly
+        overlay.style.position = 'fixed';
+        overlay.style.top = '0';
+        overlay.style.left = '0';
+        overlay.style.width = '100vw';
+        overlay.style.height = '100vh';
+        overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.85)';
+        overlay.style.zIndex = '10000';
+        overlay.style.display = 'flex';
+        overlay.style.alignItems = 'center';
+        overlay.style.justifyContent = 'center';
+        
+        const modal = document.createElement('div');
+        modal.style.background = '#1a1a1a';
+        modal.style.border = '2px solid #ff4d4d';
+        modal.style.padding = '30px 40px';
+        modal.style.borderRadius = '12px';
+        modal.style.textAlign = 'center';
+        modal.style.boxShadow = '0 10px 30px rgba(0,0,0,0.5)';
+        
+        const title = document.createElement('h2');
+        title.innerText = 'Are you sure you want to surrender?';
+        title.style.color = '#fff';
+        title.style.marginBottom = '25px';
+        title.style.fontFamily = 'sans-serif';
+        
+        const btnWrap = document.createElement('div');
+        btnWrap.style.display = 'flex';
+        btnWrap.style.gap = '20px';
+        btnWrap.style.justifyContent = 'center';
+        
+        // CONFIRM BUTTON
+        const btnConfirm = document.createElement('button');
+        btnConfirm.innerText = 'Surrender';
+        btnConfirm.style.padding = '10px 20px';
+        btnConfirm.style.background = '#ff4d4d';
+        btnConfirm.style.color = '#fff';
+        btnConfirm.style.border = 'none';
+        btnConfirm.style.borderRadius = '5px';
+        btnConfirm.style.cursor = 'pointer';
+        btnConfirm.style.fontWeight = 'bold';
+        btnConfirm.onclick = () => {
+            overlay.style.display = 'none';
+            exitBattle(); // Call the original exit logic
+        };
+        
+        // CANCEL BUTTON
+        const btnCancel = document.createElement('button');
+        btnCancel.innerText = 'Cancel';
+        btnCancel.style.padding = '10px 20px';
+        btnCancel.style.background = '#555';
+        btnCancel.style.color = '#fff';
+        btnCancel.style.border = 'none';
+        btnCancel.style.borderRadius = '5px';
+        btnCancel.style.cursor = 'pointer';
+        btnCancel.style.fontWeight = 'bold';
+        btnCancel.onclick = () => {
+            overlay.style.display = 'none'; // Hide overlay
+        };
+        
+        btnWrap.appendChild(btnCancel);
+        btnWrap.appendChild(btnConfirm);
+        
+        modal.appendChild(title);
+        modal.appendChild(btnWrap);
+        overlay.appendChild(modal);
+        document.body.appendChild(overlay);
+    }
+    
+    // Show the overlay
+    overlay.style.display = 'flex';
+}
+
 // --- EVENT LISTENERS ---
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -868,7 +984,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const btnExitBattle = document.getElementById('btn-exit-battle');
     if (btnExitBattle) {
-        btnExitBattle.onclick = () => exitBattle();
+        // OVERRIDE: Show confirmation instead of immediate exit
+        btnExitBattle.onclick = () => showSurrenderConfirmation();
     }
 
     const btnEndTurn = document.getElementById('btn-end-turn');
