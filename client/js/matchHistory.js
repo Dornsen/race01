@@ -177,10 +177,19 @@ function renderLeaderboard(items) {
     items.forEach((row, index) => {
         const item = document.createElement('div');
         item.className = 'leaderboard-item';
+
+        const avatarFileName = row.avatar_url || 'avatar1.png';
+        const avatarPath = `assets/avatars/${avatarFileName}`;
+
         item.innerHTML = `
-            <div><span class="leaderboard-rank">#${index + 1}</span> ${row.username}</div>
-            <div>${row.match_making_rating} MMR</div>
+            <span class="leaderboard-rank">#${index + 1}</span>
+            <div class="leaderboard-user">
+                <img src="${avatarPath}" class="leaderboard-avatar" alt="avatar">
+                <span class="leaderboard-name">${row.username}</span>
+            </div>
+            <span class="leaderboard-mmr">${row.match_making_rating} MMR</span>
         `;
+        
         list.appendChild(item);
     });
 }
