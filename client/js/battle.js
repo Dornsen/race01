@@ -46,7 +46,7 @@ function setBattleScreenVisible(isVisible) {
     }
 }
 
-function syncBattleAvatars() {
+function syncBattleAvatars(opponentAvatarUrl) {
     const playerAvatar = document.getElementById('player-avatar');
     const opponentAvatar = document.getElementById('opponent-avatar');
     const lobbyAvatar = document.querySelector('.avatar-placeholder');
@@ -56,8 +56,11 @@ function syncBattleAvatars() {
     }
 
     if (opponentAvatar) {
-        const fallback = 'assets/avatars/avatar2.png';
-        opponentAvatar.style.backgroundImage = `url('${fallback}')`;
+        let avatarPath = 'assets/avatars/avatar2.png';
+        if (opponentAvatarUrl) {
+            avatarPath = opponentAvatarUrl.includes('/') ? opponentAvatarUrl : `assets/avatars/${opponentAvatarUrl}`;
+        }
+        opponentAvatar.style.backgroundImage = `url('${avatarPath}')`;
     }
 }
 
@@ -201,6 +204,12 @@ function applyServerState(state) {
     const opponentName = document.getElementById('opponent-name');
     if (playerName) playerName.innerText = state.you.name || 'Player';
     if (opponentName) opponentName.innerText = state.opponent.name || 'Opponent';
+
+    const opponentAvatar = document.getElementById('opponent-avatar');
+    if (opponentAvatar && state.opponent.avatar) {
+         let avatarPath = state.opponent.avatar.includes('/') ? state.opponent.avatar : `assets/avatars/${state.opponent.avatar}`;
+         opponentAvatar.style.backgroundImage = `url('${avatarPath}')`;
+    }
 
     if (!hasShownOnlineTurn && state.turn) {
         const text = state.turn === 'you' ? 'Your Turn' : 'Opponent\'s Turn';
