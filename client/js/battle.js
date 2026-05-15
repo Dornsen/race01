@@ -554,6 +554,7 @@ function renderBattleHand() {
 function buildBattleCard(card) {
     const el = document.createElement('div');
     el.className = 'card battle-card';
+    el.setAttribute('data-id', card.id);
     
     // Цвет рамки по редкости
     if (typeof getRarityColor === 'function') {
@@ -569,7 +570,7 @@ function buildBattleCard(card) {
 
         <div class="card-top-bar">
             <div class="card-cost-wrap">
-                <div class="card-cost-icon">${typeof SVG_SHURIKEN !== 'undefined' ? SVG_SHURIKEN : '⭐'}</div>
+                <div class="card-cost-icon">${SVG_SHURIKEN}</div>
                 <span class="card-cost-num">${card.cost}</span>
             </div>
             <div class="card-name">${card.name}</div>
@@ -577,14 +578,14 @@ function buildBattleCard(card) {
 
         <div class="card-bottom-bar">
             <div class="card-stat card-atk">
-                <div class="card-stat-icon">${typeof SVG_KUNAI !== 'undefined' ? SVG_KUNAI : '⚔️'}</div>
+                <div class="card-stat-icon">${SVG_KUNAI}</div>
                 <span class="card-stat-num">${card.attack}</span>
             </div>
             <div class="card-clan">
-                ${typeof getClanIcon === 'function' ? getClanIcon(card.clan) : ''}
+                ${getClanIcon(card.clan)}
             </div>
             <div class="card-stat card-def">
-                <div class="card-stat-icon">${typeof SVG_SHIELD !== 'undefined' ? SVG_SHIELD : '🛡️'}</div>
+                <div class="card-stat-icon">${SVG_SHIELD}</div>
                 <span class="card-stat-num battle-hp-value">${card.currentHp || card.defense}</span>
             </div>
         </div>
