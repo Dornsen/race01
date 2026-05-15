@@ -116,22 +116,21 @@ exports.getMatchHistory = async (req, res) => {
         res.status(500).json({ error: 'Error loading match history' });
     }
 };
-
 exports.getLeaderboard = async (req, res) => {
     try {
         const [rows] = await db.query(`
-            SELECT username, match_making_rating
+            SELECT username, match_making_rating, avatar_url 
             FROM users
             ORDER BY match_making_rating DESC
             LIMIT 50
         `);
+
         res.json({ leaderboard: rows });
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Error loading leaderboard' });
     }
 };
-
 exports.openGacha = async (req, res) => {
     const userId = req.session.userId;
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });

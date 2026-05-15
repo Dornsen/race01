@@ -358,59 +358,70 @@
         </div>
     </div>
     <div id="battle-screen" class="battle-screen hidden">
-        <header class="battle-header">
-            <div class="battle-player">
-                <div class="battle-avatar" id="opponent-avatar"></div>
-                <div class="battle-meta">
-                    <div class="battle-name" id="opponent-name">Opponent</div>
-                    <div class="battle-stats">
-                        <span>HP: <span id="opponent-hp">15</span></span>
-                        <span>Energy: <span id="opponent-energy">0</span></span>
-                        <span>Hand: <span id="opponent-hand-count">0</span></span>
-                    </div>
-                </div>
-            </div>
-            <div class="battle-center">
-                <div class="battle-timer">Turn: <span id="turn-owner">Player</span> | <span id="turn-timer">30</span>s</div>
-                <div id="turn-indicator" class="turn-indicator">Your turn</div>
-                <button id="btn-end-turn" class="battle-btn">End Turn</button>
-            </div>
-            <div class="battle-controls">
-                <button id="btn-exit-battle" class="battle-btn secondary">Exit</button>
-            </div>
-        </header>
-
-        <main class="battle-field">
-            <section class="battle-row opponent-row">
+        <div class="battle-bg" style="background-image: url('assets/matchback.png');"></div>
+        
+        <main class="battle-field-split">
+            <section class="battle-side opponent-side">
                 <div class="board-label">Opponent Board</div>
                 <div id="opponent-board" class="battle-board"></div>
             </section>
-
-            <section class="battle-row player-row">
+            
+            <section class="battle-side player-side">
                 <div class="board-label">Your Board</div>
                 <div id="player-board" class="battle-board"></div>
             </section>
         </main>
+        
+        <div id="opponent-hand" class="opponent-hand-container"></div>
+        <div id="player-hand" class="player-hand-fan"></div>
 
-        <footer class="battle-footer">
-            <div class="battle-player">
-                <div class="battle-avatar" id="player-avatar"></div>
-                <div class="battle-meta">
-                    <div class="battle-name" id="player-name">Player</div>
-                    <div class="battle-stats">
-                        <span>HP: <span id="player-hp">15</span></span>
-                        <span>Energy: <span id="player-energy">0</span></span>
-                        <span>Hand: <span id="player-hand-count">0</span></span>
-                    </div>
+        <div class="battle-overlay" style="background-image: url('assets/uimatch.png');"></div>
+
+        <div class="battle-ui-layer">
+            
+            <div class="opponent-profile">
+                <div class="battle-avatar" id="opponent-avatar"></div>
+                <div class="health-orb opponent-health">
+                    <span id="opponent-hp">15</span>
                 </div>
             </div>
-            <div id="player-hand" class="battle-hand"></div>
-        </footer>
-    </div>
+            
+            <div class="turn-tracker">
+                <div id="turn-coin" class="turn-coin">
+                    <svg class="turn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <path d="M12 19V5M5 12l7-7 7 7"/>
+                    </svg>
+                </div>
+                <div class="turn-timer-container">
+                    <span id="turn-timer">30</span>
+                </div>
+                <div style="display:none;">
+                    <span id="turn-owner"></span>
+                    <span id="turn-indicator"></span>
+                    <span id="player-energy"></span>
+                    <span id="opponent-energy"></span>
+                    <span id="player-hand-count"></span>
+                    <span id="opponent-hand-count"></span>
+                </div>
+            </div>
 
-    <div id="coin-flip" class="coin-flip hidden">
-        <div class="coin">⛩️</div>
-        <div class="coin-text" id="coin-text">Flipping...</div>
+            <div class="battle-controls-right">
+                <button id="btn-end-turn" class="battle-btn-end">END TURN</button>
+                <button id="btn-exit-battle" class="battle-btn-exit">Surrender</button>
+            </div>
+
+            <div class="player-profile">
+                <div id="player-mana-arc" class="mana-arc"></div>
+                <div class="battle-avatar player-avatar-large" id="player-avatar"></div>
+                <div class="health-orb player-health">
+                    <span id="player-hp">15</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="coin-flip-overlay" class="coin-flip-overlay hidden">
+            <div id="coin-flip-center" class="turn-coin start-coin"></div>
+        </div>
     </div>
 
     <div id="friend-invite-modal" class="invite-modal hidden">
