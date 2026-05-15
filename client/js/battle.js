@@ -398,7 +398,7 @@ function renderManaArc() {
     const rotateDeg = 165;
     
     // Смещение ГОТОВОЙ дуги — адаптивно под высоту экрана
-    const finalShiftX = 0;
+    const finalShiftX = -21;
     const finalShiftY = window.innerHeight * 0.695; // ~675px при 1080px, масштабируется
 
     const tStart = 0.38;
@@ -553,9 +553,6 @@ function renderBattleHand() {
 
 function buildBattleCard(card) {
     const el = document.createElement('div');
-    // ВАЖНО: Добавляем сразу два класса! 
-    // 'card' - чтобы подтянулась красота из cards.js
-    // 'battle-card' - чтобы работали боевые анимации, ховеры и размеры
     el.className = 'card battle-card';
     
     // Цвет рамки по редкости
@@ -565,7 +562,6 @@ function buildBattleCard(card) {
     
     const cleanUrl = encodeURI((card.image || '').trim());
 
-    // Переносим HTML-структуру из createCardElement (cards.js)
     el.innerHTML = `
         <div class="card-art">
             <img src="${cleanUrl}" alt="${card.name}">
@@ -589,53 +585,16 @@ function buildBattleCard(card) {
             </div>
             <div class="card-stat card-def">
                 <div class="card-stat-icon">${typeof SVG_SHIELD !== 'undefined' ? SVG_SHIELD : '🛡️'}</div>
-                <span class="card-stat-num battle-hp-value">${card.currentHp}</span>
+                <span class="card-stat-num battle-hp-value">${card.currentHp || card.defense}</span>
             </div>
         </div>
     `;
 
-    // Правый клик по карте — посмотреть детали
+    // Правый клик — предпросмотр
     el.oncontextmenu = (e) => {
         e.preventDefault();
-        // Вызываем нашу новую функцию для красивого визуала
         if (typeof showBigCardPreview === 'function') showBigCardPreview(card);
     };
-
-    // Делаем ХП красным, если карта ранена
-    if (card.currentHp < card.defense) {
-        const hpSpan = el.querySelector('.battle-hp-value');
-        if (hpSpan) hpSpan.classList.add('wounded');
-    }
-
-    // 1. Проверка на обычный клик левой кнопкой мыши
-    el.addEventListener('click', (e) => {
-        if (el.classList.contains('disabled')) {
-            e.preventDefault(); // Останавливаем любые другие действия
-            
-            // Вызываем твою глобальную функцию уведомлений из global.js
-            if (typeof showMessage === 'function') {
-                showMessage('Not enough mana!', 'error');
-            } else if (typeof showNotification === 'function') {
-                showNotification('Not enough mana!', 'error');
-            } else {
-                // На всякий случай, если функция называется иначе
-                alert('Not enough mana!'); 
-            }
-        }
-    });
-
-    // 2. Проверка на попытку перетащить карту на доску (Drag & Drop)
-    el.addEventListener('dragstart', (e) => {
-        if (el.classList.contains('disabled')) {
-            e.preventDefault(); // Намертво запрещаем тащить карту
-            
-            if (typeof showMessage === 'function') {
-                showMessage('Not enough mana!', 'error');
-            } else if (typeof showNotification === 'function') {
-                showNotification('Not enough mana!', 'error');
-            }
-        }
-    });
 
     return el;
 }
