@@ -212,17 +212,19 @@ button:active {
 .avatar-container .base-avatar {
     width: 100%;
     height: 100%;
-    border-radius: 50%;
+    border-radius: 5%;
     object-fit: cover;
     z-index: 1;
 }
 
 .avatar-container .frame-overlay {
     position: absolute;
-    top: -15%;
-    left: -15%;
-    width: 130%;
-    height: 130%;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     z-index: 2;
     pointer-events: none;
+    display: block;
+    object-fit: contain;
 }
