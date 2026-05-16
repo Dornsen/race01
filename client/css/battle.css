@@ -75,8 +75,8 @@
 
 /* --- Boards --- */
 .battle-side {
-    width: 38vw;           /* Было 44vw — уменьшили */
-    max-width: 520px;      /* Жёсткий потолок ширины */
+    width: 48vw;
+    max-width: 640px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -95,9 +95,9 @@
     display: flex;
     flex-wrap: nowrap;
     gap: 0.8vw;
-    min-height: 18vh;           /* Увеличили высоту */
-    height: 22vh;               /* Фиксированная высота — важно для стабильности */
-    max-height: 24vh;
+    min-height: 24vh;
+    height: 26vh;
+    max-height: 30vh;
     width: 100%;
     padding: 1.2vw;
     background: rgba(10, 15, 20, 0.45);
@@ -122,8 +122,8 @@
 
 #player-board .battle-card,
 #opponent-board .battle-card {
-    width: 11.2vmin !important;
-    height: 18vmin !important;
+    width: 15vmin !important;
+    height: 24vmin !important;
 }
 
 /* --- Profiles & Avatars ---
@@ -691,11 +691,8 @@
 .opponent-side .battle-board { justify-content: flex-end; }
 .player-side   .battle-board { justify-content: flex-start; }
 
+/* размер board-карт — задаётся через переменную :root */
 .battle-board .battle-card {
-    width: 11.2vmin !important;
-    height: 18vmin !important;
-    min-width: 11.2vmin !important;
-    min-height: 18vmin !important;
     border-radius: 1vw !important;
     box-shadow: 0 0.8vw 2vw rgba(0,0,0,0.6) !important;
 }
@@ -715,20 +712,14 @@
     height: clamp(120px, 17vh, 180px) !important;
     bottom: clamp(50px, 8vh, 85px) !important;
 }*/
-/*
-.battle-board .battle-card {
-    width: 9.2vmin !important;
-    height: 15vmin !important;
-    min-width: 9.2vmin;
-    border-radius: 0.8vw !important;
-}*/
 
 .battle-card {
     background: transparent !important;
-    border: 1px solid rgba(139, 126, 109, 0.4) !important;
+    border: none !important;
     padding: 0 !important;
-    overflow: visible !important;
+    overflow: hidden !important;
     position: relative !important;
+    border-radius: 0.8vw !important;
 }
 
 .battle-card .card-art {
@@ -744,27 +735,27 @@
     width: 100% !important;
     height: 100% !important;
     object-fit: cover !important;
+    object-position: center center !important;
 }
 
 .battle-card .card-top-bar {
     position: absolute !important;
-    top: -0.7vw !important;
+    top: 0 !important;
     left: 0 !important;
     right: 0 !important;
     z-index: 5 !important;
     display: flex !important;
     justify-content: space-between !important;
-    align-items: center !important;
-    gap: 0.5vw !important;
-    padding: 0.4vw 0.6vw 0 !important;
+    align-items: flex-start !important;
+    gap: 0.3vw !important;
+    padding: 0.3vw 0.4vw 0.5vw !important;
     background: transparent !important;
-    height: 2.8vw !important;
+    height: auto !important;
+    border-radius: 0.8vw 0.8vw 0 0 !important;
 }
 
 .battle-board .battle-card .card-cost-wrap {
-    left: 0.4vw !important;
-    top: -0.4vw !important;
-    transform: scale(0.95);
+    transform: scale(0.9) !important;
 }
 
 
@@ -772,6 +763,7 @@
     width: 3vw !important;
     height: 3vw !important;
     transform: rotate(-45deg) !important;
+    filter: drop-shadow(0 1px 3px rgba(0,0,0,1)) !important;
 }
 
 .battle-card .card-cost-num {
@@ -780,40 +772,46 @@
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    font-size: 1.1vw !important;
+    font-size: 1.3vw !important;
     font-weight: 900 !important;
     color: #F4F1E1 !important;
-    text-shadow: 0 0.1vw 0.3vw #000, 0 0 0.2vw #000 !important;
+    text-shadow: 0 0 4px #000, 0 1px 3px #000, -1px 0 3px #000, 1px 0 3px #000 !important;
     transform: translate(0, 0.1vw) !important;
 }
 
 .battle-card .card-name {
     flex: 1 !important;
     font-family: 'Marcellus', Georgia, serif !important;
-    color: #000 !important;
-    font-size: 1vw !important;
+    color: #F4F1E1 !important;
+    font-size: 0.85vw !important;
     font-weight: 800 !important;
-    letter-spacing: 0.05vw !important;
-    line-height: 1.1 !important;
+    letter-spacing: 0.03vw !important;
+    line-height: 1.15 !important;
     overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    white-space: nowrap !important;
+    white-space: normal !important;
+    word-break: break-word !important;
     text-align: right !important;
-    transform: translateY(-0.8vw) !important;
-    text-shadow: 0 0 0.3vw rgba(255,255,255,0.9), 0 0 0.1vw rgba(255,255,255,1) !important;
+    transform: none !important;
+    text-shadow:
+        0 0 4px #000,
+        0 1px 3px #000,
+        -1px 0 3px #000,
+        1px 0 3px #000 !important;
+    max-height: 2.4em !important;
 }
 
 .battle-card .card-bottom-bar {
     position: absolute !important;
-    bottom: -0.6vw !important;
+    bottom: 0 !important;
     left: 0 !important;
     right: 0 !important;
     z-index: 5 !important;
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    padding: 0 0.6vw 0.6vw !important;
+    padding: 0.4vw 0.5vw 0.4vw !important;
     background: transparent !important;
+    border-radius: 0 0 0.8vw 0.8vw !important;
 }
 
 .battle-card .card-stat {
@@ -822,23 +820,29 @@
     gap: 0.3vw !important;
 }
 
-.battle-card .card-atk .card-stat-icon { width: 1.4vw !important; height: 1.4vw !important; }
-.battle-card .card-def .card-stat-icon { width: 1.1vw !important; height: 1.4vw !important; }
+.battle-card .card-atk .card-stat-icon { width: 1.6vw !important; height: 1.6vw !important; filter: drop-shadow(0 1px 3px rgba(0,0,0,1)) drop-shadow(0 0 2px rgba(0,0,0,0.9)) !important; }
+.battle-card .card-def .card-stat-icon { width: 1.3vw !important; height: 1.6vw !important; filter: drop-shadow(0 1px 3px rgba(0,0,0,1)) drop-shadow(0 0 2px rgba(0,0,0,0.9)) !important; }
 
 .battle-card .card-stat-num {
-    font-size: 1.1vw !important;
+    font-size: 1.3vw !important;
     font-weight: 900 !important;
-    color: #000 !important;
-    text-shadow: 0 0 0.3vw rgba(255,255,255,0.9), 0 0.1vw 0.2vw rgba(255,255,255,0.8) !important;
+    color: #F4F1E1 !important;
+    text-shadow:
+        0 0 4px #000,
+        0 1px 3px #000,
+        -1px 0 3px #000,
+        1px 0 3px #000,
+        0 0 8px rgba(0,0,0,0.9) !important;
     line-height: 1 !important;
 }
 
 .battle-card .card-clan {
-    width: 1.6vw !important;
-    height: 1.6vw !important;
+    width: 2vw !important;
+    height: 2vw !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
+    filter: drop-shadow(0 1px 3px rgba(0,0,0,1)) drop-shadow(0 0 2px rgba(0,0,0,1)) !important;
 }
 
 .battle-card.disabled {
@@ -960,29 +964,67 @@
     }
 }
 
-/* ==================== ПРИНУДИТЕЛЬНО БОЛЬШИЕ КАРТЫ НА ДОСКАХ ==================== */
+/* ==================== ЕДИНОЕ МЕСТО ДЛЯ РАЗМЕРА КАРТ НА ДОСКЕ ==================== */
+/* ⬇ МЕНЯЙ ТОЛЬКО ЭТИ ДВЕ ПЕРЕМЕННЫЕ ⬇ */
+:root {
+    --board-card-w: 17vmin;
+    --board-card-h: 27vmin;
+}
 
 #player-board .battle-card,
 #opponent-board .battle-card,
-.battle-board .battle-card {
-    width: 11.5vmin !important;
-    height: 18.5vmin !important;
-    min-width: 11.5vmin !important;
-    min-height: 18.5vmin !important;
-    border-radius: 1.1vw !important;
-    padding: 0.6vw !important;           /* чуть уменьшили внутренние отступы */
+.battle-board .battle-card,
+.card.battle-card {
+    width:     var(--board-card-w) !important;
+    height:    var(--board-card-h) !important;
+    min-width: var(--board-card-w) !important;
+    min-height:var(--board-card-h) !important;
+    border-radius: 0.8vw !important;
+    padding: 0 !important;
+    border: none !important;
+    overflow: hidden !important;
+    aspect-ratio: auto !important;
 }
 
-/* Убираем конфликт с базовым .battle-card */
+/* базовый .battle-card не должен перебивать размеры */
 .battle-card {
     width: auto !important;
     height: auto !important;
 }
 
-/* Дополнительно для .card класса (он тоже мешает) */
-.card.battle-card {
-    width: 11.5vmin !important;
-    height: 18.5vmin !important;
-    aspect-ratio: auto !important;
+/* ==================== ФИНАЛЬНЫЙ СБРОС — фото карты занимает весь контейнер ==================== */
+
+.battle-card,
+.battle-card.disabled,
+#player-board .battle-card,
+#opponent-board .battle-card,
+.battle-board .battle-card,
+#player-hand .battle-card,
+.player-hand-fan .battle-card {
+    border: none !important;
+    outline: none !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    box-shadow: 0 0.4vw 1.2vw rgba(0,0,0,0.5) !important;
 }
 
+.battle-card .card-art,
+#player-board .battle-card .card-art,
+#opponent-board .battle-card .card-art,
+.player-hand-fan .battle-card .card-art {
+    position: absolute !important;
+    inset: 0 !important;
+    overflow: hidden !important;
+    border-radius: inherit !important;
+}
+
+.battle-card .card-art img,
+#player-board .battle-card .card-art img,
+#opponent-board .battle-card .card-art img,
+.player-hand-fan .battle-card .card-art img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    object-position: center center !important;
+    display: block !important;
+}

@@ -228,3 +228,12 @@ button:active {
     display: block;
     object-fit: contain;
 }
+
+button, 
+.nav-btn, 
+.mode-btn, 
+.ctx-btn {
+    font-family: 'Marcellus', Georgia, serif !important;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+}

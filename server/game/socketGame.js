@@ -120,7 +120,8 @@ function buildPublicCard(card) {
         image: card.image,
         currentHp: card.currentHp,
         summoningSick: card.summoningSick,
-        hasAttacked: card.hasAttacked
+        hasAttacked: card.hasAttacked,
+        clan: card.clan
     };
 }
 
