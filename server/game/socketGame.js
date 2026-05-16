@@ -446,7 +446,12 @@ async function handleFriendInviteAccept(io, socket, payload) {
         username: socket.data.username,
         avatar: appearanceA.avatarUrl,
         frameUrl: appearanceA.frameUrl,
-        // ... (остальные поля)
+        hp: GAME_CONFIG.health,
+        energy: 0,
+        hand: [],
+        board: [],
+        nextUid: 1,
+        deck: []
     };
     playerA.deck = shuffle(deckA).map(card => makeBattleCard(playerA, card));
 

@@ -524,7 +524,7 @@ function renderOpponentHandVisually() {
     if (!handEl) return;
     handEl.innerHTML = '';
     
-    const count = battleState.isOnline ? battleState.opponentHandCount : battleState.opponent.hand.length;
+    const count = battleState.isOnline ? battleState.opponent.handCount : battleState.opponent.hand.length;
     const displayCount = Math.min(count, 5); // Limit visual render overlap
     
     for (let i = 0; i < displayCount; i++) {
