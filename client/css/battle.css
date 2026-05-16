@@ -75,8 +75,9 @@
 
 /* --- Boards --- */
 .battle-side {
-    width: 48vw;
-    max-width: 620px;
+    width: 36vw !important;        /* Твоя оригинальная ширина стороны из репозитория */
+    min-width: 36vw !important;    /* ЗАПРЕЩАЕМ стороне сжиматься при зуме */
+    max-width: 620px !important;   /* Оригинальный лимит ширины на больших мониторах */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -92,21 +93,27 @@
 }
 
 .battle-board {
-    display: flex;
-    flex-wrap: nowrap;
+    display: flex !important;
+    flex-wrap: nowrap !important;  /* Карты строго в один ряд */
+    align-items: center !important;
     gap: 0.8vw;
-    min-height: 24vh;
-    height: 26vh;
-    max-height: 30vh;
-    width: 100%;
+    
+    /* НАМЕРТВО закрепляем высоту доски под твои большие карты */
+    min-height: 26vh !important;
+    height: 26vh !important;
+    max-height: 26vh !important;
+    
+    /* Жестко фиксируем ширину контейнера */
+    width: 100% !important;
+    min-width: 100% !important;
+    
     padding: 1.2vw;
     background: rgba(10, 15, 20, 0.45);
     border: 1.5px solid rgba(255, 255, 255, 0.08);
     border-radius: 1.4vw;
     backdrop-filter: blur(6px);
-    align-items: center;
-    overflow-x: auto;
-    scrollbar-width: none;
+    overflow-x: auto !important;   /* Оставляем только горизонтальный скролл */
+    scrollbar-width: none;         /* Прячем дефолтную полосу прокрутки */
 }
 .battle-board::-webkit-scrollbar { display: none; }
 
@@ -126,94 +133,122 @@
     height: 24vmin !important;
 }
 
-/* --- Profiles & Avatars ---
-   ФИКС: заменяем gap:515px и gap:450px на clamp */
+/* --- Profiles & Avatars ---*/
+
+#opponent-name {
+    font-family: 'Marcellus', Georgia, serif !important;
+    font-size: 3vmin !important;        /* Увеличили размер для солидности */
+    font-weight: 800 !important;
+    color: #d1c79e !important;           /* Красивый золотой цвет */
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9), 0 0 10px rgba(241, 196, 15, 0.3) !important; /* Мягкое свечение */
+    text-align: center !important;
+    margin: 0 !important;
+    top: 16vh !important;             /* Отступ от верхнего края экрана */
+    left:31.4vw !important;
+    position: fixed !important;
+    z-index: 60 !important; 
+}
+
+#player-name {
+    display: none !important;            /* Полностью скрываем имя игрока, как ты и просила */
+}
+
 .opponent-profile {
     position: absolute;
     top: 1.5vh;
-    left: 1.5vw;
+    left: 0.1vw;
     display: flex;
     flex-direction: row-reverse;
-    align-items: flex-start;
-    gap: 25.7vw;
-    z-index: 5;
+    align-items: center;    /* ФИКС: ровняем по центру, чтобы сферы ХП не прыгали */
+    gap: 26vw;            /* Твой оригинальный отступ из репозитория */
+    z-index: 45;            /* Поднимаем над декоративными оверлеями uimatch */
     pointer-events: none;
 }
 
 .player-profile {
     position: absolute;
     bottom: 1.5vh;
-    right: 1.5vw;
+    right: 0.1vw;
     display: flex;
     flex-direction: row;
-    align-items: flex-end;
-    gap: 25.7vw;
-    z-index: 5;
+    align-items: center;    /* ФИКС: ровняем по центру */
+    gap: 26vw;            /* Твой оригинальный отступ из репозитория */
+    z-index: 45;
     pointer-events: none;
 }
 
-.opponent-profile > *, .player-profile > * { 
-    pointer-events: auto;
+.opponent-profile > *, 
+.player-profile > * { 
+    pointer-events: auto;   /* Возвращаем кликабельность внутренним элементам */
 }
 
-.avatar-container:hover {
-    transform: scale(1.08) translateY(-4px) !important;
-    box-shadow: 
-        0 1.5vw 4vw rgba(0,0,0,0.85),
-        0 0 3vw rgba(241, 196, 15, 0.75) !important;
-    border-color: #f1c40f !important;
-}
-
-/* Стили для картинок внутри контейнера */
-.avatar-container .base-avatar {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: inherit;
-    display: block;
-}
-
-.avatar-container .frame-overlay {
-    position: absolute;
-    inset: -10%; /* Слегка выступает за края, чтобы рамка сидела красиво */
-    width: 120%;
-    height: 120%;
-    object-fit: contain;
-    pointer-events: none;
-    z-index: 2;
-}
-
-.battle-avatar {
-    width: 24vmin;
-    height: 24vmin;
-    border-radius: 1.2vw;
-    border: 0.25vw solid #2c3e50;
-    box-shadow: 0 1vw 2vw rgba(0,0,0,0.8), 0 0 1.5vw rgba(44, 62, 80, 0.5);
-    background-size: cover;
-    background-position: center;
-    position: relative;
+/* Главный контейнер аватарки — строгий прямоугольник без обводки */
+.opponent-profile .avatar-container,
+.player-profile .avatar-container {
+    position: relative !important;   /* Обязательно для позиционирования рамок внутри */
+    width: 15vmin !important;        /* Твой оригинальный размер из репозитория */
+    height: 15vmin !important;       /* Четкий квадрат */
+    border-radius: 0 !important;     /* СТРОГИЕ УГЛЫ: убираем округление */
+    border: none !important;         /* ЧИСТО: убираем серые и желтые обводки */
+    box-shadow: 0 1vw 2vw rgba(0,0,0,0.8); /* Мягкая внешняя тень для глубины */
+    background-color: #121417;
     cursor: pointer;
-    transition: transform 0.2s;
+    
+    /* Твоя родная скорость ховера 0.2s для отзывчивого взлета */
+    transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1), 
+                box-shadow 0.2s ease !important;
 }
 
-#opponent-avatar {
-    width: 24vmin;
-    height: 24vmin;
+/* Убираем свечение/обводку для контейнера игрока в покое */
+.player-profile .avatar-container {
+    border: none !important;
+    box-shadow: 0 1vw 2vw rgba(0,0,0,0.8), 0 0 2vw rgba(241, 196, 15, 0.2);
 }
 
-.battle-avatar:hover { transform: scale(1.05); }
+/* Идеальный синхронный взлет контейнера (картинка + рамка поднимаются вместе) */
+.avatar-container:hover {
+    transform: scale(1.06) translateY(-4px) !important;
+    box-shadow: 
+        0 1.5vw 3.5vw rgba(0,0,0,0.9),
+        0 0 2.5vw rgba(241, 196, 15, 0.4) !important; /* Магический отсвет при наведении */
+}
 
-.player-avatar-large {
-    width: 24vmin;
-    height: 24vmin;
-    border-color: #f1c40f;
-    box-shadow: 0 1vw 2vw rgba(0,0,0,0.8), 0 0 2vw rgba(241, 196, 15, 0.4);
+/* Сама картинка аватара внутри контейнера */
+.avatar-container .base-avatar {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    border-radius: 0 !important;     /* Картинка тоже прямоугольная */
+    display: block !important;
+}
+
+/* Рамка-оверлей — ложится поверх и плавно двигается вместе с ховером контейнера */
+.avatar-container .frame-overlay {
+    position: absolute !important;
+    inset: -11% !important;         /* Равномерно выступает за края со всех сторон */
+    width: 122% !important;         /* Идеальный масштаб под размер контейнера 15vmin */
+    height: 122% !important;
+    object-fit: contain !important;
+    pointer-events: none !important; /* Клик проходит сквозь рамку на саму аватарку */
+    z-index: 2 !important;          /* Строго поверх лица */
+}
+
+/* Обнуляем старые сломанные классы тиммейта, чтобы не конфликтовали */
+.battle-avatar, #opponent-avatar, .player-avatar-large {
+    width: 100% !important;
+    height: 100% !important;
+    border: none !important;
+    box-shadow: none !important;
+    transform: none !important;
+    border-radius: 0 !important;
 }
 
 .health-orb {
-    width: 8vmin;
-    height: 8vmin;
-    font-size: 2.2vmin;
+    width: 10vmin !important;
+    height: 10vmin !important;
+    min-width: 10vmin !important;  /* Запрещаем сжатие в овал */
+    min-height: 10vmin !important;
+    font-size: 3vmin;
     border-radius: 50%;
     background: radial-gradient(circle at 30% 30%, #491711, #8b0000);
     border: 0.3vw solid #4a0000;
@@ -226,7 +261,9 @@
     text-shadow: 0 0.2vw 0.4vw rgba(0,0,0,0.8);
     box-shadow: 0 0 1.5vw rgba(231, 76, 60, 0.5), inset -0.5vw -0.5vw 1vw rgba(0,0,0,0.5);
     transition: transform 0.2s, filter 0.2s;
+    flex-shrink: 0 !important;
 }
+
 
 .hp-damage { animation: hp-hit 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both; }
 
@@ -346,11 +383,14 @@
     border: 0.2vw solid #a8e6cf;
     box-shadow: 0 0 2vw rgba(46, 204, 113, 0.5), inset 0 0 1vw rgba(255,255,255,0.3);
     border-radius: 50%;
-    width: 8vmin;
-    height: 8vmin;
+    /* Жесткая фиксация круга */
+    width: 8vmin !important;
+    height: 8vmin !important;
+    min-width: 8vmin !important;
+    min-height: 8vmin !important;
     font-family: 'Marcellus', serif;
     font-weight: bold;
-    font-size: 1vw;
+    font-size: 1.2vmin !important;;
     color: white;
     text-transform: uppercase;
     cursor: pointer;
@@ -789,8 +829,10 @@
 
 
 .battle-card .card-cost-icon {
-    width: 3vw !important;
-    height: 3vw !important;
+    width: 2.8vw !important;
+    height: 2.8vw !important;
+    min-width: 2.8vw !important;
+    min-height: 2.8vw !important;
     transform: rotate(-45deg) !important;
     filter: drop-shadow(0 1px 3px rgba(0,0,0,1)) !important;
 }
@@ -849,8 +891,18 @@
     gap: 0.3vw !important;
 }
 
-.battle-card .card-atk .card-stat-icon { width: 1.6vw !important; height: 1.6vw !important; filter: drop-shadow(0 1px 3px rgba(0,0,0,1)) drop-shadow(0 0 2px rgba(0,0,0,0.9)) !important; }
-.battle-card .card-def .card-stat-icon { width: 1.3vw !important; height: 1.6vw !important; filter: drop-shadow(0 1px 3px rgba(0,0,0,1)) drop-shadow(0 0 2px rgba(0,0,0,0.9)) !important; }
+.battle-card .card-atk .card-stat-icon { 
+    width: 1.5vw !important; 
+    height: 1.5vw !important; 
+    min-width: 15px !important;
+    filter: drop-shadow(0 1px 2px #000) !important; 
+}
+.battle-card .card-def .card-stat-icon { 
+    width: 1.2vw !important; 
+    height: 1.5vw !important; 
+    min-width: 12px !important;
+    filter: drop-shadow(0 1px 2px #000) !important; 
+}
 
 .battle-card .card-stat-num {
     font-size: 1.3vw !important;
@@ -866,8 +918,10 @@
 }
 
 .battle-card .card-clan {
-    width: 2vw !important;
-    height: 2vw !important;
+    width: 1.8vw !important;
+    height: 1.8vw !important;
+    min-width: 18px !important;
+    min-height: 18px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -1131,8 +1185,8 @@
     position: absolute;
     top: 2vh;
     right: 2vw;
-    width: 5vmin;
-    height: 5vmin;
+    width: 7vmin;
+    height: 7vmin;
     min-width: 40px;
     min-height: 40px;
     background: rgba(10, 15, 20, 0.6);
@@ -1165,10 +1219,10 @@
    ================================================== */
 .turn-tracker .battle-btn-end {
     margin-top: 1.5vh;
-    width: 8vmin;
-    height: 8vmin;
-    min-width: 60px;
-    min-height: 60px;
+    width: 8vmin !important;
+    height: 8vmin !important;
+    min-width: 8vmin !important;
+    min-height: 8vmin !important;
     
     /* Шрифты и текст */
     font-family: 'Marcellus', Georgia, serif;
