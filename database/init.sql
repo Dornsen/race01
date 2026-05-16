@@ -10,6 +10,12 @@ CREATE TABLE IF NOT EXISTS schema_version (
 );
 INSERT IGNORE INTO schema_version (id, version) VALUES (1, 1);
 
+CREATE TABLE IF NOT EXISTS migrations (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- 2. Users table
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
