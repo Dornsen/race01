@@ -730,3 +730,58 @@
 .clan-icon-svg.celestial-court {
     transform: translate(0, -0.5px);
 }
+
+/* Когда к модальному окну добавляется класс .with-preview, 
+   мы превращаем его во флекс-контейнер, чтобы всё выстроилось в ряд */
+.deck-modal-content.with-preview {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 20px; /* Расстояние между текстом и картой */
+    max-width: 700px; /* Увеличиваем ширину окна, чтобы поместилась и инфа, и карта */
+}
+
+/* Стили для контейнера самой карты рядом с инфой */
+.modal-side-card-preview {
+    flex-shrink: 0;
+    animation: fadeIn 0.2s ease-in-out;
+}
+
+.modal-side-card-preview .card {
+    transform: scale(1.1); /* Можно немного увеличить или уменьшить карту при необходимости */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+/* Контейнер для отдельно стоящей карты рядом с модальным окном */
+.separate-card-preview {
+    flex-shrink: 0;
+    pointer-events: none; /* Карта просто для красоты, сквозь неё можно кликать на фон */
+    animation: scaleInCard 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 101;
+}
+
+/* Делаем саму карту чуть больше, добавляем красивое свечение */
+.separate-card-preview .card {
+    width: 220px;
+    height: auto;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.8), 
+                0 0 40px rgba(255, 255, 255, 0.1);
+    pointer-events: auto; /* Позволяет предотвращать на ней нативный ПКМ */
+}
+
+/* Анимация плавного появления с легким увеличением */
+@keyframes scaleInCard {
+    from {
+        opacity: 0;
+        transform: scale(0.8) translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateX(0);
+    }
+}
