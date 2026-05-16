@@ -65,6 +65,30 @@ async function loadDeckForUser(userId) {
     return rows;
 }
 
+async function loadUserAppearance(userId) {
+    const [rows] = await db.query(
+        `
+        SELECT u.avatar_url, sf.image_url AS frame_url
+        FROM users u
+        LEFT JOIN shop_frames sf ON u.equipped_frame = sf.id
+        WHERE u.id = ?
+        `,
+        [userId]
+    );
+
+    if (!rows.length) {
+        return {
+            avatarUrl: 'avatar1.png',
+            frameUrl: null
+        };
+    }
+
+    return {
+        avatarUrl: rows[0].avatar_url || 'avatar1.png',
+        frameUrl: rows[0].frame_url || null
+    };
+}
+
 function makeBattleCard(owner, card) {
     return {
         id: card.id,
@@ -123,6 +147,7 @@ function buildStateForPlayer(match, socketId) {
             userId: you.userId,
             name: you.username,
             avatar: you.avatar,
+            frameUrl: you.frameUrl || null,
             hp: you.hp,
             energy: you.energy,
             deckCount: you.deck.length,
@@ -133,6 +158,7 @@ function buildStateForPlayer(match, socketId) {
             userId: opponent.userId,
             name: opponent.username,
             avatar: opponent.avatar,
+            frameUrl: opponent.frameUrl || null,
             hp: opponent.hp,
             energy: opponent.energy,
             deckCount: opponent.deck.length,
@@ -297,8 +323,8 @@ function createMatch(io, mode, playerA, playerB) {
     setUserStatus(playerA.userId, 'in battle');
     setUserStatus(playerB.userId, 'in battle');
 
-    io.to(playerA.socketId).emit('match_start', { mode, opponent: playerB.username, opponentAvatar: playerB.avatar });
-    io.to(playerB.socketId).emit('match_start', { mode, opponent: playerA.username, opponentAvatar: playerA.avatar });
+    io.to(playerA.socketId).emit('match_start', { mode, opponent: playerB.username, opponentAvatar: playerB.avatar, opponentFrameUrl: playerB.frameUrl });
+    io.to(playerB.socketId).emit('match_start', { mode, opponent: playerA.username, opponentAvatar: playerA.avatar, opponentFrameUrl: playerA.frameUrl });
 
     setTimeout(() => {
         const starter = Math.random() > 0.5 ? playerA : playerB;
@@ -330,14 +356,14 @@ async function handleQueueJoin(io, socket, payload) {
 
     setUserStatus(socket.data.userId, 'searching for battle');
 
-    const [userRows] = await db.query('SELECT avatar_url FROM users WHERE id = ?', [socket.data.userId]);
-    const avatarUrl = userRows.length > 0 ? userRows[0].avatar_url : 'avatar1.png';
+    const appearance = await loadUserAppearance(socket.data.userId);
 
     const player = {
         socketId: socket.id,
         userId: socket.data.userId,
         username: socket.data.username,
-        avatar: avatarUrl,
+        avatar: appearance.avatarUrl,
+        frameUrl: appearance.frameUrl,
         hp: GAME_CONFIG.health,
         energy: 0,
         hand: [],
@@ -412,20 +438,21 @@ async function handleFriendInviteAccept(io, socket, payload) {
         return;
     }
 
-    const [userA] = await db.query('SELECT avatar_url FROM users WHERE id = ?', [socket.data.userId]);
-    const avatarA = userA.length > 0 ? userA[0].avatar_url : 'avatar1.png';
+    const appearanceA = await loadUserAppearance(socket.data.userId);
 
     const playerA = {
         socketId: socket.id,
         userId: socket.data.userId,
         username: socket.data.username,
-        avatar: avatarA, // <---
+        avatar: appearanceA.avatarUrl,
+        frameUrl: appearanceA.frameUrl,
         // ... (остальные поля)
     };
     playerA.deck = shuffle(deckA).map(card => makeBattleCard(playerA, card));
 
-    const [userB] = await db.query('SELECT username, avatar_url FROM users WHERE id = ?', [fromUserId]);
+    const [userB] = await db.query('SELECT u.username, u.avatar_url, sf.image_url AS frame_url FROM users u LEFT JOIN shop_frames sf ON u.equipped_frame = sf.id WHERE u.id = ?', [fromUserId]);
     const avatarB = userB.length > 0 ? userB[0].avatar_url : 'avatar1.png';
+    const frameB = userB.length > 0 ? userB[0].frame_url || null : null;
     const usernameB = userB.length > 0 ? userB[0].username : 'Opponent';
 
     const playerB = {
@@ -433,6 +460,7 @@ async function handleFriendInviteAccept(io, socket, payload) {
         userId: fromUserId,
         username: usernameB,
         avatar: avatarB,
+        frameUrl: frameB,
         hp: GAME_CONFIG.health,
         energy: 0,
         hand: [],

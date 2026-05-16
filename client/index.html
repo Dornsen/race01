@@ -97,7 +97,10 @@
     <div id="main-menu" class="lobby-container hidden">
         <header class="lobby-header">
             <div class="lobby-profile">
-                <div class="avatar-placeholder" style="cursor: pointer;"></div>
+                <div class="avatar-container" id="lobby-avatar-btn" style="cursor: pointer; width: 80px; height: 80px;">
+                    <img id="lobby-avatar-img" class="base-avatar" src="assets/avatars/avatar1.png" alt="Avatar">
+                    <img id="lobby-frame-img" class="frame-overlay" src="" alt="Frame" style="display: none;">
+                </div>
                 <div class="user-info">
                     <span id="user-greeting" class="username">Player</span>
                     <span class="mmr-badge">MMR:<span id="user-mmr">1000</span></span>
@@ -161,6 +164,8 @@
                     <img src="assets/avatars/avatar7.png" class="avatar-item" data-avatar="avatar7.png">
                     <img src="assets/avatars/avatar8.png" class="avatar-item" data-avatar="avatar8.png">
                 </div>
+                <h3 style="margin-top: 20px;">Select Frame</h3>
+                <div class="avatar-frame-grid" id="lobby-frame-grid"></div>
                 <button id="close-modal">Close</button>
             </div>
         </div>
@@ -311,6 +316,10 @@
             <button id="btn-back-shop" class="history-back">Back to lobby</button>
         </header>
          <div class="shop-body">
+        <div class="shop-section-title">Frames</div>
+        <div class="shop-frame-note">Daily rotation shows 3 random frames and refreshes once per day.</div>
+        <div class="shop-items-grid" id="shop-frame-grid"></div>
+
         <div class="shop-section-title">Donate</div>
         <div class="shop-donate">
             <div class="shop-item shop-item-donate">
@@ -386,7 +395,10 @@
             
             <div class="opponent-profile">
                 <div id="opponent-name" style="color: #F4F1E1; text-align: center; font-family: 'Marcellus', serif; font-size: 1.2rem; margin-bottom: 5px; text-shadow: 0 2px 4px rgba(0,0,0,0.8);">Opponent</div>
-                <div class="battle-avatar" id="opponent-avatar"></div>
+                <div class="avatar-container" style="width: 100px; height: 100px; margin: 0 auto;">
+                    <img id="opponent-battle-avatar" class="base-avatar" src="assets/avatars/avatar1.png">
+                    <img id="opponent-battle-frame" class="frame-overlay" src="" style="display: none;">
+                </div>
                 <div class="health-orb opponent-health">
                     <span id="opponent-hp">15</span>
                 </div>
@@ -419,7 +431,10 @@
             <div class="player-profile">
                 <div id="player-mana-arc" class="mana-arc"></div>
                 <div id="player-name" style="color: #F4F1E1; text-align: center; font-family: 'Marcellus', serif; font-size: 1.2rem; margin-bottom: 5px; text-shadow: 0 2px 4px rgba(0,0,0,0.8);">Player</div>
-                <div class="battle-avatar player-avatar-large" id="player-avatar"></div>
+                <div class="avatar-container" style="width: 120px; height: 120px; margin: 0 auto;">
+                    <img id="player-battle-avatar" class="base-avatar" src="assets/avatars/avatar1.png">
+                    <img id="player-battle-frame" class="frame-overlay" src="" style="display: none;">
+                </div>
                 <div class="health-orb player-health">
                     <span id="player-hp">15</span>
                 </div>
@@ -450,6 +465,7 @@
     <script src="js/cards.js"></script>
     <script src="js/deck.js"></script>
     <script src="js/gacha.js"></script>
+    <script src="js/shop.js"></script>
     <script src="js/matchHistory.js"></script>
     <script src="js/navigation.js"></script>
     <script src="js/socketClient.js"></script>

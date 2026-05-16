@@ -57,3 +57,24 @@ let historyDelta = { win: 0, lose: 0 };
 let autoEndTurnId = null;
 let currentMoney = 0;
 let activeCardModal = null;
+
+window.createAvatarElement = function(avatarUrl, frameUrl = null, size = 64) {
+    const container = document.createElement('div');
+    container.className = 'avatar-container';
+    container.style.width = `${size}px`;
+    container.style.height = `${size}px`;
+
+    const avatarImg = document.createElement('img');
+    avatarImg.src = avatarUrl || '/assets/avatars/avatar1.png';
+    avatarImg.className = 'base-avatar';
+    container.appendChild(avatarImg);
+
+    if (frameUrl) {
+        const frameImg = document.createElement('img');
+        frameImg.src = frameUrl;
+        frameImg.className = 'frame-overlay';
+        container.appendChild(frameImg);
+    }
+
+    return container;
+};

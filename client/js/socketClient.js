@@ -93,7 +93,7 @@ function handleMatchStart(payload) {
     hideInviteModal();
     
     if (typeof setBattleScreenVisible === 'function') setBattleScreenVisible(true);
-    if (typeof syncBattleAvatars === 'function') syncBattleAvatars(payload.opponentAvatar);
+    if (typeof syncBattleAvatars === 'function') syncBattleAvatars(payload.opponentAvatar, payload.opponentFrameUrl);
     
     const playerName = document.getElementById('player-name');
     const opponentName = document.getElementById('opponent-name');

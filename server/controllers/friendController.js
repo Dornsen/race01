@@ -37,9 +37,10 @@ exports.getFriends = async (req, res) => {
     const userId = req.session.userId;
     try {
         const [friends] = await db.query(`
-            SELECT u.id, u.username, u.status, u.avatar_url 
+            SELECT u.id, u.username, u.status, u.avatar_url, sf.image_url AS frame_url 
             FROM friendships f
             JOIN users u ON (f.friend_id = u.id OR f.user_id = u.id)
+            LEFT JOIN shop_frames sf ON u.equipped_frame = sf.id
             WHERE (f.user_id = ? OR f.friend_id = ?) AND u.id != ? AND f.status = 'accepted'
             LIMIT 50
         `, [userId, userId, userId]);

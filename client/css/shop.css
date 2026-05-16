@@ -94,6 +94,85 @@
     gap: 20px;
 }
 
+.shop-frame-note {
+    color: #9aa5b1;
+    font-size: 0.95rem;
+    margin: -6px 0 4px;
+}
+
+.shop-frame-item {
+    align-items: stretch;
+}
+
+.shop-frame-preview {
+    align-self: center;
+    margin-bottom: 6px;
+}
+
+.shop-frame-preview .base-avatar {
+    border-radius: 16px;
+}
+
+.shop-frame-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+.shop-frame-btn {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #633D3D;
+    background: rgba(99, 61, 61, 0.2);
+    color: #f4f1e1;
+    font-family: 'Marcellus', serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+}
+
+.shop-frame-btn.primary {
+    background: rgba(241, 196, 15, 0.12);
+    border-color: #f1c40f;
+    color: #f1c40f;
+}
+
+.shop-frame-btn:disabled {
+    opacity: 0.7;
+    cursor: default;
+}
+
+.avatar-frame-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+    gap: 10px;
+    margin: 12px 0 18px;
+}
+
+.avatar-frame-grid .frame-choice {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 10px;
+    border: 1px solid rgba(187, 167, 141, 0.18);
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.avatar-frame-grid .frame-choice .frame-name {
+    font-size: 0.78rem;
+    color: #d0cbb5;
+    text-align: center;
+}
+
+.avatar-frame-grid .frame-choice .shop-frame-btn {
+    padding: 8px 10px;
+    font-size: 0.75rem;
+}
+
 .shop-item {
     background: rgba(15, 17, 20, 0.5); 
     border: 1px solid rgba(187, 167, 141, 0.2); 

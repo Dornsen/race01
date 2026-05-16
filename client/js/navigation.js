@@ -50,6 +50,7 @@ if (btnShop) {
     btnShop.onclick = () => {
         if (typeof leaveQueue === 'function') leaveQueue();
         if (typeof refreshBalance === 'function') refreshBalance();
+        if (typeof fetchFrameShop === 'function') fetchFrameShop();
         switchScreen('main-menu', 'shop');
     };
 }

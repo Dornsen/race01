@@ -180,15 +180,35 @@ function renderLeaderboard(items) {
 
         const avatarFileName = row.avatar_url || 'avatar1.png';
         const avatarPath = `assets/avatars/${avatarFileName}`;
+        const avatarSize = index < 3 ? 100 : 45;
 
-        item.innerHTML = `
-            <span class="leaderboard-rank">#${index + 1}</span>
-            <div class="leaderboard-user">
-                <img src="${avatarPath}" class="leaderboard-avatar" alt="avatar">
-                <span class="leaderboard-name">${row.username}</span>
-            </div>
-            <span class="leaderboard-mmr">${row.match_making_rating} MMR</span>
-        `;
+        const userWrap = document.createElement('div');
+        userWrap.className = 'leaderboard-user';
+
+        if (typeof createAvatarElement === 'function') {
+            const avatarWrap = createAvatarElement(avatarPath, row.frame_url || null, avatarSize);
+            avatarWrap.classList.add('leaderboard-avatar-wrap');
+            userWrap.appendChild(avatarWrap);
+        } else {
+            const avatar = document.createElement('img');
+            avatar.src = avatarPath;
+            avatar.className = 'leaderboard-avatar';
+            avatar.alt = 'avatar';
+            userWrap.appendChild(avatar);
+        }
+
+        const name = document.createElement('span');
+        name.className = 'leaderboard-name';
+        name.textContent = row.username;
+        userWrap.appendChild(name);
+
+        item.appendChild(document.createElement('span')).className = 'leaderboard-rank';
+        item.querySelector('.leaderboard-rank').textContent = `#${index + 1}`;
+        item.appendChild(userWrap);
+        const mmr = document.createElement('span');
+        mmr.className = 'leaderboard-mmr';
+        mmr.textContent = `${row.match_making_rating} MMR`;
+        item.appendChild(mmr);
         
         list.appendChild(item);
     });

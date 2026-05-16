@@ -69,3 +69,21 @@
     object-fit: cover;
     border: 1px solid #7f8c8d;
 }
+
+.friend-avatar-wrap {
+    flex-shrink: 0;
+}
+
+.friend-avatar-wrap .base-avatar {
+    border-radius: 50%;
+    border: 1px solid #7f8c8d;
+    object-fit: cover;
+    background-color: #1A1C20;
+}
+
+.friend-avatar-wrap .frame-overlay {
+    top: -10%;
+    left: -10%;
+    width: 120%;
+    height: 120%;
+}

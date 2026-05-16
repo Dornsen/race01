@@ -46,27 +46,55 @@ function setBattleScreenVisible(isVisible) {
     }
 }
 
-function syncBattleAvatars(opponentAvatarUrl) {
-    const playerAvatar = document.getElementById('player-avatar');
-    const opponentAvatar = document.getElementById('opponent-avatar');
-    const lobbyAvatar = document.querySelector('.avatar-placeholder');
-
-    if (playerAvatar && lobbyAvatar && lobbyAvatar.style.backgroundImage) {
-        playerAvatar.style.backgroundImage = lobbyAvatar.style.backgroundImage;
-    }
-
-    if (opponentAvatar) {
+function syncBattleAvatars(opponentAvatarUrl, opponentFrameUrl = null) {
+    const oppAvatar = document.getElementById('opponent-battle-avatar');
+    if (oppAvatar) {
         let avatarPath = 'assets/avatars/avatar2.png';
         if (opponentAvatarUrl) {
             avatarPath = opponentAvatarUrl.includes('/') ? opponentAvatarUrl : `assets/avatars/${opponentAvatarUrl}`;
         }
-        opponentAvatar.style.backgroundImage = `url('${avatarPath}')`;
+        oppAvatar.src = avatarPath;
+    }
+
+    const oppFrame = document.getElementById('opponent-battle-frame');
+    if (oppFrame) {
+        if (opponentFrameUrl) {
+            oppFrame.src = opponentFrameUrl;
+            oppFrame.style.display = 'block';
+        } else {
+            oppFrame.style.display = 'none';
+        }
+    }
+
+    const playerAvatar = document.getElementById('player-battle-avatar');
+    const lobbyAvatarImg = document.getElementById('lobby-avatar-img');
+    
+    if (playerAvatar && lobbyAvatarImg) {
+        playerAvatar.src = lobbyAvatarImg.src;
+    }
+
+    const playerFrame = document.getElementById('player-battle-frame');
+    const lobbyFrameImg = document.getElementById('lobby-frame-img');
+    
+    if (playerFrame && lobbyFrameImg) {
+        playerFrame.src = lobbyFrameImg.src;
+        playerFrame.style.display = lobbyFrameImg.style.display;
+    }
+}
+
+function applyAvatarFrame(frameElement, frameUrl) {
+    if (!frameElement) return;
+
+    if (frameUrl) {
+        frameElement.src = frameUrl;
+        frameElement.style.display = 'block';
+    } else {
+        frameElement.style.display = 'none';
     }
 }
 
 function showCoinFlip(text) {
-    // Оставляем пустой. 
-    // Стартовая анимация теперь обрабатывается в новой функции coinFlipStart().
+
 }
 
 // --- 2. MATCH INITIALIZATION & STATE ---
@@ -205,11 +233,23 @@ function applyServerState(state) {
     if (playerName) playerName.innerText = state.you.name || 'Player';
     if (opponentName) opponentName.innerText = state.opponent.name || 'Opponent';
 
-    const opponentAvatar = document.getElementById('opponent-avatar');
+    const opponentAvatar = document.getElementById('opponent-battle-avatar');
     if (opponentAvatar && state.opponent.avatar) {
-         let avatarPath = state.opponent.avatar.includes('/') ? state.opponent.avatar : `assets/avatars/${state.opponent.avatar}`;
-         opponentAvatar.style.backgroundImage = `url('${avatarPath}')`;
+        const avatarPath = state.opponent.avatar.includes('/') ? state.opponent.avatar : `assets/avatars/${state.opponent.avatar}`;
+        opponentAvatar.src = avatarPath;
     }
+
+    const opponentFrame = document.getElementById('opponent-battle-frame');
+    applyAvatarFrame(opponentFrame, state.opponent.frameUrl || null);
+
+    const playerAvatar = document.getElementById('player-battle-avatar');
+    if (playerAvatar && state.you.avatar) {
+        const avatarPath = state.you.avatar.includes('/') ? state.you.avatar : `assets/avatars/${state.you.avatar}`;
+        playerAvatar.src = avatarPath;
+    }
+
+    const playerFrame = document.getElementById('player-battle-frame');
+    applyAvatarFrame(playerFrame, state.you.frameUrl || null);
 
     if (!hasShownOnlineTurn && state.turn) {
         const text = state.turn === 'you' ? 'Your Turn' : 'Opponent\'s Turn';

@@ -85,7 +85,12 @@ exports.login = async (req, res) => {
     const { username, password } = req.body;
 
     try {
-        const [users] = await db.query('SELECT * FROM users WHERE username = ?', [username]);
+        const [users] = await db.query(`
+            SELECT u.*, sf.image_url AS frame_url 
+            FROM users u
+            LEFT JOIN shop_frames sf ON u.equipped_frame = sf.id
+            WHERE u.username = ?
+        `, [username]);
         
         if (users.length === 0) {
             return res.status(401).json({ error: 'Invalid credentials' });
@@ -115,6 +120,7 @@ exports.login = async (req, res) => {
                 id: user.id,
                 username: user.username,
                 avatar: user.avatar_url,
+                frame_url: user.frame_url,
                 mmr: user.match_making_rating,
                 money: user.money
             }
@@ -128,10 +134,12 @@ exports.login = async (req, res) => {
 exports.checkAuth = async (req, res) => {
     if (req.session.userId) {
         try {
-            const [users] = await db.query(
-                'SELECT username, avatar_url, match_making_rating, status, money FROM users WHERE id = ?',
-                [req.session.userId]
-            );
+            const [users] = await db.query(`
+                SELECT u.username, u.avatar_url, u.match_making_rating, u.status, u.money, sf.image_url AS frame_url 
+                FROM users u
+                LEFT JOIN shop_frames sf ON u.equipped_frame = sf.id
+                WHERE u.id = ?
+            `, [req.session.userId]);
             
             if (users.length > 0) {
                 const user = users[0];
@@ -146,6 +154,7 @@ exports.checkAuth = async (req, res) => {
                         id: req.session.userId, 
                         username: user.username,
                         avatar: user.avatar_url, 
+                        frame_url: user.frame_url,
                         mmr: user.match_making_rating,
                         money: user.money
                     } 

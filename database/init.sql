@@ -26,7 +26,8 @@ CREATE TABLE IF NOT EXISTS users (
     is_verified BOOLEAN DEFAULT FALSE,
     reset_token VARCHAR(255) DEFAULT NULL,
     reset_token_expires DATETIME DEFAULT NULL,
-    money INT DEFAULT 0
+    money INT DEFAULT 0,
+    equipped_frame VARCHAR(50) DEFAULT 'frame_default.png'
 );
 
 -- 3. Cards table
@@ -119,6 +120,29 @@ CREATE TABLE IF NOT EXISTS user_quests (
     UNIQUE KEY unique_user_quest (user_id, quest_id)
 );
 
+-- Avatar frames table
+CREATE TABLE IF NOT EXISTS shop_frames (
+    id VARCHAR(50) PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    price INT NOT NULL,
+    image_url VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS shop_frame_rotations (
+    rotation_date DATE PRIMARY KEY,
+    slot1 VARCHAR(50) DEFAULT NULL,
+    slot2 VARCHAR(50) DEFAULT NULL,
+    slot3 VARCHAR(50) DEFAULT NULL
+);
+
+CREATE TABLE IF NOT EXISTS user_frames (
+    user_id INT NOT NULL,
+    frame_id VARCHAR(50) NOT NULL,
+    PRIMARY KEY (user_id, frame_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (frame_id) REFERENCES shop_frames(id) ON DELETE CASCADE
+);
+
 INSERT INTO cards (name, description, avatar_url, attack, cost, defense, rarity, is_basic, clan, ability_code, ability_description) VALUES
 -- 🟢 COMMON
 ('Kodama', 'Tiny forest spirits that dwell in ancient trees. Their presence brings peace to the fractured world.', 'assets/cards/Kodama_Card.png', 1, 1, 2, 'common', TRUE, 'Wild Spirits', 'HEAL_AVATAR', 'Harmony: Restores 1 HP to your avatar at the end of the turn.'),
@@ -184,3 +208,16 @@ ON DUPLICATE KEY UPDATE
     action_type = VALUES(action_type),
     target_amount = VALUES(target_amount),
     reward_coins = VALUES(reward_coins);
+
+INSERT INTO shop_frames (id, name, price, image_url) VALUES
+('test_1', 'Бронзовая рамка', 500, '/assets/avatar_frames/1.png'),
+('test_2', 'Серебряная рамка', 1000, '/assets/avatar_frames/2.png'),
+('frame_crimson', 'Кровавая печать', 1200, '/assets/avatar_frames/3.svg'),
+('frame_amber', 'Янтарный круг', 1400, '/assets/avatar_frames/4.svg'),
+('frame_onyx', 'Ониксовый шторм', 1600, '/assets/avatar_frames/5.svg'),
+('frame_azure', 'Небесный оберег', 1800, '/assets/avatar_frames/6.svg')
+
+ON DUPLICATE KEY UPDATE 
+    name = VALUES(name),
+    price = VALUES(price),
+    image_url = VALUES(image_url);

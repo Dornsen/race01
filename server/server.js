@@ -23,6 +23,7 @@ const autoInitDatabase = require('./config/initDb');
 const authController = require('./controllers/authController');
 const friendController = require('./controllers/friendController');
 const gameController = require('./controllers/gameController');
+const shopController = require('./controllers/shopController');
 const { setupSocket } = require('./game/socketGame');
 const questController = require('./controllers/questController');
 
@@ -57,6 +58,8 @@ app.get('/api/decks/mine', gameController.getMyDeck);
 app.get('/api/matches/history', gameController.getMatchHistory);
 app.get('/api/leaderboard', gameController.getLeaderboard);
 app.post('/api/gacha/open', gameController.openGacha);
+app.get('/api/shop/frames', shopController.getFrameShop);
+app.post('/api/shop/frames', shopController.buyOrEquipFrame);
 
 // --- Quest Routes ---
 app.get('/api/quests', questController.getQuests);

@@ -48,11 +48,19 @@ function updatePlayerUI(user) {
         }
     }
 
-    const avatarPlaceholder = document.querySelector('.avatar-placeholder');
-    if (avatarPlaceholder && user.avatar) {
-        avatarPlaceholder.style.backgroundImage = `url('assets/avatars/${user.avatar}')`;
-        avatarPlaceholder.style.backgroundSize = 'cover';
-        avatarPlaceholder.style.backgroundPosition = 'center';
+    const avatarImg = document.getElementById('lobby-avatar-img');
+    if (avatarImg && user.avatar) {
+        avatarImg.src = `assets/avatars/${user.avatar}`;
+    }
+
+    const frameImg = document.getElementById('lobby-frame-img');
+    if (frameImg && Object.prototype.hasOwnProperty.call(user, 'frame_url')) {
+        if (user.frame_url) {
+            frameImg.src = user.frame_url;
+            frameImg.style.display = 'block';
+        } else {
+            frameImg.style.display = 'none';
+        }
     }
 }
 
@@ -71,6 +79,7 @@ window.onload = async () => {
             
             // Trigger external initializers if they exist
             if (typeof window.refreshBalance === 'function') window.refreshBalance();
+            if (typeof window.fetchFrameShop === 'function') window.fetchFrameShop();
             if (typeof fetchCardsFromDB === 'function') fetchCardsFromDB();
             if (typeof fetchMyDeck === 'function') fetchMyDeck();
             if (typeof initSocket === 'function') initSocket(result.user);
@@ -242,6 +251,7 @@ document.getElementById('login-form').onsubmit = async (e) => {
         loadFriends();
         if (typeof fetchCardsFromDB === 'function') fetchCardsFromDB();
         if (typeof fetchMyDeck === 'function') fetchMyDeck();
+        if (typeof window.fetchFrameShop === 'function') window.fetchFrameShop();
         if (typeof initSocket === 'function') initSocket(res.data.user);
     }
 };
@@ -296,10 +306,13 @@ if (logoutBtn) {
 }
 
 // Avatar Modal Handlers
-const avatarBox = document.querySelector('.avatar-placeholder');
+const avatarBox = document.getElementById('lobby-avatar-btn');
 const avatarModal = document.getElementById('avatar-modal');
 
-if (avatarBox) avatarBox.onclick = () => avatarModal.classList.remove('hidden');
+if (avatarBox) avatarBox.onclick = async () => {
+    if (typeof fetchFrameShop === 'function') await fetchFrameShop();
+    avatarModal.classList.remove('hidden');
+};
 if (document.getElementById('close-modal')) document.getElementById('close-modal').onclick = () => avatarModal.classList.add('hidden');
 
 // Avatar Grid Selection
@@ -395,13 +408,32 @@ async function loadFriends() {
                     ? '#2ecc71'
                     : (f.status === 'searching for battle' ? '#f1c40f' : (f.status === 'in battle' ? '#e67e22' : '#7f8c8d'));
                 
-                li.innerHTML = `
-                    <div class="friend-info">
-                        <img src="assets/avatars/${avatarImg}" class="friend-avatar" alt="ava">
-                        <span>${f.username}</span>
-                    </div>
-                    <span style="color: ${statusColor}; font-size: 0.75rem;">${statusLabel}</span>
-                `;
+                const friendInfo = document.createElement('div');
+                friendInfo.className = 'friend-info';
+
+                if (typeof createAvatarElement === 'function') {
+                    const avatarWrap = createAvatarElement(`assets/avatars/${avatarImg}`, f.frame_url || null, 30);
+                    avatarWrap.classList.add('friend-avatar-wrap');
+                    friendInfo.appendChild(avatarWrap);
+                } else {
+                    const avatar = document.createElement('img');
+                    avatar.src = `assets/avatars/${avatarImg}`;
+                    avatar.className = 'friend-avatar';
+                    avatar.alt = 'ava';
+                    friendInfo.appendChild(avatar);
+                }
+
+                const name = document.createElement('span');
+                name.textContent = f.username;
+                friendInfo.appendChild(name);
+
+                const status = document.createElement('span');
+                status.style.color = statusColor;
+                status.style.fontSize = '0.75rem';
+                status.textContent = statusLabel;
+
+                li.appendChild(friendInfo);
+                li.appendChild(status);
                 
                 // Right-click context menu handler
                 li.oncontextmenu = (e) => {

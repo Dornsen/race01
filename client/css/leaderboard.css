@@ -184,6 +184,24 @@
     background-color: #1A1C20;
 }
 
+.leaderboard-avatar-wrap {
+    flex-shrink: 0;
+}
+
+.leaderboard-avatar-wrap .base-avatar {
+    border-radius: 14px;
+    border: 2px solid currentColor;
+    object-fit: cover;
+    background-color: #1A1C20;
+}
+
+.leaderboard-avatar-wrap .frame-overlay {
+    top: -12%;
+    left: -12%;
+    width: 124%;
+    height: 124%;
+}
+
 .leaderboard-item:hover {
     background: rgba(99, 61, 61, 0.6);
     border-color: #633D3D;

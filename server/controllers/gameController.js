@@ -119,8 +119,9 @@ exports.getMatchHistory = async (req, res) => {
 exports.getLeaderboard = async (req, res) => {
     try {
         const [rows] = await db.query(`
-            SELECT username, match_making_rating, avatar_url 
-            FROM users
+            SELECT u.username, u.match_making_rating, u.avatar_url, sf.image_url AS frame_url 
+            FROM users u
+            LEFT JOIN shop_frames sf ON u.equipped_frame = sf.id
             ORDER BY match_making_rating DESC
             LIMIT 50
         `);
