@@ -210,12 +210,12 @@ ON DUPLICATE KEY UPDATE
     reward_coins = VALUES(reward_coins);
 
 INSERT INTO shop_frames (id, name, price, image_url) VALUES
-('test_1', 'Бронзовая рамка', 500, '/assets/avatar_frames/1.png'),
-('test_2', 'Серебряная рамка', 1000, '/assets/avatar_frames/2.png'),
-('frame_crimson', 'Кровавая печать', 1200, '/assets/avatar_frames/3.svg'),
-('frame_amber', 'Янтарный круг', 1400, '/assets/avatar_frames/4.svg'),
-('frame_onyx', 'Ониксовый шторм', 1600, '/assets/avatar_frames/5.svg'),
-('frame_azure', 'Небесный оберег', 1800, '/assets/avatar_frames/6.svg')
+('1frame', 'Shadow Ink-Wash Frame', 500, '/assets/avatar_frames/1.png'),
+('2frame', 'Imperial Karakusa', 1000, '/assets/avatar_frames/2.png'),
+('3frame', 'Gilded Sensu', 1200, '/assets/avatar_frames/3.png'),
+('4frame', 'Dark Shoji Lattice', 1400, '/assets/avatar_frames/4.png'),
+('5frame', 'Falling Cherry Blossom', 1600, '/assets/avatar_frames/5.png'),
+('6frame', 'Samurai Crest', 1800, '/assets/avatar_frames/6.png')
 
 ON DUPLICATE KEY UPDATE 
     name = VALUES(name),
