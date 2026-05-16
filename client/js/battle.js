@@ -311,6 +311,12 @@ function startTimer() {
 function endTurn() {
     if (!battleState.inBattle) return;
     
+    // Если каким-то чудом клик прошел не в наш ход — просто игнорируем
+    if (battleState.turn !== 'player') return;
+    
+    const btnEndTurn = document.getElementById('btn-end-turn');
+    if (btnEndTurn) btnEndTurn.classList.remove('my-turn-active');
+    
     if (battleState.isOnline) {
         if (socket) socket.emit('end_turn');
         return;
@@ -346,6 +352,11 @@ function renderBattle() {
     renderBattleBoard('opponent');
     renderBattleHand();
     scheduleAutoEndTurn();
+    
+    if (typeof updateBoardArrows === 'function') {
+        // Небольшая задержка, чтобы DOM успел обновиться
+        setTimeout(updateBoardArrows, 30);
+    }
 }
 
 function updateBattleHeader() {
@@ -389,13 +400,16 @@ function updateBattleHeader() {
     if (btnEndTurn) {
         if (battleState.turn === 'player') {
             btnEndTurn.classList.remove('disabled');
+            btnEndTurn.classList.add('my-turn-active'); // Кнопка горит и пульсирует
             btnEndTurn.disabled = false;
+            btnEndTurn.style.pointerEvents = 'auto'; // Разрешаем клики
         } else {
             btnEndTurn.classList.add('disabled');
+            btnEndTurn.classList.remove('my-turn-active'); // Тушим кнопку
             btnEndTurn.disabled = true;
+            btnEndTurn.style.pointerEvents = 'none'; // ПОЛНОСТЬЮ БЛОКИРУЕМ КЛИКИ
         }
     }
-
     // Call new Visual Presentation Sub-routines
     renderManaArc();
     renderOpponentHandVisually();
@@ -562,6 +576,16 @@ function renderBattleBoard(side) {
         
         if (battleState.selectedAttackerId === card.uid) cardEl.classList.add('selected');
         boardEl.appendChild(cardEl);
+
+        const oppAvatarContainer = document.querySelector('.opponent-profile .avatar-container');
+    if (oppAvatarContainer) {
+        // Если у противника нет карт на столе и у нас выбран атакующий — меняем курсор на "меч/указатель"
+        if (battleState.opponent.board.length === 0 && battleState.selectedAttackerId) {
+            oppAvatarContainer.style.cursor = 'crosshair';
+        } else {
+            oppAvatarContainer.style.cursor = 'default';
+        }
+    }
     });
 }
 
@@ -695,19 +719,49 @@ function showBigCardPreview(card) {
 // --- 5. COMBAT LOGIC ---
 
 function playCardFromHand(uid) {
-    if (!battleState.inBattle || battleState.turn !== 'player') return;
+    if (!battleState.inBattle) return;
+
+    // Если игрок пытается нажать на карту НЕ в свой ход — сразу пишем уведомление
+    if (battleState.turn !== 'player') {
+        showNotification('Сейчас ход противника!', true);
+        return;
+    }
     
+    // 1. Проверка для ОНЛАЙН режима
     if (battleState.isOnline) {
+        const card = battleState.player.hand.find(c => c.uid === uid);
+        if (card && card.cost > battleState.player.energy) {
+            showNotification('Недостаточно маны!', true);
+            return;
+        }
+        if (battleState.player.board.length >= 5) {
+            showNotification('Доска заполнена! Максимум 5 карт.', true);
+            return;
+        }
+        
         if (socket) socket.emit('play_card', { uid });
         return;
     }
     
+    // 2. Логика для ЛОКАЛЬНОГО режима (Practice Match)
     const idx = battleState.player.hand.findIndex(card => card.uid === uid);
     if (idx === -1) return;
     
     const card = battleState.player.hand[idx];
-    if (card.cost > battleState.player.energy) return;
+    
+    // Проверяем ману (energy)
+    if (card.cost > battleState.player.energy) {
+        showNotification('Недостаточно маны!', true);
+        return;
+    }
 
+    // Проверяем лимит карт на столе
+    if (battleState.player.board.length >= 5) {
+        showNotification('Доска заполнена! Максимум 5 карт.', true);
+        return;
+    }
+
+    // Разыгрываем карту
     battleState.player.energy -= card.cost;
     battleState.player.hand.splice(idx, 1);
     
@@ -716,6 +770,9 @@ function playCardFromHand(uid) {
     battleState.player.board.push(card);
     
     renderBattle();
+    
+    // Принудительно обновляем стрелочки скролла
+    if (typeof updateBoardArrows === 'function') updateBoardArrows();
 }
 
 function selectAttacker(uid) {
@@ -842,6 +899,7 @@ function runOpponentTurn() {
 
     checkWin();
     renderBattle();
+    if (typeof updateBoardArrows === 'function') updateBoardArrows(); // Обновляем стрелочки врага
     if (battleState.inBattle) endTurn();
 }
 
@@ -882,6 +940,10 @@ function exitBattle(skipServer) {
     if (battleScreen) {
         battleScreen.classList.remove('turn-player', 'turn-opponent');
     }
+    
+    // ТАКЖЕ СБРАСЫВАЕМ СВЕЧЕНИЕ КНОПКИ ТУТ
+    const btnEndTurn = document.getElementById('btn-end-turn');
+    if (btnEndTurn) btnEndTurn.classList.remove('my-turn-active');
     
     battleState.inBattle = false;
     battleState.isOnline = false;
@@ -1000,13 +1062,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnEndTurn = document.getElementById('btn-end-turn');
     if (btnEndTurn) {
         btnEndTurn.onclick = () => {
-            if (battleState.inBattle && battleState.turn === 'player') endTurn();
+            if (battleState.inBattle) endTurn();
         };
     }
 
-    const opponentAvatarDOM = document.getElementById('opponent-avatar');
-    if (opponentAvatarDOM) {
-        opponentAvatarDOM.onclick = () => attackAvatar();
+    const opponentAvatarContainer = document.querySelector('.opponent-profile .avatar-container');
+    if (opponentAvatarContainer) {
+        opponentAvatarContainer.onclick = () => {
+            if (battleState.selectedAttackerId) {
+                attackAvatar();
+            }
+        };
     }
 });
 
@@ -1016,3 +1082,87 @@ window.setBattleScreenVisible = setBattleScreenVisible;
 window.syncBattleAvatars = syncBattleAvatars;
 window.showCoinFlip = showCoinFlip;
 window.exitBattle = exitBattle;
+
+// Функция для проверки необходимости отображения стрелок прокрутки на досках
+function updateBoardArrows() {
+    const checkBoard = (boardId, leftBtnId, rightBtnId) => {
+        const board = document.getElementById(boardId);
+        const leftBtn = document.getElementById(leftBtnId);
+        const rightBtn = document.getElementById(rightBtnId);
+        
+        if (!board || !leftBtn || !rightBtn) return;
+
+        setTimeout(() => {
+            const hasOverflow = board.scrollWidth > board.clientWidth + 20;
+            
+            if (hasOverflow && board.children.length >= 3) {
+                leftBtn.classList.add('active');
+                rightBtn.classList.add('active');
+            } else {
+                leftBtn.classList.remove('active');
+                rightBtn.classList.remove('active');
+            }
+        }, 20);
+    };
+
+    // Проверяем только оппонента (игрока не трогаем)
+    checkBoard('opponent-board', 'opt-scroll-left', 'opt-scroll-right');
+    
+    // Игрок оставляем как было
+    const playerBoard = document.getElementById('player-board');
+    const plyLeft = document.getElementById('ply-scroll-left');
+    const plyRight = document.getElementById('ply-scroll-right');
+    if (playerBoard && plyLeft && plyRight) {
+        // оставляем логику игрока без изменений
+        const pHasOverflow = playerBoard.scrollWidth > playerBoard.clientWidth + 20;
+        if (pHasOverflow && playerBoard.children.length >= 3) {
+            plyLeft.classList.add('active');
+            plyRight.classList.add('active');
+        } else {
+            plyLeft.classList.remove('active');
+            plyRight.classList.remove('active');
+        }
+    }
+}
+
+function initBoardScrollControls() {
+    const setupScroll = (boardId, leftBtnId, rightBtnId) => {
+        const board = document.getElementById(boardId);
+        const leftBtn = document.getElementById(leftBtnId);
+        const rightBtn = document.getElementById(rightBtnId);
+
+        if (!board || !leftBtn || !rightBtn) return;
+
+        const scrollAmount = 260; // комфортный шаг (примерно ширина карты + gap)
+
+        leftBtn.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            board.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+        };
+
+        rightBtn.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            board.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+        };
+
+        // Автообновление при изменении содержимого
+        const observer = new MutationObserver(() => {
+            setTimeout(updateBoardArrows, 50);
+        });
+        observer.observe(board, { childList: true, subtree: true });
+    };
+
+    setupScroll('player-board', 'ply-scroll-left', 'ply-scroll-right');
+    setupScroll('opponent-board', 'opt-scroll-left', 'opt-scroll-right');
+
+    window.addEventListener('resize', updateBoardArrows);
+}
+// Запускаем инициализацию скролла при загрузке документа
+document.addEventListener('DOMContentLoaded', () => {
+    if (document.getElementById('player-board')) {
+        initBoardScrollControls();
+    }
+});
+

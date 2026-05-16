@@ -373,15 +373,29 @@
     <div id="battle-screen" class="battle-screen hidden">
         <div class="battle-bg" style="background-image: url('assets/matchback.png');"></div>
         
+        <button id="btn-exit-battle" class="battle-btn-exit-icon" title="Surrender">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
+            </svg>
+        </button>
+
         <main class="battle-field-split">
             <section class="battle-side opponent-side">
                 <div class="board-label">Opponent Board</div>
-                <div id="opponent-board" class="battle-board"></div>
+                <div class="board-carousel-wrapper" style="position: relative; width: 100%;">
+                    <button class="board-scroll-btn scroll-left" id="opt-scroll-left">‹</button>
+                    <div id="opponent-board" class="battle-board"></div>
+                    <button class="board-scroll-btn scroll-right" id="opt-scroll-right">›</button>
+                </div>
             </section>
             
             <section class="battle-side player-side">
                 <div class="board-label">Your Board</div>
-                <div id="player-board" class="battle-board"></div>
+                <div class="board-carousel-wrapper" style="position: relative; width: 100%;">
+                    <button class="board-scroll-btn scroll-left" id="ply-scroll-left">‹</button>
+                    <div id="player-board" class="battle-board"></div>
+                    <button class="board-scroll-btn scroll-right" id="ply-scroll-right">›</button>
+                </div>
             </section>
         </main>
         
@@ -413,6 +427,8 @@
                 <div class="turn-timer-container">
                     <span id="turn-timer">30</span>
                 </div>
+                <button id="btn-end-turn" class="battle-btn-end">END</button>
+                
                 <div style="display:none;">
                     <span id="turn-owner"></span>
                     <span id="turn-indicator"></span>
@@ -421,11 +437,6 @@
                     <span id="player-hand-count"></span>
                     <span id="opponent-hand-count"></span>
                 </div>
-            </div>
-
-            <div class="battle-controls-right">
-                <button id="btn-end-turn" class="battle-btn-end">END TURN</button>
-                <button id="btn-exit-battle" class="battle-btn-exit">Surrender</button>
             </div>
 
             <div class="player-profile">
