@@ -30,23 +30,43 @@ const adminController = {
 
     saveCard: async (req, res) => {
         const { id, name, description, avatar_url, attack, cost, defense, rarity, is_basic, clan, ability_code, ability_description } = req.body;
+        const isBasicValue = is_basic ? 1 : 0;
+        
         try {
+            let cardId = id;
+
             if (id) {
                 await db.query(`
                     UPDATE cards 
                     SET name = ?, description = ?, avatar_url = ?, attack = ?, cost = ?, defense = ?, rarity = ?, is_basic = ?, clan = ?, ability_code = ?, ability_description = ? 
                     WHERE id = ?`,
-                    [name, description, avatar_url, attack, cost, defense, rarity, is_basic ? 1 : 0, clan, ability_code, ability_description, id]
+                    [name, description, avatar_url, attack, cost, defense, rarity, isBasicValue, clan, ability_code, ability_description, id]
                 );
-                return res.json({ success: true, message: 'Card updated and balanced!' });
             } else {
-                await db.query(`
+                const [result] = await db.query(`
                     INSERT INTO cards (name, description, avatar_url, attack, cost, defense, rarity, is_basic, clan, ability_code, ability_description) 
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                    [name, description, avatar_url, attack, cost, defense, rarity, is_basic ? 1 : 0, clan, ability_code, ability_description]
+                    [name, description, avatar_url, attack, cost, defense, rarity, isBasicValue, clan, ability_code, ability_description]
                 );
-                return res.json({ success: true, message: 'New card created successfully!' });
+                cardId = result.insertId;
             }
+
+            if (isBasicValue === 1) {
+                await db.query(`
+                    INSERT IGNORE INTO user_cards (user_id, card_id)
+                    SELECT id, ? FROM users
+                `, [cardId]);
+                
+                console.log(`🎁 Auto Distribution: Basic card "${name}" (ID: ${cardId}) successfully distributed to all players!`);
+            }
+
+            return res.json({ 
+                success: true, 
+                message: isBasicValue === 1 
+                    ? 'Card saved and distributed to ALL players successfully!' 
+                    : 'Card saved successfully!' 
+            });
+
         } catch (err) {
             res.status(500).json({ error: err.message });
         }

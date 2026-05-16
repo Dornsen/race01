@@ -87,7 +87,7 @@ autoInitDatabase().then(async () => {
     await migrateDatabase(); 
 
     server.listen(PORT, () => { 
-        console.log(`🚀 Server is running on port ${PORT}`); 
+        console.log(`🚀 Server is running on port http://localhost:${PORT}`); 
     }); 
 }).catch(err => {
     console.error("❌ Critical server startup error:", err.message);
