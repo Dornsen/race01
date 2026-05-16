@@ -49,46 +49,70 @@
 }
 
 .btn-deck-save {
-    background: linear-gradient(180deg, #27ae60 0%, #1a8c4c 100%);
-    color: #fff;
-    padding: 10px 22px;
-    border: 1px solid #1f9955;
-    border-radius: 8px;
-    font-size: 0.9rem;
-    font-weight: 700;
-    letter-spacing: 1px;
-    cursor: pointer;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.15), 0 4px 12px rgba(0,0,0,0.3);
-    transition: all 0.2s ease;
-    width: auto;
-    margin: 0;
+    background: rgba(39, 174, 96, 0.1) !important;
+    color: #2ecc71 !important;
+    padding: 10px 24px !important;
+    border: 1px solid rgba(46, 204, 113, 0.4) !important;
+    border-radius: 8px !important;
+    font-family: 'Marcellus', Georgia, serif !important;
+    font-size: 0.85rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 1.5px !important;
+    text-transform: uppercase !important;
+    cursor: pointer !important;
+    backdrop-filter: blur(5px) !important;
+    -webkit-backdrop-filter: blur(5px) !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+    transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1) !important;
+    width: auto !important;
+    margin: 0 !important;
 }
 
 .btn-deck-save:hover {
-    background: linear-gradient(180deg, #2ecc71 0%, #22a85c 100%);
-    transform: translateY(-1px);
+    background: rgba(46, 204, 113, 0.25) !important;
+    border-color: #2ecc71 !important;
+    color: #fff !important;
+    box-shadow: 0 0 15px rgba(46, 204, 113, 0.5), 0 4px 15px rgba(0, 0, 0, 0.5) !important;
+    transform: translateY(-1px) !important;
 }
 
+.btn-deck-save:active {
+    transform: translateY(1px) !important;
+    box-shadow: 0 0 5px rgba(46, 204, 113, 0.3) !important;
+}
+
+/* ── КНОПКА НАЗАД В ЛОББИ (Приглушенный багрово-алый в стиль вашей темы) ── */
 .btn-deck-back {
-    background: rgba(231, 76, 60, 0.15);
-    color: #e74c3c;
-    padding: 10px 22px;
-    border: 1px solid rgba(231, 76, 60, 0.35);
-    border-radius: 8px;
-    font-size: 0.9rem;
-    font-weight: 700;
-    letter-spacing: 1px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    width: auto;
-    margin: 0;
-    box-shadow: none;
+    background: rgba(99, 61, 61, 0.2) !important;
+    color: #D0CBB5 !important; /* Приятный кремовый цвет вместо агрессивного красного */
+    padding: 10px 24px !important;
+    border: 1px solid rgba(99, 61, 61, 0.5) !important;
+    border-radius: 8px !important;
+    font-family: 'Marcellus', Georgia, serif !important;
+    font-size: 0.85rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 1.5px !important;
+    text-transform: uppercase !important;
+    cursor: pointer !important;
+    backdrop-filter: blur(5px) !important;
+    -webkit-backdrop-filter: blur(5px) !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+    transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1) !important;
+    width: auto !important;
+    margin: 0 !important;
 }
 
 .btn-deck-back:hover {
-    background: rgba(231, 76, 60, 0.25);
-    border-color: #e74c3c;
-    transform: translateY(-1px);
+    background: rgba(99, 61, 61, 0.45) !important;
+    border-color: #ff4d4d !important; /* Алое свечение при наведении */
+    color: #F4F1E1 !important;
+    box-shadow: 0 0 15px rgba(99, 61, 61, 0.6), 0 4px 15px rgba(0, 0, 0, 0.5) !important;
+    transform: translateY(-1px) !important;
+}
+
+.btn-deck-back:active {
+    transform: translateY(1px) !important;
+    box-shadow: 0 0 5px rgba(99, 61, 61, 0.3) !important;
 }
 
 .deck-controls { 
@@ -729,4 +753,59 @@
 
 .clan-icon-svg.celestial-court {
     transform: translate(0, -0.5px);
+}
+
+/* Когда к модальному окну добавляется класс .with-preview, 
+   мы превращаем его во флекс-контейнер, чтобы всё выстроилось в ряд */
+.deck-modal-content.with-preview {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 20px; /* Расстояние между текстом и картой */
+    max-width: 700px; /* Увеличиваем ширину окна, чтобы поместилась и инфа, и карта */
+}
+
+/* Стили для контейнера самой карты рядом с инфой */
+.modal-side-card-preview {
+    flex-shrink: 0;
+    animation: fadeIn 0.2s ease-in-out;
+}
+
+.modal-side-card-preview .card {
+    transform: scale(1.1); /* Можно немного увеличить или уменьшить карту при необходимости */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+/* Контейнер для отдельно стоящей карты рядом с модальным окном */
+.separate-card-preview {
+    flex-shrink: 0;
+    pointer-events: none; /* Карта просто для красоты, сквозь неё можно кликать на фон */
+    animation: scaleInCard 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 101;
+}
+
+/* Делаем саму карту чуть больше, добавляем красивое свечение */
+.separate-card-preview .card {
+    width: 220px;
+    height: auto;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.8), 
+                0 0 40px rgba(255, 255, 255, 0.1);
+    pointer-events: auto; /* Позволяет предотвращать на ней нативный ПКМ */
+}
+
+/* Анимация плавного появления с легким увеличением */
+@keyframes scaleInCard {
+    from {
+        opacity: 0;
+        transform: scale(0.8) translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateX(0);
+    }
 }
