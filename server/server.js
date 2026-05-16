@@ -20,12 +20,14 @@ app.use(session({
 }));
 
 const autoInitDatabase = require('./config/initDb');
+const migrateDatabase = require('./config/bdMigrator');
 const authController = require('./controllers/authController');
 const friendController = require('./controllers/friendController');
 const gameController = require('./controllers/gameController');
 const shopController = require('./controllers/shopController');
 const { setupSocket } = require('./game/socketGame');
 const questController = require('./controllers/questController');
+const adminController = require('./controllers/adminController');
 
 
 // --- Authentication Routes ---
@@ -65,16 +67,28 @@ app.post('/api/shop/frames', shopController.buyOrEquipFrame);
 app.get('/api/quests', questController.getQuests);
 app.post('/api/quests/claim', questController.claimReward);
 
+// --- ADMIN API ROUTES (ПОЛНОСТЬЮ ЗАЩИЩЕНЫ CHECKADMIN) ---
+app.get('/api/admin/cards', adminController.checkAdmin, adminController.getAllCards);
+app.post('/api/admin/cards', adminController.checkAdmin, adminController.saveCard);
+app.delete('/api/admin/cards/:id', adminController.checkAdmin, adminController.deleteCard);
+
+app.get('/api/admin/frames', adminController.checkAdmin, adminController.getAllFrames);
+app.post('/api/admin/frames', adminController.checkAdmin, adminController.saveFrame);
+app.delete('/api/admin/frames/:id', adminController.checkAdmin, adminController.deleteFrame);
+
+
 const PORT = process.env.PORT || 3000;
 const server = http.createServer(app);
 const io = new Server(server);
 
 setupSocket(io);
 
-autoInitDatabase().then(() => {
-    server.listen(PORT, () => {
-        console.log(`🚀 Game server is running on http://localhost:${PORT}`);
-    });
+autoInitDatabase().then(async () => {
+    await migrateDatabase(); 
+
+    server.listen(PORT, () => { 
+        console.log(`🚀 Server is running on port ${PORT}`); 
+    }); 
 }).catch(err => {
-    console.error('❌ Failed to initialize database:', err);
+    console.error("❌ Critical server startup error:", err.message);
 });

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KIRI - Grand Admin Palace</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f1115; color: #e1e7ed; margin: 0; padding: 0; }
+        .header { background: #161b22; padding: 20px; text-align: center; border-bottom: 2px solid #e50914; }
+        .header h1 { margin: 0; font-size: 24px; color: #fff; letter-spacing: 2px; }
+        .tabs { display: flex; justify-content: center; gap: 15px; margin: 20px 0; }
+        .tab-btn { padding: 12px 30px; background: #21262d; border: 1px solid #30363d; color: #c9d1d9; cursor: pointer; border-radius: 6px; font-weight: bold; transition: 0.2s; }
+        .tab-btn.active { background: #e50914; color: #fff; border-color: #e50914; box-shadow: 0 0 10px rgba(229, 9, 20, 0.4); }
+        .admin-layout { display: flex; max-width: 1400px; margin: 0 auto; padding: 0 20px 40px 20px; gap: 30px; }
+        .panel-form { width: 35%; background: #161b22; border: 1px solid #30363d; padding: 25px; border-radius: 8px; height: fit-content; position: sticky; top: 20px; }
+        .panel-view { width: 65%; background: #161b22; border: 1px solid #30363d; padding: 25px; border-radius: 8px; }
+        h3 { margin-top: 0; border-bottom: 1px solid #30363d; padding-bottom: 10px; color: #fff; }
+        .form-group { margin-bottom: 15px; display: flex; flex-direction: column; gap: 5px; }
+        .form-group label { font-size: 13px; color: #8b949e; font-weight: 600; }
+        .form-group input, .form-group textarea, .form-group select { padding: 10px; background: #0d1117; border: 1px solid #30363d; color: #fff; border-radius: 5px; font-size: 14px; }
+        .form-group input:focus, .form-group textarea:focus { border-color: #e50914; outline: none; }
+        .btn-submit { background: #238636; color: #fff; width: 100%; padding: 12px; border: none; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 15px; transition: 0.2s; }
+        .btn-submit:hover { background: #2ea043; }
+        .btn-cancel { background: #21262d; border: 1px solid #30363d; color: #c9d1d9; width: 100%; padding: 8px; margin-top: 8px; border-radius: 6px; cursor: pointer; }
+        .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
+        .card-item { background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 15px; text-align: center; display: flex; flex-direction: column; justify-content: space-between; position: relative; }
+        .card-item img { max-width: 100%; height: 140px; object-fit: contain; border-radius: 6px; background: #1f242c; padding: 5px; }
+        .card-item h4 { margin: 10px 0 5px 0; color: #fff; }
+        .card-item .meta { font-size: 12px; color: #8b949e; margin-bottom: 10px; }
+        .card-item .stats { font-weight: bold; color: #ffca28; font-size: 14px; margin-bottom: 15px; }
+        .actions { display: flex; gap: 10px; justify-content: center; }
+        .btn-edit { background: #f59e0b; border: none; color: #fff; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-delete { background: #dc2626; border: none; color: #fff; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .checkbox-row { flex-direction: row; align-items: center; gap: 10px; margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>KIRI MYTHOLOGY - DEV CONTROL PALACE</h1>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('cards')">⛩️ Card Balancing & Management</button>
+        <button class="tab-btn" onclick="switchTab('frames')">🖼️ Avatar Frames Store</button>
+    </div>
+
+    <div class="admin-layout">
+        <div class="panel-form">
+            <h3 id="form-title">Create New Card</h3>
+            <form id="main-admin-form" onsubmit="processFormSubmit(event)">
+                <input type="hidden" id="item-id">
+                <div id="form-fields-wrapper"></div>
+                <button type="submit" class="btn-submit">Execute Assets Sync</button>
+                <button type="button" id="cancel-btn" class="btn-cancel" style="display:none;" onclick="clearForm()">Cancel Edit Mode</button>
+            </form>
+        </div>
+
+        <div class="panel-view">
+            <h3 id="view-title">Cards In Current Build</h3>
+            <div class="grid-container" id="data-grid"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentTab = 'cards';
+        let serverDataCache = [];
+        let isEditMode = false;
+
+        // Конфигурация полей под таблицы БД
+        const uiConfig = {
+            cards: {
+                formTitle: 'Add New Mythical Card',
+                viewTitle: 'Cards Database In Realtime',
+                fields: [
+                    { id: 'name', label: 'Card Unique Name', type: 'text', required: true },
+                    { id: 'clan', label: 'Clan / Faction', type: 'text', required: true },
+                    { id: 'rarity', label: 'Rarity Tier', type: 'select', options: ['common', 'rare', 'epic', 'legendary'] },
+                    { id: 'attack', label: 'Attack Power', type: 'number', required: true },
+                    { id: 'defense', label: 'Defense Points', type: 'number', required: true },
+                    { id: 'cost', label: 'Energy/Mana Cost', type: 'number', required: true },
+                    { id: 'avatar_url', label: 'Asset Path (Image URL)', type: 'text', required: true, val: 'assets/cards/' },
+                    { id: 'ability_code', label: 'Ability Trigger Code', type: 'text', required: true },
+                    { id: 'is_basic', label: 'Is Starter/Basic Card?', type: 'checkbox' },
+                    { id: 'description', label: 'Flavor Lore Text', type: 'textarea', required: true },
+                    { id: 'ability_description', label: 'Ability Mechanics Text', type: 'textarea', required: true }
+                ]
+            },
+            frames: {
+                formTitle: 'Release New Frame Variant',
+                viewTitle: 'Active Store Frame Shells',
+                fields: [
+                    { id: 'id', label: 'Frame String ID (e.g. 7frame)', type: 'text', required: true, disableOnEdit: true },
+                    { id: 'name', label: 'Visual Frame Name', type: 'text', required: true },
+                    { id: 'price', label: 'In-Game Gold Price', type: 'number', required: true },
+                    { id: 'image_url', label: 'Asset Image URL Path', type: 'text', required: true, val: '/assets/avatar_frames/' }
+                ]
+            }
+        };
+
+        function switchTab(tabName) {
+            currentTab = tabName;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            clearForm();
+            buildFormInputs();
+            fetchSystemData();
+        }
+
+        function buildFormInputs() {
+            const container = document.getElementById('form-fields-wrapper');
+            container.innerHTML = '';
+            
+            uiConfig[currentTab].fields.forEach(f => {
+                let html = `<div class="form-group ${f.type === 'checkbox' ? 'checkbox-row' : ''}">`;
+                if(f.type !== 'checkbox') html += `<label for="inp-${f.id}">${f.label}</label>`;
+                
+                if(f.type === 'select') {
+                    html += `<select id="inp-${f.id}">`;
+                    f.options.forEach(opt => html += `<option value="${opt}">${opt.toUpperCase()}</option>`);
+                    html += `</select>`;
+                } else if(f.type === 'textarea') {
+                    html += `<textarea id="inp-${f.id}" rows="3" ${f.required ? 'required' : ''}></textarea>`;
+                } else if(f.type === 'checkbox') {
+                    html += `<input type="checkbox" id="inp-${f.id}"> <label for="inp-${f.id}">${f.label}</label>`;
+                } else {
+                    html += `<input type="${f.type}" id="inp-${f.id}" value="${f.val || ''}" ${f.required ? 'required' : ''}>`;
+                }
+                html += `</div>`;
+                container.innerHTML += html;
+            });
+        }
+
+        async function fetchSystemData() {
+            document.getElementById('view-title').innerText = uiConfig[currentTab].viewTitle;
+            const res = await fetch(`/api/admin/${currentTab}`);
+            
+            if (res.status === 401 || res.status === 403) {
+                alert("🔴 Access Denied: Unauthorized admin signature.");
+                window.location.href = '/lobby.html';
+                return;
+            }
+            
+            serverDataCache = await res.json();
+            const grid = document.getElementById('data-grid');
+            grid.innerHTML = '';
+
+            serverDataCache.forEach(item => {
+                let node = `<div class="card-item">`;
+                if (currentTab === 'cards') {
+                    node += `
+                        <img src="${item.avatar_url}" onerror="this.src='assets/card_back.png'">
+                        <h4>${item.name}</h4>
+                        <div class="meta">${item.clan} | ${item.rarity.toUpperCase()}</div>
+                        <div class="stats">⚔️ ${item.attack} | 🛡️ ${item.defense} | 💎 ${item.cost}</div>
+                    `;
+                } else {
+                    node += `
+                        <img src="${item.image_url}" style="height:100px; object-fit:contain;">
+                        <h4>${item.name}</h4>
+                        <div class="meta">ID: ${item.id}</div>
+                        <div class="stats">💰 ${item.price} Gold</div>
+                    `;
+                }
+                node += `
+                    <div class="actions">
+                        <button class="btn-edit" onclick="triggerEditMode('${item.id}')">✏️</button>
+                        <button class="btn-delete" onclick="triggerDelete('${item.id}')">❌</button>
+                    </div>
+                </div>`;
+                grid.innerHTML += node;
+            });
+        }
+
+        async function processFormSubmit(e) {
+            e.preventDefault();
+            const id = document.getElementById('item-id').value;
+            const payload = id ? { id } : {};
+
+            if (currentTab === 'frames') {
+                payload.isNewFrame = !isEditMode;
+            }
+
+            uiConfig[currentTab].fields.forEach(f => {
+                const element = document.getElementById(`inp-${f.id}`);
+                if(f.type === 'checkbox') payload[f.id] = element.checked;
+                else payload[f.id] = element.value;
+            });
+
+            const res = await fetch(`/api/admin/${currentTab}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                clearForm();
+                fetchSystemData();
+            } else {
+                alert('🔴 Error executing pipeline update.');
+            }
+        }
+
+        function triggerEditMode(id) {
+            isEditMode = true;
+            const item = serverDataCache.find(i => String(i.id) === String(id));
+            if (!item) return;
+
+            document.getElementById('item-id').value = item.id;
+            document.getElementById('form-title').innerText = `Balancing Asset ID: ${item.id}`;
+            document.getElementById('cancel-btn').style.display = 'block';
+
+            uiConfig[currentTab].fields.forEach(f => {
+                const element = document.getElementById(`inp-${f.id}`);
+                if (f.type === 'checkbox') {
+                    element.checked = !!item[f.id];
+                } else {
+                    element.value = item[f.id];
+                }
+                if (f.disableOnEdit) element.disabled = true;
+            });
+        }
+
+        async function triggerDelete(id) {
+            if (!confirm('💥 Purge this asset permanently from client/database records?')) return;
+            const res = await fetch(`/api/admin/${currentTab}/${id}`, { method: 'DELETE' });
+            if (res.ok) {
+                fetchSystemData();
+                if(document.getElementById('item-id').value === String(id)) clearForm();
+            } else {
+                alert('🔴 Deletion failed.');
+            }
+        }
+
+        function clearForm() {
+            isEditMode = false;
+            document.getElementById('item-id').value = '';
+            document.getElementById('form-title').innerText = uiConfig[currentTab].formTitle;
+            document.getElementById('cancel-btn').style.display = 'none';
+            
+            uiConfig[currentTab].fields.forEach(f => {
+                const element = document.getElementById(`inp-${f.id}`);
+                if(element) {
+                    if (f.type === 'checkbox') element.checked = false;
+                    else element.value = f.val || '';
+                    if (f.disableOnEdit) element.disabled = false;
+                }
+            });
+        }
+
+        // Run
+        buildFormInputs();
+        fetchSystemData();
+    </script>
+</body>
+</html>
