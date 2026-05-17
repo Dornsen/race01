@@ -15,6 +15,11 @@ function initSocket(user) {
         if (typeof applyServerState === 'function') applyServerState(state);
     });
     socket.on('match_end', handleMatchEnd);
+    socket.on('receive_emote', (payload) => {
+        if (payload && payload.file_name && typeof showEmote === 'function') {
+            showEmote('opponent', payload.file_name);
+        }
+    });
 
     socket.on('friend_invite', handleIncomingInvite);
     socket.on('friend_invite_cancel', hideInviteModal);

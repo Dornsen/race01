@@ -647,6 +647,22 @@ function setupSocket(io) {
         socket.on('friend_invite_decline', (payload) => handleFriendInviteDecline(io, socket, payload));
 
         socket.on('disconnect', () => handleDisconnect(io, socket));
+
+        socket.on('send_emote', (data) => {
+            const currentMatch = getMatchBySocket(socket.id);
+            if (!currentMatch || !Array.isArray(currentMatch.players)) return;
+            if (!data || !data.file_name) return;
+
+            const opponent = currentMatch.players.find(
+                (player) => player && player.socketId && player.socketId !== socket.id
+            );
+
+            if (!opponent) return;
+
+            io.to(opponent.socketId).emit('receive_emote', {
+                file_name: data.file_name
+            });
+        });
     });
 }
 

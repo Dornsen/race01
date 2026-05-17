@@ -88,6 +88,8 @@ app.get('/api/admin/frames', adminController.checkAdmin, adminController.getAllF
 app.post('/api/admin/frames', adminController.checkAdmin, adminController.saveFrame);
 app.delete('/api/admin/frames/:id', adminController.checkAdmin, adminController.deleteFrame);
 
+// --- Emotes ---
+app.get('/api/emotes', authController.requireAuth, gameController.getUserEmotes);
 
 const PORT = process.env.PORT || 3000;
 const server = http.createServer(app);

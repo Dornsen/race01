@@ -6,6 +6,28 @@ const db = require('../config/database');
 const transporter = require('../config/mailer');
 const questController = require('./questController');
 
+const STARTER_EMOTE_FILES = [
+    'emote_angry.png',
+    'emote_shy.png',
+    'emote_tilted.png',
+    'emote_confused.png'
+];
+
+async function grantStarterEmotes(userId) {
+    if (!userId) return;
+
+    const placeholders = STARTER_EMOTE_FILES.map(() => '?').join(', ');
+    const [rows] = await db.query(
+        `SELECT id FROM emotes WHERE file_name IN (${placeholders})`,
+        STARTER_EMOTE_FILES
+    );
+
+    if (!rows || rows.length === 0) return;
+
+    const values = rows.map((row) => [userId, row.id]);
+    await db.query('INSERT IGNORE INTO user_emotes (user_id, emote_id) VALUES ?', [values]);
+}
+
 function mapUserPayload(user) {
     return {
         id: user.id,
@@ -18,6 +40,13 @@ function mapUserPayload(user) {
         music_volume: Number(user.music_volume ?? 0.5)
     };
 }
+
+exports.requireAuth = (req, res, next) => {
+    if (!req.session.userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+    next();
+};
 
 exports.register = async (req, res) => {
     const { username, email, password, avatar_url } = req.body; 
@@ -39,6 +68,7 @@ exports.register = async (req, res) => {
 
         if (result && result.insertId) {
             await questController.ensureUserQuests(result.insertId);
+            await grantStarterEmotes(result.insertId);
         }
 
         const mailOptions = {

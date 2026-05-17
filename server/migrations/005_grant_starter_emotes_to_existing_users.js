@@ -1,5 +1,5 @@
 module.exports = {
-    name: '004_add_emotes',
+    name: '005_grant_starter_emotes_to_existing_users',
     up: async (db) => {
         const starterEmotes = [
             'emote_angry.png',
@@ -20,6 +20,6 @@ module.exports = {
             starterEmotes
         );
 
-        console.log('[Migration 004] Granted starter emotes to existing users.');
+        console.log('[Migration 005] Granted starter emotes to existing users.');
     }
 };

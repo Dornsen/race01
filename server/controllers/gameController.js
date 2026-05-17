@@ -226,3 +226,22 @@ exports.openGacha = async (req, res) => {
         res.status(500).json({ error: 'Error opening pack' });
     }
 };
+
+exports.getUserEmotes = async (req, res) => {
+    try {
+        const userId = req.session.userId; 
+
+        const query = `
+            SELECT e.id, e.name, e.file_name 
+            FROM emotes e
+            JOIN user_emotes ue ON e.id = ue.emote_id
+            WHERE ue.user_id = ?
+        `;
+        
+        const [emotes] = await db.query(query, [userId]);
+        res.json({ success: true, emotes: emotes });
+    } catch (error) {
+        console.error("Error getting user emotes:", error);
+        res.status(500).json({ success: false, message: 'Ошибка сервера' });
+    }
+};

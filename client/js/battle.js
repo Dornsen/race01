@@ -1191,3 +1191,107 @@ document.addEventListener('DOMContentLoaded', () => {
         initBoardScrollControls();
     }
 });
+
+const emoteBtn = document.getElementById('emote-btn');
+if (emoteBtn) {
+    emoteBtn.addEventListener('click', async () => {
+        const panel = document.getElementById('emote-panel');
+        if (!panel) return;
+
+        const willOpen = panel.classList.contains('hidden');
+        panel.classList.toggle('hidden');
+
+        if (willOpen && panel.children.length === 0) {
+            await loadUserEmotes();
+        }
+    });
+}
+
+async function loadUserEmotes() {
+    try {
+        const panel = document.getElementById('emote-panel');
+        if (!panel) return;
+
+        const response = await fetch('/api/emotes');
+        if (!response.ok) {
+            return;
+        }
+
+        const data = await response.json();
+
+        if (data.success) {
+            panel.innerHTML = ''; 
+
+            if (!Array.isArray(data.emotes) || data.emotes.length === 0) {
+                panel.innerHTML = '<div style="color:#cfcfcf;font-size:12px;text-align:center;width:100%;">No emotes unlocked yet</div>';
+                return;
+            }
+
+            data.emotes.forEach(emote => {
+                const img = document.createElement('img');
+                img.src = `assets/emotes/${emote.file_name}`; 
+                img.className = 'emote-item';
+                img.title = emote.name;
+
+                img.onclick = () => sendEmote(emote.file_name);
+                
+                panel.appendChild(img);
+            });
+        }
+    } catch (error) {
+        console.error('Error emotes loading:', error);
+    }
+}
+
+function sendEmote(fileName) {
+    const panel = document.getElementById('emote-panel');
+    if (panel) panel.classList.add('hidden');
+
+    showEmote('player', fileName);
+
+    if (socket && fileName) {
+        socket.emit('send_emote', { file_name: fileName });
+    }
+}
+
+function getAvatarBubble(target) {
+    const avatarId = target === 'player' ? 'player-battle-avatar' : 'opponent-battle-avatar';
+    const bubbleId = target === 'player' ? 'player-avatar-emote-bubble' : 'opponent-avatar-emote-bubble';
+
+    const avatar = document.getElementById(avatarId);
+    const avatarContainer = avatar ? avatar.closest('.avatar-container') : null;
+
+    if (avatarContainer) {
+        let bubble = document.getElementById(bubbleId);
+        if (!bubble) {
+            bubble = document.createElement('div');
+            bubble.id = bubbleId;
+            bubble.className = 'emote-bubble hidden';
+            avatarContainer.appendChild(bubble);
+        }
+        return bubble;
+    }
+
+    const fallbackId = target === 'player' ? 'player-emote-bubble' : 'opponent-emote-bubble';
+    return document.getElementById(fallbackId);
+}
+
+function showEmote(target, fileName) {
+    const bubble = getAvatarBubble(target);
+    if (!bubble || !fileName) return;
+
+    bubble.innerHTML = `<img src="assets/emotes/${fileName}">`;
+    bubble.classList.remove('hidden');
+
+    bubble.style.animation = 'none';
+    bubble.offsetHeight; 
+    bubble.style.animation = null;
+
+    setTimeout(() => {
+        bubble.classList.add('hidden');
+    }, 3000);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadUserEmotes();
+});
