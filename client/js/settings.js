@@ -168,7 +168,7 @@ function selectAvatar(avatarName, targetElement) {
 
 // Сохранение аватара
 async function saveAvatar() {
-    if (!selectedAvatarPath) return alert('Выберите аватар!');
+    if (!selectedAvatarPath) return notify('Выберите аватар!', true); 
 
     return saveAvatarInternal(true, true);
 }
@@ -303,7 +303,8 @@ async function changePassword() {
     const oldPassword = document.getElementById('old-password').value.trim();
     const newPassword = document.getElementById('new-password').value.trim();
 
-    if (!oldPassword || !newPassword) return alert('Заполните оба поля!');
+    // ЗАМЕНЕНО: alert на notify
+    if (!oldPassword || !newPassword) return notify('Заполните оба поля!', true); 
 
     try {
         const res = await fetch('/api/update-password', {
@@ -326,22 +327,73 @@ async function changePassword() {
 }
 
 // Удаление аккаунта
-async function deleteAccount() {
-    if (!confirm('Вы уверены? Это действие навсегда удалит ваш аккаунт, все карты и рейтинг!')) return;
-    if (!confirm('ТОЧНО УДАЛЯЕМ? Пути назад нет.')) return;
+let deleteStep = 1;
 
+// Вызывается при нажатии на кнопку "Delete Account" в настройках
+function deleteAccount() {
+    deleteStep = 1;
+    const modal = document.getElementById('account-delete-modal');
+    const title = document.getElementById('delete-modal-title');
+    const text = document.getElementById('delete-modal-text');
+    const proceedBtn = document.getElementById('btn-delete-proceed');
+
+    if (!modal || !text || !proceedBtn) {
+        return notify('Account deletion feature is temporarily unavailable.', true);
+    }
+
+    // Шаг 1: Первое предупреждение
+    title.innerText = "Warning";
+    text.innerText = "Are you sure? This action will permanently delete your account, all cards, and your rating!";
+    modal.classList.remove('hidden');
+
+    // Назначаем действие на кнопку согласия
+    proceedBtn.onclick = handleDeleteClick;
+}
+
+// Управляет шагами внутри модального окна
+function handleDeleteClick() {
+    const title = document.getElementById('delete-modal-title');
+    const text = document.getElementById('delete-modal-text');
+
+    if (deleteStep === 1) {
+        // Переходим к Шагу 2: Окончательное предупреждение
+        deleteStep = 2;
+        title.innerText = "Final Confirmation";
+        text.innerText = "DELETE FOR SURE? There is no going back.";
+    } else if (deleteStep === 2) {
+        // Если оба шага пройдены — отправляем запрос на сервер
+        executeAccountDeletion();
+    }
+}
+
+// Непосредственно удаление на бэкенде
+async function executeAccountDeletion() {
     try {
         const res = await fetch('/api/delete-account', { method: 'DELETE', credentials: 'same-origin' });
         const data = await res.json();
         
         if (res.ok) {
-            notify(data.message || 'Аккаунт удален. Прощайте!');
-            window.location.href = '/'; 
+            closeDeleteAccountModal();
+            notify(data.message || 'Account deleted. Farewell!');
+            
+            // Небольшая задержка, чтобы игрок успел прочесть уведомление прощания
+            setTimeout(() => {
+                window.location.href = '/'; 
+            }, 1500);
         } else {
-            notify(data.error || 'Ошибка удаления аккаунта', true);
+            notify(data.error || 'Error deleting account.', true);
+            closeDeleteAccountModal();
         }
     } catch (err) {
         console.error(err);
-        notify('Ошибка удаления аккаунта', true);
+        notify('Error deleting account.', true);
+        closeDeleteAccountModal();
     }
+}
+
+// Закрытие модального окна при отмене
+function closeDeleteAccountModal() {
+    const modal = document.getElementById('account-delete-modal');
+    if (modal) modal.classList.add('hidden');
+    deleteStep = 1; // Сбрасываем шаги
 }

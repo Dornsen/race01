@@ -224,10 +224,9 @@
 
 /* Рамка-оверлей — ложится поверх и плавно двигается вместе с ховером контейнера */
 .avatar-container .frame-overlay {
-    position: absolute !important;
-    inset: -11% !important;         /* Равномерно выступает за края со всех сторон */
-    width: 122% !important;         /* Идеальный масштаб под размер контейнера 15vmin */
-    height: 122% !important;
+    position: absolute !important;      /* Равномерно выступает за края со всех сторон */
+    width: 100% !important;         /* Идеальный масштаб под размер контейнера 15vmin */
+    height: 100% !important;
     object-fit: contain !important;
     pointer-events: none !important; /* Клик проходит сквозь рамку на саму аватарку */
     z-index: 2 !important;          /* Строго поверх лица */
