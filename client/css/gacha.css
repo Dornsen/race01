@@ -3,12 +3,12 @@
     height: 100vh;
     position: fixed;
     inset: 0;
-    background: rgba(10, 12, 15, 0.4); 
+    background: radial-gradient(ellipse at 50% 40%, rgba(15, 18, 24, 0.4) 0%, rgba(7, 9, 12, 0.7) 100%);
     color: #BBA78D;
     z-index: 55;
     display: flex;
     flex-direction: column;
-    backdrop-filter: blur(15px);
+    backdrop-filter: blur(20px);
     overflow: hidden;
     font-family: 'Marcellus', serif;
 }
@@ -17,9 +17,9 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    padding: 40px;
-    gap: 20px;
-    max-width: 1200px;
+    padding: 30px 40px 40px;
+    gap: 15px;
+    max-width: 1300px;
     margin: 0 auto;
     width: 100%;
 }
@@ -28,126 +28,602 @@
     position: relative;
     width: 100%;
     flex: 1;
-    border-radius: 12px;
-    background: rgba(15, 17, 20, 0.6); 
-    border: 1px solid rgba(187, 167, 141, 0.2);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    border-radius: 20px;
+    background: radial-gradient(circle at 50% 50%, rgba(18, 22, 28, 0.45) 0%, rgba(8, 10, 13, 0.8) 100%);
+    border: 1px solid rgba(187, 167, 141, 0.12);
+    box-shadow: 
+        inset 0 0 40px rgba(0, 0, 0, 0.8),
+        0 10px 30px rgba(0, 0, 0, 0.5);
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
 }
 
+/* Священный столб света из центра взрыва */
 .gacha-beam {
     position: absolute;
-    top: -20%;
-    width: 40%;
-    height: 140%;
-    filter: blur(50px);
+    bottom: -10%;
+    left: 35%;
+    width: 30%;
+    height: 120%;
+    filter: blur(60px);
     opacity: 0;
-    transition: all 0.6s ease;
-    z-index: 1;
+    transform: scaleX(0.1);
+    transition: opacity 0.5s ease, transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.2);
+    z-index: 2;
     pointer-events: none;
 }
 
-.gacha-beam.visible { opacity: 0.4; }
-.gacha-beam.common { background: linear-gradient(180deg, #bdc3c7, transparent); }
-.gacha-beam.rare { background: linear-gradient(180deg, #3498db, transparent); }
-.gacha-beam.epic { background: linear-gradient(180deg, #9b59b6, transparent); }
-.gacha-beam.legendary { background: linear-gradient(180deg, #f1c40f, transparent); }
-
-.omamori {
-    position: relative;
-    z-index: 5;
-    cursor: pointer;
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+.gacha-beam.visible {
+    opacity: 0.35;
+    transform: scaleX(1);
 }
 
-.omamori-body {
-    width: 150px;
-    height: 210px;
-    background: linear-gradient(180deg, #633D3D 0%, #1A1C20 100%);
-    border: 2px solid #BBA78D;
-    border-radius: 12px;
+.gacha-beam.common    { background: linear-gradient(0deg, rgba(189, 195, 199, 0.6), transparent); }
+.gacha-beam.rare      { background: linear-gradient(0deg, rgba(52, 152, 219, 0.7), transparent); }
+.gacha-beam.epic      { background: linear-gradient(0deg, rgba(155, 89, 182, 0.75), transparent); }
+.gacha-beam.legendary { background: linear-gradient(0deg, rgba(241, 196, 15, 0.8), transparent); }
+
+/* Окружающее расширяющееся кольцо света */
+.gacha-flash-ring {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 4px solid transparent;
+    opacity: 0;
+    z-index: 3;
+    pointer-events: none;
+}
+
+.gacha-flash-ring.pulse-trigger {
+    animation: blast-ring-expand 0.6s cubic-bezier(0.1, 0.8, 0.1, 1) forwards;
+}
+
+.gacha-flash-ring.common    { border-color: #ffffff; box-shadow: 0 0 30px #ffffff; }
+.gacha-flash-ring.rare      { border-color: #3498db; box-shadow: 0 0 40px #3498db; }
+.gacha-flash-ring.epic      { border-color: #9b59b6; box-shadow: 0 0 40px #9b59b6; }
+.gacha-flash-ring.legendary { border-color: #f1c40f; box-shadow: 0 0 50px #f1c40f; }
+
+@keyframes blast-ring-expand {
+    0% { width: 10px; height: 10px; opacity: 1; border-width: 20px; }
+    100% { width: 1000px; height: 1000px; opacity: 0; border-width: 1px; }
+}
+
+/* ==================================================
+   СТИЛИЗАЦИЯ ИНТЕРАКТИВНОГО СВЯЩЕННОГО АМУЛЕТА ОМАМОРИ
+   ================================================== */
+
+.omamori-wrapper {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    z-index: 10;
+    width: 220px;
+    height: 320px;
+    transition: transform 0.15s ease-out, opacity 0.4s ease;
 }
 
-.omamori-knot {
-    width: 50px;
-    height: 50px;
-    background: #f1c40f;
+/* Натяжной Золотой узел сверху амулета */
+.omamori-drag-knot {
+    width: 44px;
+    height: 44px;
+    background: radial-gradient(circle at 35% 35%, #fff8c0 0%, #e8b800 50%, #8a6200 100%);
+    border: 2px solid #BBA78D;
     border-radius: 50%;
-    margin-bottom: 20px;
-    border: 3px solid #BBA78D;
-    box-shadow: 0 0 15px rgba(241, 196, 15, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #4a2d2d;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: grab;
+    z-index: 15;
+    position: absolute;
+    top: 5px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+    transition: background 0.2s, transform 0.2s;
+    user-select: none;
+    touch-action: none;
 }
 
-.gacha-card-face {
-    border-radius: 12px;
-    background: rgba(15, 17, 20, 0.95); 
-    border: 1px solid rgba(187, 167, 141, 0.3);
-    overflow: hidden;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+.omamori-drag-knot:active { cursor: grabbing; transform: scale(0.95); }
+
+.knot-pulse-glow {
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 1px dashed rgba(241, 196, 15, 0.4);
+    animation: rotation-loop 6s linear infinite;
 }
 
-.gacha-card-front.common { border-color: #bdc3c7; }
-.gacha-card-front.rare { border-color: #3498db; }
-.gacha-card-front.epic { border-color: #9b59b6; }
-.gacha-card-front.legendary { 
-    border: 2px solid #f1c40f; 
-    background: linear-gradient(180deg, rgba(241, 196, 15, 0.1) 0%, rgba(15, 17, 20, 1) 100%);
+.omamori-drag-knot:hover .knot-pulse-glow {
+    border-color: #f1c40f;
+    box-shadow: 0 0 15px rgba(241, 196, 15, 0.6);
 }
 
-.gacha-card-title {
+/* SVG Контейнер меша */
+.omamori-svg-container {
+    width: 100%;
+    height: 100%;
+    color: #e74c3c; /* Фирменное красное сукно ритуала */
+    filter: drop-shadow(0 15px 25px rgba(0,0,0,0.7));
+    margin-top: 25px;
+    transition: color 0.3s;
+}
+
+.omamori-wrapper:hover .omamori-svg-container {
+    color: #ff4d4d; /* Светится багрянцем при наведении */
+}
+
+.omamori-tag-label {
+    position: absolute;
+    bottom: 50px;
+    font-size: 0.75rem;
+    letter-spacing: 3px;
+    color: #fff8c0;
+    font-weight: bold;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.9);
+    pointer-events: none;
+}
+
+/* Анимационные состояния амулета */
+.dragging-active { transition: none !important; }
+
+.shake-ritual-loop {
+    animation: furious-shake 0.12s linear infinite alternate;
+}
+
+.break-seal-disappear {
+    animation: seal-shatter-explode 0.5s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards;
+}
+
+@keyframes furious-shake {
+    0% { transform: translate(3px, 2px) rotate(1.5deg); }
+    100% { transform: translate(-3px, -2px) rotate(-1.5deg); }
+}
+
+@keyframes seal-shatter-explode {
+    0% { transform: scale(1.1); filter: brightness(1) blur(0px); opacity: 1; }
+    50% { transform: scale(1.4); filter: brightness(2) blur(2px); opacity: 0.8; }
+    100% { transform: scale(0.2); filter: brightness(4) blur(15px); opacity: 0; }
+}
+
+/* ==================================================
+   ОТОБРАЖЕНИЕ ВЫПАВШИХ КАРТ ВЕЕРОМ (FAN RADIAL GRID)
+   ================================================== */
+
+.gacha-cards-grid-fan {
+    position: absolute !important;
+    inset: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    pointer-events: none !important;
+    z-index: 12 !important;
+    overflow: visible !important;
+}
+
+.gacha-cards-grid-fan > * { pointer-events: auto; }
+
+/* Каждая отдельная выпадающая карточка */
+.gacha-card-item {
+    width: 17vmin !important;
+    height: 26vmin !important;
+    min-width: 17vmin !important;
+    max-width: 17vmin !important;
+    min-height: 26vmin !important;
+    max-height: 26vmin !important;
+    position: absolute !important;
+    perspective: 1200px !important;
+    opacity: 0;
+    margin: 0 !important; 
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    transform: scale(0.3) translate(0, 0) rotate(0deg);
+    transition: transform 0.65s cubic-bezier(0.175, 0.885, 0.32, 1.15), opacity 0.4s ease;
+}
+/* Анимация разлёта карт веером из центра взрыва */
+.gacha-card-item.fly-in {
+    opacity: 1;
+    transform: 
+        translate(var(--fan-x), var(--fan-y)) 
+        rotate(var(--fan-rot)) 
+        scale(1);
+}
+.gacha-card-item-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    /* Изменили тайминг и добавили мягкий вылет (back-out) для сочности */
+    transition: transform 0.65s cubic-bezier(0.175, 0.885, 0.32, 1.15); 
+    cursor: pointer;
+}
+
+/* Эффект ховера на разложенной карте веера */
+.gacha-card-item.fly-in:hover {
+    z-index: 100 !important;
+    transform: 
+        translate(var(--fan-x), calc(var(--fan-y) - 30px)) 
+        rotate(var(--fan-rot)) 
+        scale(1.18) !important;
+}
+
+.gacha-card-item.flipped .gacha-card-item-inner {
+    transform: rotateY(180deg);
+}
+
+/* Стороны карты рубашка / лицо */
+.gacha-card-side {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.65);
+}
+
+.side-back {
+    background-image: url('../assets/card_back.png') !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+    border: none !important;
+    z-index: 2 !important;
+}
+
+/* ЛИЦО КАРТЫ */
+.side-front.card.battle-card {
+    background: #111418 !important;
+    transform: rotateY(180deg) !important;
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    padding: 0 !important;
+    border: none !important;
+    z-index: 1 !important;
+}
+
+/*outline для рамок, чтобы они не деформировали размеры внутреннего контента*/
+.side-front.card.battle-card.common    { outline: 2px solid #bdc3c7 !important; box-shadow: 0 0 15px rgba(189, 195, 199, 0.4) !important; }
+.side-front.card.battle-card.rare      { outline: 2px solid #3498db !important; box-shadow: 0 0 20px rgba(52, 152, 219, 0.5) !important; }
+.side-front.card.battle-card.epic      { outline: 2px solid #9b59b6 !important; box-shadow: 0 0 25px rgba(155, 89, 182, 0.6) !important; }
+.side-front.card.battle-card.legendary { outline: 2px solid #f1c40f !important; box-shadow: 0 0 35px rgba(241, 196, 15, 0.75) !important; }
+
+/* Полная изоляция внутренних плашек и холста арта */
+.side-front .card-art {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    z-index: 1 !important;
+}
+.side-front .card-art img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+}
+.side-front .card-top-bar {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    padding: 6px 8px !important;
+    z-index: 5 !important;
+}
+.side-front .card-cost-wrap {
+    transform: scale(0.9) !important;
+}
+.side-front .card-name {
+    font-family: 'Marcellus', serif !important;
+    color: #F4F1E1 !important;
+    font-size: 0.85rem !important;
+    font-weight: 800 !important;
+    text-shadow: 0 1px 3px #000, 0 0 4px #000 !important;
+}
+.side-front .card-bottom-bar {
+    position: absolute !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    padding: 6px 8px !important;
+    z-index: 5 !important;
+}
+.side-front .card-stat-num {
+    color: #F4F1E1 !important;
+    text-shadow: 0 1px 3px #000, 0 0 4px #000 !important;
+}
+
+.gacha-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.gacha-card-name {
+    font-size: 0.75rem;
+    font-weight: bold;
     color: #f4f1e1;
-    font-size: 0.9rem;
-    padding: 8px;
-    text-align: center;
-    border-bottom: 1px solid rgba(187, 167, 141, 0.1);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    max-width: 65%;
 }
 
-.gacha-card-stats {
-    background: rgba(0, 0, 0, 0.5);
+.gacha-card-rarity-badge {
+    font-size: 0.55rem;
+    text-transform: uppercase;
+    padding: 2px 5px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+}
+
+.gacha-card-illustration {
+    flex: 1;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #000;
+    position: relative;
+}
+
+.gacha-card-illustration img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.gacha-card-bottom {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 5px;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-size: 0.75rem;
     color: #f1c40f;
     font-weight: bold;
+}
+
+.gacha-card-item.fly-in.flipped:hover .side-front {
+    box-shadow: 
+        0 15px 35px rgba(0,0,0,0.8),
+        0 0 25px currentColor; /* Динамический отсвет под цвет рамки редкости */
+}
+
+/* ==================================================
+   ПОДВАЛ И ЭЛЕМЕНТЫ УПРАВЛЕНИЯ
+   ================================================== */
+
+.gacha-hint {
+    text-align: center;
+    color: #8B7E6D;
+    font-size: 0.9rem;
+    min-height: 1.2rem;
+    letter-spacing: 0.5px;
 }
 
 .gacha-controls {
     display: flex;
     justify-content: center;
-    gap: 20px;
-    padding: 20px 0;
+    gap: 25px;
+    padding-top: 5px;
 }
 
 .gacha-open-btn {
-    background: rgba(99, 61, 61, 0.4);
-    border: 1px solid #BBA78D;
-    color: #BBA78D;
-    padding: 12px 30px;
+    background: linear-gradient(180deg, #633D3D 0%, #4A2D2D 100%);
+    border: 1px solid #3A1F1F;
+    color: #F4F1E1;
+    padding: 14px 35px;
     border-radius: 8px;
     font-family: 'Marcellus', serif;
+    font-size: 0.95rem;
     text-transform: uppercase;
-    letter-spacing: 2px;
+    letter-spacing: 1.5px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+    transition: all 0.25s ease;
 }
 
 .gacha-open-btn:hover:not(:disabled) {
-    background: #633D3D;
-    color: #f4f1e1;
-    border-color: #f1c40f;
+    background: linear-gradient(180deg, #754848 0%, #573535 100%);
+    border-color: #BBA78D;
     transform: translateY(-2px);
-    box-shadow: 0 0 20px rgba(241, 196, 15, 0.2);
+    box-shadow: 0 6px 15px rgba(187, 167, 141, 0.2);
+}
+
+.gacha-open-btn.secondary {
+    background: linear-gradient(180deg, #2c323f 0%, #1a1e26 100%);
+    border-color: #d4af37;
+}
+
+.gacha-open-btn.secondary:hover:not(:disabled) {
+    background: linear-gradient(180deg, #3a4253 0%, #222732 100%);
+    border-color: #f5d060;
+    box-shadow: 0 6px 18px rgba(245, 208, 90, 0.3);
+}
+
+.gacha-open-btn.ghost {
+    background: transparent;
+    border: 1px solid rgba(187, 167, 141, 0.3);
+    color: #BBA78D;
+}
+
+.gacha-open-btn.ghost:hover:not(:disabled) {
+    background: rgba(187, 167, 141, 0.1);
+    border-color: #BBA78D;
 }
 
 .gacha-open-btn:disabled {
-    opacity: 0.3;
+    opacity: 0.25;
     cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
 }
 
-.gacha-cards::-webkit-scrollbar { width: 6px; }
-.gacha-cards::-webkit-scrollbar-thumb { background: #633D3D; border-radius: 10px; }
+@keyframes rotation-loop {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.sale-badge {
+    display: inline-block;
+    background: #e74c3c;
+    color: #fff8c0;
+    font-size: 0.65rem;
+    font-weight: 900;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 8px;
+    vertical-align: middle;
+    letter-spacing: 0.5px;
+    box-shadow: 0 0 8px rgba(231, 76, 60, 0.6);
+    animation: badge-pulse 1.5s infinite alternate;
+}
+
+@keyframes badge-pulse {
+    from { transform: scale(1); filter: brightness(1); }
+    to { transform: scale(1.15); filter: brightness(1.5); }
+}
+
+/* ==================================================
+   СЕТКА ДЛЯ МУЛЬТИ-ПАКОВ: 5 СТОПОК (3 СВЕРХУ, 2 СНИЗУ)
+   ================================================== */
+
+.gacha-multi-packs-container {
+    position: absolute !important;
+    inset: 40px !important;
+    display: grid !important;
+    grid-template-columns: repeat(6, 1fr) !important; /* Делим на 6 колонок для точного выравнивания */
+    grid-template-rows: 1fr 1fr !important;
+    gap: 20px !important;
+    justify-items: center !important;
+    align-items: center !important;
+    z-index: 12 !important;
+    overflow: visible !important;
+}
+
+/* Каждая отдельная стопка-веер из 5 карт */
+.gacha-pack-stack {
+    position: relative !important;
+    width: 100% !important;
+    height: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: visible !important;
+}
+
+/* --- Позиционирование верхнего ряда (3 стопки) --- */
+.pack-position-0 { grid-column: 1 / 3; grid-row: 1; } /* Левая верхняя */
+.pack-position-1 { grid-column: 3 / 5; grid-row: 1; } /* Центральная верхняя */
+.pack-position-2 { grid-column: 5 / 7; grid-row: 1; } /* Правая верхняя */
+
+/* --- Позиционирование нижнего ряда (2 стопки со смещением в шахматный шах) --- */
+.pack-position-3 { grid-column: 2 / 4; grid-row: 2; transform: translateY(-10px); } /* Левая нижняя */
+.pack-position-4 { grid-column: 4 / 6; grid-row: 2; transform: translateY(-10px); } /* Правая нижняя */
+
+
+/* --- Корректировка размеров карт внутри стопок мульти-пака --- */
+.gacha-multi-packs-container .gacha-card-item {
+    /* Делаем карты в режиме 25 штук чуть-чуть компактнее (13.5vmin вместо 17vmin), чтобы они шикарно влезали */
+    width: 13.5vmin !important;
+    height: 21vmin !important;
+    min-width: 13.5vmin !important;
+    max-width: 13.5vmin !important;
+    min-height: 21vmin !important;
+    max-height: 21vmin !important;
+}
+
+/* Уменьшаем шаг разлёта внутри мини-веера стопки, чтобы паки стояли обособленно */
+.gacha-multi-packs-container .gacha-card-item.fly-in {
+    transform: 
+        translate(calc(var(--fan-x) * 0.7), calc(var(--fan-y) * 0.7)) 
+        rotate(var(--fan-rot)) 
+        scale(1);
+}
+
+/* Ховер на карту внутри стопки мультипака */
+.gacha-multi-packs-container .gacha-card-item.fly-in:hover {
+    z-index: 100 !important;
+    transform: 
+        translate(calc(var(--fan-x) * 0.7), calc(var(--fan-y) * 0.7 - 20px)) 
+        rotate(var(--fan-rot)) 
+        scale(1.15) !important;
+}
+
+/* ==================================================
+   ЭФФЕКТЫ ДЛЯ ЗАКРЫТЫХ КАРТ-АМУЛЕТОВ
+   ================================================== */
+
+/* Когда карта ещё не перевернута (лежит рубашкой вверх) */
+.gacha-card-item:not(.flipped) {
+    cursor: pointer;
+}
+
+/* Эффект ховера на рубашку внутри стопки */
+.gacha-card-item:not(.flipped):hover .gacha-card-item-inner {
+    transform: translateY(-5px) scale(1.03) !important;
+}
+
+.gacha-card-item:not(.flipped):hover .side-back {
+    box-shadow: 
+        0 12px 28px rgba(0, 0, 0, 0.8),
+        0 0 15px rgba(187, 167, 141, 0.35) !important; /* Золотистый отсвет на рубашке */
+}
+
+/* ==================================================
+   ИНТЕРАКТИВНЫЕ СТОПКИ ПАКОВ И ЭФФЕКТЫ ОТКРЫТИЯ
+   ================================================== */
+
+/* Когда пак еще не открыт (запечатан) */
+.gacha-pack-stack.is-sealed {
+    cursor: pointer !important;
+}
+
+/* Ховер на закрытую стопку: весь веер синхронно приподнимается и дышит золотом */
+.gacha-pack-stack.is-sealed:hover {
+    transform: scale(1.04) translateY(-8px) !important;
+    filter: drop-shadow(0 15px 25px rgba(187, 167, 141, 0.25)) !important;
+    transition: transform 0.25s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+}
+
+/* Слегка покачиваем карты внутри закрытого пака при ховере на стопку */
+.gacha-pack-stack.is-sealed:hover .gacha-card-item {
+    margin: 0 -0.5vmin !important; /* Карты чуть сильнее раскрываются веером */
+}
+
+/* Плавный возврат в покой */
+.gacha-pack-stack {
+    transition: transform 0.3s ease, filter 0.3s ease !important;
+}
+
+/* ЭФФЕКТ ВЗРЫВА ПРИ КЛИКЕ НА ВЕЕР */
+.gacha-pack-stack.pack-exploding {
+    animation: pack-shatter-pulse 0.5s ease-out forwards;
+}
+
+@keyframes pack-shatter-pulse {
+    0% { transform: scale(1.04); filter: brightness(1) saturate(1); }
+    15% { transform: scale(1.12); filter: brightness(1.6) saturate(1.2); }
+    100% { transform: scale(1); filter: brightness(1) saturate(1); }
+}
+
+/* Убираем ховер-эффекты трансформации карт для открытого мультипака, чтобы не дергались при флипе */
+.gacha-multi-packs-container .gacha-card-item {
+    pointer-events: none; /* Отключаем мышь для карт во время закрытого состояния стопки */
+}
+.gacha-pack-stack:not(.is-sealed) .gacha-card-item {
+    pointer-events: auto; /* Включаем мышь обратно (для ховеров на лица карт), когда стопка открыта */
+}

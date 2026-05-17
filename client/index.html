@@ -348,28 +348,52 @@
 
     <div id="gacha" class="gacha-container hidden">
         <header class="history-header">
-            <h2>Omamori Packs</h2>
+            <h2>Omamori Rituals</h2>
+            <div class="shop-balance" style="margin-right: 20px; font-family: 'Marcellus', serif;">Balance: ⛩️ <span id="gacha-user-money">0</span></div>
             <button id="btn-back-gacha" class="history-back">Back to lobby</button>
         </header>
         <div class="gacha-body">
             <div class="gacha-stage" id="gacha-stage">
+                <div class="gacha-flash-ring" id="gacha-flash-ring"></div>
                 <div class="gacha-beam" id="gacha-beam"></div>
-                <div class="omamori" id="omamori">
-                    <div class="omamori-knot" id="omamori-knot"></div>
-                    <div class="omamori-body"></div>
-                    <div class="omamori-tag">Omamori Packs</div>
+                <div class="gacha-particles" id="gacha-particles"></div>
+
+                <div class="omamori-wrapper" id="omamori">
+                    <div class="omamori-drag-knot" id="omamori-knot" title="Pull down to break the seal">
+                        <div class="knot-pulse-glow"></div>
+                        <span>✦</span>
+                    </div>
+                    <div class="omamori-svg-container">
+                        <svg viewBox="0 0 512 512" class="omamori-svg-mesh">
+                            <g fill="currentColor">
+                                <path d="M335.985 298v-.045c0-.147 0-.3.007-.442l0-.261c0-.088 0-.175 0-.263 0-.182 0-.365 0-.548s0-.365 0-.547c0-.088 0-.175 0-.263l0-.261c0-.148 0-.3-.007-.442v-.046a79.132 79.132 0 0 0-8.305-34q-.145-.294-.314-.571a79.984 79.984 0 0 0-142.732 0c-.112.185-.216.375-.314.571a79.139 79.139 0 0 0-8.305 34v.048c0 .147-.005.293-.007.44l0 .263c0 .087 0 .174 0 .261 0 .182 0 .365 0 .547s0 .366 0 .548c0 .087 0 .174 0 .261l0 .263c0 .147 0 .293.007.439V298a79.142 79.142 0 0 0 8.305 34c.1.2.2.386.314.571a79.984 79.984 0 0 0 142.732 0q.168-.278.314-.571A79.132 79.132 0 0 0 335.985 298zM319.5 288.44h-127a63.494 63.494 0 0 1 4.171-16H315.331A63.494 63.494 0 0 1 319.5 288.44zm-127 16h127a63.471 63.471 0 0 1-4.171 16H196.669A63.471 63.471 0 0 1 192.5 304.44zm63.5-72a63.912 63.912 0 0 1 49.926 24H206.074A63.912 63.912 0 0 1 256 232.44zm0 128a63.912 63.912 0 0 1-49.926-24h99.852A63.912 63.912 0 0 1 256 360.44zM316 464.44H196a28.031 28.031 0 0 1-28-28v-8a28.032 28.032 0 0 1 28-28H316a28.032 28.032 0 0 1 28 28v8A28.031 28.031 0 0 1 316 464.44zm-120-48a12.013 12.013 0 0 0-12 12v8a12.013 12.013 0 0 0 12 12H316a12.013 12.013 0 0 0 12-12v-8a12.013 12.013 0 0 0-12-12z"></path>
+                                <rect width="16" height="16" x="152" y="168.44"></rect>
+                                <rect width="16" height="16" x="176" y="192.44"></rect>
+                                <rect width="16" height="16" x="320" y="192.44"></rect>
+                                <rect width="16" height="16" x="344" y="168.44"></rect>
+                                <path d="M316,119.58a28,28,0,0,0,28-28V85.3a28,28,0,0,0-37.832-26.218l-27.334,10.25A19.578,19.578,0,0,0,260.456,56.44h-8.912a19.578,19.578,0,0,0-18.378,12.893l-27.334-10.25A28,28,0,0,0,168,85.3v6.28A28,28,0,0,0,205.832,117.8l15.6-5.849A48.085,48.085,0,0,1,176,144.44v16a64.117,64.117,0,0,0,61.434-46.034,19.491,19.491,0,0,0,14.11,6.034h8.912a19.491,19.491,0,0,0,14.11-6.034A64.117,64.117,0,0,0,336,160.44v-16a48.085,48.085,0,0,1-45.429-32.491l15.6,5.849A27.981,27.981,0,0,0,316,119.58Zm-4.21-45.515A12,12,0,0,1,328,85.3v6.28a12,12,0,0,1-16.213,11.235L280,90.9V85.984ZM200.213,102.816A12,12,0,0,1,184,91.581V85.3a12.039,12.039,0,0,1,11.96-12.018,12.1,12.1,0,0,1,4.253.782L232,85.984V90.9ZM264,100.9a3.548,3.548,0,0,1-3.544,3.544h-8.912A3.548,3.548,0,0,1,248,100.9V75.985a3.548,3.548,0,0,1,3.544-3.545h8.912A3.548,3.548,0,0,1,264,75.985Z"></path>
+                                <g>
+                                    <path d="M395.988,126.529,351.447,37.447A37.791,37.791,0,0,0,317.459,16.44H194.541a37.791,37.791,0,0,0-33.988,21.007l-7.708,15.416,14.31,7.155L174.863,44.6A21.882,21.882,0,0,1,194.541,32.44H317.459A21.882,21.882,0,0,1,337.137,44.6l44.54,89.082A22.1,22.1,0,0,1,384,143.522v49.722a39.988,39.988,0,0,0-15.974,71.2,39.961,39.961,0,0,0,0,64A39.988,39.988,0,0,0,384,399.636v16.8h16V143.522A38.184,38.184,0,0,0,395.988,126.529ZM368,232.44a24.042,24.042,0,0,1,16-22.628v45.257A24.042,24.042,0,0,1,368,232.44Zm0,64a24.042,24.042,0,0,1,16-22.628v45.257A24.042,24.042,0,0,1,368,296.44Zm0,64a24.042,24.042,0,0,1,16-22.628v45.257A24.042,24.042,0,0,1,368,360.44Z"></path>
+                                    <path d="M384,458.44a22.025,22.025,0,0,1-22,22H150a22.025,22.025,0,0,1-22-22v-58.8a39.988,39.988,0,0,0,15.974-71.2,39.961,39.961,0,0,0,0-64A39.988,39.988,0,0,0,128,193.244V143.522a22.117,22.117,0,0,1,2.322-9.838l28.833-57.666-14.31-7.155-28.834,57.666A38.2,38.2,0,0,0,112,143.522V458.44a38.043,38.043,0,0,0,38,38H362a38.043,38.043,0,0,0,38-38v-26H384ZM128,209.812a24,24,0,0,1,0,45.257Zm0,64a24,24,0,0,1,0,45.257Zm0,64a24,24,0,0,1,0,45.257Z"></path>
+                                </g>
+                            </g>
+                        </svg>
+                    </div>
+                    <div class="omamori-tag-label">OMAMORI PACK</div>
                 </div>
-                <div id="gacha-cards" class="gacha-cards"></div>
+
+                <div id="gacha-cards" class="gacha-cards-grid-fan"></div>
             </div>
+            <div class="gacha-hint" id="gacha-hint">Grab the golden knot and pull down to invoke the ritual</div>
             <div class="gacha-controls">
-                <button id="btn-gacha-open" class="gacha-open-btn">Open</button>
-                <button id="btn-gacha-open-10" class="gacha-open-btn secondary">Ritual x10</button>
-                <button id="btn-gacha-flip" class="gacha-open-btn ghost">Flip all</button>
-                <button id="btn-gacha-reset" class="gacha-open-btn ghost">Reset</button>
+                <button id="btn-gacha-open" class="gacha-open-btn">Open (⛩️ 100)</button>
+                <button id="btn-gacha-open-10" class="gacha-open-btn secondary">Ritual x10 (⛩️ 900)</button>
+                <button id="btn-gacha-flip" class="gacha-open-btn ghost">Reveal All</button>
+                <button id="btn-gacha-reset" class="gacha-open-btn ghost">Reset Stage</button>
             </div>
-            <div id="gacha-hint" class="gacha-hint"></div>
         </div>
     </div>
+    
     <div id="battle-screen" class="battle-screen hidden">
         <div class="battle-bg" style="background-image: url('assets/matchback.png');"></div>
         

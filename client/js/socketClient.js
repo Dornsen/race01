@@ -104,16 +104,27 @@ function handleMatchStart(payload) {
 }
 
 async function handleMatchEnd(payload) {
-    if (payload.result === 'draw') {
-        showNotification('Draw!');
+    // Вместо скучных алертов вызываем наш эпичный экран финала!
+    if (typeof endBattle === 'function') {
+        // Если ничья, можно передать 'draw', иначе проверяем выиграл игрок или проиграл
+        if (payload.result === 'draw') {
+            endBattle('draw');
+        } else {
+            endBattle(payload.result === 'win' ? 'player' : 'opponent');
+        }
     } else {
-        showNotification(payload.result === 'win' ? 'You win!' : 'You lose', payload.result !== 'win');
-    }
-    
-    if (battleState.isOnline && typeof exitBattle === 'function') {
-        exitBattle(true);
+        // Фаллбэк на случай, если что-то пошло не так
+        if (payload.result === 'draw') {
+            showNotification('Draw!');
+        } else {
+            showNotification(payload.result === 'win' ? 'You win!' : 'You lose', payload.result !== 'win');
+        }
+        if (battleState.isOnline && typeof exitBattle === 'function') {
+            exitBattle(true);
+        }
     }
 
+    // Обновляем статистику (MMR, карточки и т.д.) в лобби
     if (typeof refreshPlayerStats === 'function') await refreshPlayerStats();
 }
 

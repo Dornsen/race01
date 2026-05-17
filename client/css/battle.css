@@ -1364,3 +1364,293 @@
     transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.4) !important;
 }
 
+/* ==================================================
+   ЭЛЕГАНТНОЕ ОКНО ПОДТВЕРЖДЕНИЯ СДАЧИ (SURRENDER)
+   ================================================== */
+
+.surrender-modal-card {
+    background: radial-gradient(circle, rgba(20, 24, 32, 0.98) 0%, rgba(8, 10, 14, 1) 100%);
+    border: 2px solid #d4af37;
+    box-shadow: 
+        0 0 35px rgba(0, 0, 0, 0.9),
+        inset 0 0 20px rgba(212, 175, 55, 0.15),
+        0 0 50px rgba(231, 76, 60, 0.15);
+    padding: 40px 50px;
+    border-radius: 16px;
+    text-align: center;
+    max-width: 460px;
+    width: 90%;
+    position: relative;
+    z-index: 210;
+    animation: surrender-fade-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.15) forwards;
+}
+
+.surrender-modal-card::before {
+    content: '';
+    position: absolute;
+    inset: 6px;
+    border: 1px dashed rgba(212, 175, 55, 0.25);
+    border-radius: 12px;
+    pointer-events: none;
+}
+
+.surrender-kanji {
+    font-family: 'Hiragino Mincho Pro', 'Yu Mincho', 'Noto Serif JP', Georgia, serif;
+    font-size: 7vmin;
+    font-weight: 900;
+    color: rgba(231, 76, 60, 0.8);
+    text-shadow: 
+        0 0 15px rgba(231, 76, 60, 0.4),
+        0 2px 4px rgba(0, 0, 0, 0.8);
+    line-height: 1;
+    margin-bottom: 15px;
+    user-select: none;
+}
+
+.surrender-title {
+    font-family: 'Marcellus', Georgia, serif !important;
+    color: #f4f1e1 !important;
+    font-size: 1.7rem !important; /* Чуть увеличили для английского трека */
+    letter-spacing: 1.5px;
+    margin: 0 0 12px 0 !important;
+    text-transform: uppercase !important; /* Каноничный верхний регистр игры */
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+}
+
+.surrender-subtitle {
+    font-size: 0.9rem !important;
+    color: #8b7e6d !important;
+    line-height: 1.5;
+    margin: 0 0 30px 0 !important;
+    letter-spacing: 0.3px;
+}
+
+.surrender-btn-wrap {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+}
+
+.surrender-btn {
+    flex: 1;
+    padding: 14px 20px !important;
+    font-family: 'Marcellus', Georgia, serif !important;
+    font-size: 0.85rem !important; /* Оптимально для английских фраз */
+    font-weight: bold !important;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-radius: 8px !important;
+    cursor: pointer;
+    margin: 0 !important;
+    width: auto !important;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4) !important;
+    transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+}
+
+/* Кнопка "Continue Fight" */
+.btn-cancel-fight {
+    background: linear-gradient(180deg, #2c323f 0%, #1a1e26 100%) !important;
+    border: 1px solid #d4af37 !important;
+    color: #f4f1e1 !important;
+}
+
+.btn-cancel-fight:hover {
+    background: linear-gradient(180deg, #3a4253 0%, #222732 100%) !important;
+    border-color: #f5d060 !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 15px rgba(245, 208, 90, 0.25) !important;
+}
+
+/* Кнопка "Accept Fate" */
+.btn-surrender-confirm {
+    background: linear-gradient(180deg, #632d2d 0%, #441f1f 100%) !important;
+    border: 1px solid #e74c3c !important;
+    color: #fff8c0 !important;
+}
+
+.btn-surrender-confirm:hover {
+    background: linear-gradient(180deg, #7a3636 0%, #542525 100%) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 15px rgba(231, 76, 60, 0.4) !important;
+}
+
+@keyframes surrender-fade-in {
+    from {
+        opacity: 0;
+        transform: scale(0.85) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* ==================================================
+   ЭПИЧЕСКИЙ ЭКРАН ПОБЕДЫ И ПОРАЖЕНИЯ (MATCH END)
+   ================================================== */
+
+.match-end-overlay {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle at 50% 44%, rgba(10, 12, 16, 0.95) 0%, rgba(3, 4, 6, 0.99) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999; /* Поверх абсолютно всего */
+    opacity: 0;
+    pointer-events: none;
+    backdrop-filter: blur(0px);
+    transition: opacity 0.5s ease, backdrop-filter 0.5s ease;
+}
+
+/* Декоративный свиток-эффект фонового слоя, как на монете */
+.match-end-overlay::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 62px, rgba(255, 255, 255, 0.01) 62px, rgba(255, 255, 255, 0.01) 63px);
+    pointer-events: none;
+}
+
+.match-end-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+    backdrop-filter: blur(12px);
+}
+
+.end-card {
+    background: radial-gradient(circle, rgba(18, 22, 28, 0.98) 0%, rgba(6, 8, 12, 1) 100%);
+    padding: 50px 60px;
+    border-radius: 20px;
+    text-align: center;
+    max-width: 500px;
+    width: 90%;
+    position: relative;
+    transform: scale(0.8) translateY(30px);
+    opacity: 0;
+    filter: blur(5px);
+    transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.25), opacity 0.4s ease, filter 0.4s ease;
+}
+
+.match-end-overlay.show .end-card {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+    filter: blur(0px);
+}
+
+/* Внутреннийdashed-бордер под стиль KIRI */
+.end-card::before {
+    content: '';
+    position: absolute;
+    inset: 8px;
+    border-radius: 14px;
+    pointer-events: none;
+}
+
+/* Стилизация под ПОБЕДУ (Золотой канон) */
+.end-card.is-victory {
+    border: 2px solid #d4af37;
+    box-shadow: 
+        0 0 40px rgba(0, 0, 0, 0.95),
+        inset 0 0 25px rgba(212, 175, 55, 0.15),
+        0 0 60px rgba(212, 175, 55, 0.2);
+}
+.end-card.is-victory::before {
+    border: 1px dashed rgba(212, 175, 55, 0.3);
+}
+.end-card.is-victory .end-kanji {
+    color: #fff8c0;
+    text-shadow: 
+        0 0 20px rgba(245, 208, 90, 0.9),
+        0 0 40px rgba(212, 175, 55, 0.4),
+        0 4px 8px rgba(0, 0, 0, 0.9);
+}
+.end-card.is-victory .end-return-btn {
+    background: linear-gradient(180deg, #2c323f 0%, #1a1e26 100%) !important;
+    border: 1px solid #d4af37 !important;
+    color: #f4f1e1 !important;
+}
+.end-card.is-victory .end-return-btn:hover {
+    background: linear-gradient(180deg, #3a4253 0%, #222732 100%) !important;
+    border-color: #f5d060 !important;
+    box-shadow: 0 6px 20px rgba(245, 208, 90, 0.3) !important;
+}
+
+/* Стилизация под ПОРАЖЕНИЕ (Мистический багровый) */
+.end-card.is-defeat {
+    border: 2px solid #e74c3c;
+    box-shadow: 
+        0 0 40px rgba(0, 0, 0, 0.95),
+        inset 0 0 25px rgba(231, 76, 60, 0.1),
+        0 0 60px rgba(231, 76, 60, 0.25);
+}
+.end-card.is-defeat::before {
+    border: 1px dashed rgba(231, 76, 60, 0.25);
+}
+.end-card.is-defeat .end-kanji {
+    color: #ff4d4d;
+    text-shadow: 
+        0 0 20px rgba(231, 76, 60, 0.8),
+        0 0 40px rgba(139, 0, 0, 0.5),
+        0 4px 8px rgba(0, 0, 0, 0.9);
+}
+.end-card.is-defeat .end-return-btn {
+    background: linear-gradient(180deg, #3d1f1f 0%, #261313 100%) !important;
+    border: 1px solid #e74c3c !important;
+    color: #fff8c0 !important;
+}
+.end-card.is-defeat .end-return-btn:hover {
+    background: linear-gradient(180deg, #542929 0%, #361b1b 100%) !important;
+    border-color: #ff6e60 !important;
+    box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4) !important;
+}
+
+/* Огромные иероглифы кандзи по центру */
+.end-kanji {
+    font-family: 'Hiragino Mincho Pro', 'Yu Mincho', 'Noto Serif JP', Georgia, serif;
+    font-size: 11vmin;
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 20px;
+    letter-spacing: 4px;
+    user-select: none;
+}
+
+.end-title {
+    font-family: 'Marcellus', Georgia, serif !important;
+    color: #f4f1e1 !important;
+    font-size: 1.9rem !important;
+    letter-spacing: 1.5px;
+    margin: 0 0 14px 0 !important;
+    text-transform: uppercase !important;
+}
+
+.end-desc {
+    font-size: 0.95rem !important;
+    color: #8b7e6d !important;
+    line-height: 1.6;
+    margin: 0 0 35px 0 !important;
+    letter-spacing: 0.2px;
+}
+
+/* Кнопка выхода в лобби */
+.end-return-btn {
+    width: auto !important;
+    min-width: 200px;
+    padding: 14px 30px !important;
+    font-family: 'Marcellus', Georgia, serif !important;
+    font-size: 0.9rem !important;
+    font-weight: bold !important;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    border-radius: 8px !important;
+    cursor: pointer;
+    margin: 0 auto !important;
+    display: inline-block;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+    transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+}
+
+.end-return-btn:hover {
+    transform: translateY(-2px) !important;
+}

@@ -913,10 +913,10 @@ function checkWin() {
     }
 }
 
-function endBattle(message) {
-    if (typeof showNotification === 'function') showNotification(message, false);
+function endBattle(winnerSide) {
     battleState.inBattle = false;
     
+    // Сбрасываем таймеры боя
     if (autoEndTurnId) {
         clearTimeout(autoEndTurnId);
         autoEndTurnId = null;
@@ -925,12 +925,67 @@ function endBattle(message) {
         clearInterval(battleState.timerId);
         battleState.timerId = null;
     }
-    
-    setTimeout(() => {
-        setBattleScreenVisible(false);
-    }, 1200);
-}
 
+    // Ищем или создаем полноэкранный оверлей финала
+    let endOverlay = document.getElementById('match-end-overlay');
+    if (!endOverlay) {
+        endOverlay = document.createElement('div');
+        endOverlay.id = 'match-end-overlay';
+        document.body.appendChild(endOverlay);
+    }
+
+    endOverlay.className = 'match-end-overlay';
+    endOverlay.innerHTML = ''; // Очищаем старое содержимое
+
+    const contentCard = document.createElement('div');
+    
+    // Определяем стили под результат матча (добавили обработку draw)
+    let cardClass = 'is-defeat';
+    let kanjiText = '敗北';
+    let titleText = 'Defeated in Battle';
+    let descText = 'Your strategy fell short this time. Retreat to the shadows, recover, and fight again.';
+
+    if (winnerSide === 'player') {
+        cardClass = 'is-victory';
+        kanjiText = '勝利';
+        titleText = 'Victory Achieved';
+        descText = 'You have dispelled the mist and claimed dominance over the battlefield.';
+    } else if (winnerSide === 'draw') {
+        cardClass = 'is-victory'; // Ничья использует золотую рамку, но с другими кандзи
+        kanjiText = '引き分け'; // Кандзи для ничьей (Hikiwake)
+        titleText = 'Tie Match';
+        descText = 'A perfect balance of forces. Neither side could overcome the wanderer\'s spirit.';
+    }
+
+    contentCard.className = `end-card ${cardClass}`;
+    contentCard.innerHTML = `
+        <div class="end-kanji">${kanjiText}</div>
+        <h2 class="end-title">${titleText}</h2>
+        <p class="end-desc">${descText}</p>
+        <button id="btn-close-end-screen" class="end-return-btn">Return to Lobby</button>
+    `;
+
+    endOverlay.appendChild(contentCard);
+
+    // Кнопка возврата теперь принудительно вызывает exitBattle(true) для очистки сокетов и сцены
+    const closeBtn = contentCard.querySelector('#btn-close-end-screen');
+    closeBtn.onclick = () => {
+        endOverlay.classList.remove('show');
+        setTimeout(() => {
+            endOverlay.remove(); // Чистим DOM
+            if (typeof exitBattle === 'function') {
+                exitBattle(true); // Закрываем экран матча и возвращаем лобби
+            } else {
+                setBattleScreenVisible(false);
+            }
+        }, 400);
+    };
+
+    // Запускаем плавную анимацию появления
+    setTimeout(() => {
+        endOverlay.classList.add('show');
+    }, 100);
+}
 function exitBattle(skipServer) {
     if (battleState.isOnline && !skipServer && socket) {
         socket.emit('leave_match');
@@ -963,86 +1018,68 @@ function exitBattle(skipServer) {
 
 // --- 8. SURRENDER CONFIRMATION OVERLAY ---
 
+// --- 8. SURRENDER CONFIRMATION OVERLAY ---
+
 function showSurrenderConfirmation() {
     let overlay = document.getElementById('surrender-confirm-overlay');
     
-    // Create the overlay dynamically if it doesn't exist yet
+    // Если оверлей ещё не создан, динамически генерируем его с красивой разметкой
     if (!overlay) {
         overlay = document.createElement('div');
         overlay.id = 'surrender-confirm-overlay';
-        overlay.className = 'card-preview-overlay'; // Reuse your existing overlay class
-        
-        // Inline fallback styling to ensure it centers correctly
-        overlay.style.position = 'fixed';
-        overlay.style.top = '0';
-        overlay.style.left = '0';
-        overlay.style.width = '100vw';
-        overlay.style.height = '100vh';
-        overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.85)';
-        overlay.style.zIndex = '10000';
-        overlay.style.display = 'flex';
-        overlay.style.alignItems = 'center';
-        overlay.style.justifyContent = 'center';
+        overlay.className = 'coin-flip-overlay hidden';
         
         const modal = document.createElement('div');
-        modal.style.background = '#1a1a1a';
-        modal.style.border = '2px solid #ff4d4d';
-        modal.style.padding = '30px 40px';
-        modal.style.borderRadius = '12px';
-        modal.style.textAlign = 'center';
-        modal.style.boxShadow = '0 10px 30px rgba(0,0,0,0.5)';
+        modal.className = 'surrender-modal-card';
+        
+        // Кандзи-заголовок "Сдача / Капитуляция"
+        const kanjiTitle = document.createElement('div');
+        kanjiTitle.className = 'surrender-kanji';
+        kanjiTitle.innerHTML = '降伏';
         
         const title = document.createElement('h2');
-        title.innerText = 'Are you sure you want to surrender?';
-        title.style.color = '#fff';
-        title.style.marginBottom = '25px';
-        title.style.fontFamily = 'sans-serif';
+        title.innerText = 'Abandon the Path?';
+        title.className = 'surrender-title';
+        
+        const subtitle = document.createElement('p');
+        subtitle.innerText = 'Leaving now will count as a defeat. Are you ready to accept your fate and return to the mist?';
+        subtitle.className = 'surrender-subtitle';
         
         const btnWrap = document.createElement('div');
-        btnWrap.style.display = 'flex';
-        btnWrap.style.gap = '20px';
-        btnWrap.style.justifyContent = 'center';
+        btnWrap.className = 'surrender-btn-wrap';
         
-        // CONFIRM BUTTON
-        const btnConfirm = document.createElement('button');
-        btnConfirm.innerText = 'Surrender';
-        btnConfirm.style.padding = '10px 20px';
-        btnConfirm.style.background = '#ff4d4d';
-        btnConfirm.style.color = '#fff';
-        btnConfirm.style.border = 'none';
-        btnConfirm.style.borderRadius = '5px';
-        btnConfirm.style.cursor = 'pointer';
-        btnConfirm.style.fontWeight = 'bold';
-        btnConfirm.onclick = () => {
-            overlay.style.display = 'none';
-            exitBattle(); // Call the original exit logic
-        };
-        
-        // CANCEL BUTTON
+        // КНОПКА ОТМЕНЫ (Продолжить бой)
         const btnCancel = document.createElement('button');
-        btnCancel.innerText = 'Cancel';
-        btnCancel.style.padding = '10px 20px';
-        btnCancel.style.background = '#555';
-        btnCancel.style.color = '#fff';
-        btnCancel.style.border = 'none';
-        btnCancel.style.borderRadius = '5px';
-        btnCancel.style.cursor = 'pointer';
-        btnCancel.style.fontWeight = 'bold';
+        btnCancel.innerText = 'Continue Fight';
+        btnCancel.className = 'surrender-btn btn-cancel-fight';
         btnCancel.onclick = () => {
-            overlay.style.display = 'none'; // Hide overlay
+            overlay.classList.add('hidden');
         };
         
+        // КНОПКА ПОДТВЕРЖДЕНИЯ (Сдаться)
+        const btnConfirm = document.createElement('button');
+        btnConfirm.innerText = 'Accept Fate';
+        btnConfirm.className = 'surrender-btn btn-surrender-confirm';
+        btnConfirm.onclick = () => {
+            overlay.classList.add('hidden');
+            exitBattle(); // Вызов оригинального метода выхода из игры
+        };
+        
+        // Собираем структуру вместе
         btnWrap.appendChild(btnCancel);
         btnWrap.appendChild(btnConfirm);
         
+        modal.appendChild(kanjiTitle);
         modal.appendChild(title);
+        modal.appendChild(subtitle);
         modal.appendChild(btnWrap);
+        
         overlay.appendChild(modal);
         document.body.appendChild(overlay);
     }
     
-    // Show the overlay
-    overlay.style.display = 'flex';
+    // Плавное отображение окна
+    overlay.classList.remove('hidden');
 }
 
 // --- EVENT LISTENERS ---

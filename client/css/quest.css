@@ -135,3 +135,150 @@
 
 .quests-body::-webkit-scrollbar { width: 6px; }
 .quests-body::-webkit-scrollbar-thumb { background: #633D3D; border-radius: 10px; }
+
+/* ==================================================
+   ЭЛЕГАНТНОЕ ОКНО НАГРАДЫ ЗА КВЕСТЫ (QUEST REWARD)
+   ================================================== */
+
+.reward-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(7, 9, 12, 0.82);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999; /* Поверх всех меню и списков */
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s ease;
+}
+
+.reward-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.reward-card {
+    background: radial-gradient(circle, rgba(24, 28, 35, 0.99) 0%, rgba(12, 14, 18, 1) 100%);
+    border: 2px solid #BBA78D; /* Благородное старое золото квестов */
+    box-shadow: 
+        0 15px 40px rgba(0, 0, 0, 0.9),
+        inset 0 0 25px rgba(187, 167, 141, 0.15),
+        0 0 50px rgba(187, 167, 141, 0.15); /* Мягкий золотой ореол */
+    padding: 45px 50px;
+    border-radius: 16px;
+    text-align: center;
+    max-width: 420px;
+    width: 85%;
+    position: relative;
+    transform: scale(0.85) translateY(15px);
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.2), opacity 0.35s ease;
+    opacity: 0;
+}
+
+.reward-overlay.show .reward-card {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+}
+
+/* Фирменная штрихованная внутренняя рамка KIRI */
+.reward-card::before {
+    content: '';
+    position: absolute;
+    inset: 6px;
+    border: 1px dashed rgba(187, 167, 141, 0.25);
+    border-radius: 12px;
+    pointer-events: none;
+}
+
+/* Левитирующая иконка награды */
+.reward-icon-animate {
+    font-size: 3.8rem;
+    line-height: 1;
+    margin-bottom: 20px;
+    filter: drop-shadow(0 0 15px rgba(187, 167, 141, 0.5));
+    animation: reward-icon-bounce 2.6s infinite ease-in-out;
+}
+
+.reward-title {
+    font-family: 'Marcellus', serif !important;
+    color: #F4F1E1 !important;
+    font-size: 1.6rem !important;
+    letter-spacing: 1.5px;
+    margin: 0 0 8px 0 !important;
+    text-transform: uppercase !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.reward-subtitle {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-size: 0.9rem !important;
+    color: #8b7e6d !important;
+    margin: 0 0 25px 0 !important;
+    line-height: 1.45;
+}
+
+/* Подложка для счетчика монет */
+.reward-amount {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background: rgba(0, 0, 0, 0.45);
+    border: 1px solid rgba(187, 167, 141, 0.25);
+    padding: 10px 32px;
+    border-radius: 30px;
+    margin-bottom: 35px;
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+
+.reward-currency-symbol {
+    font-size: 1.5rem;
+}
+
+.reward-value {
+    font-family: 'Marcellus', serif;
+    font-size: 1.9rem;
+    font-weight: bold;
+    color: #f1c40f; /* Золотой цвет монет */
+    text-shadow: 0 0 10px rgba(241, 196, 15, 0.3);
+}
+
+/* Кнопка Claim Reward */
+.reward-collect-btn {
+    width: auto !important;
+    min-width: 190px;
+    padding: 14px 28px !important;
+    font-family: 'Marcellus', serif !important;
+    font-size: 0.85rem !important;
+    font-weight: bold !important;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    border-radius: 8px !important;
+    cursor: pointer;
+    margin: 0 auto !important;
+    display: inline-block;
+    background: linear-gradient(180deg, #633D3D 0%, #4A2D2D 100%) !important; /* Твой оригинальный цвет кнопок лобби */
+    border: 1px solid #3A1F1F !important;
+    color: #F4F1E1 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+    transition: all 0.2s ease !important;
+}
+
+.reward-collect-btn:hover {
+    background: linear-gradient(180deg, #754848 0%, #573535 100%) !important;
+    border-color: #BBA78D !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 16px rgba(187, 167, 141, 0.25) !important;
+}
+
+.reward-collect-btn:active {
+    transform: translateY(0px) !important;
+}
+
+/* Анимация парения тори */
+@keyframes reward-icon-bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); filter: drop-shadow(0 0 20px rgba(241, 196, 15, 0.7)); }
+}

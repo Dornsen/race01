@@ -98,13 +98,64 @@ window.claimReward = async function(questId) {
         const data = await response.json();
         
         if (data.success) {
-            alert(`Reward claimed: ⛩️ ${data.reward}`);
+            // ВМЕСТО ALERT: Вызываем наше красивое модальное окно награды!
+            showQuestRewardModal(data.reward);
 
+            // Перезагружаем список квестов, чтобы кнопка обновилась
             document.getElementById('btn-quests').click(); 
         } else {
-            alert(data.error || 'Error claiming reward');
+            // Вместо алерта ошибки используем глобальное уведомление игры
+            if (typeof showNotification === 'function') {
+                showNotification(data.error || 'Error claiming reward', true);
+            } else {
+                alert(data.error || 'Error claiming reward');
+            }
         }
     } catch (error) {
         console.error('Claim error:', error);
+        if (typeof showNotification === 'function') {
+            showNotification('Server communication error', true);
+        }
     }
 };
+
+// --- ФУНКЦИЯ КАСТОМНОГО ОКНА НАГРАДЫ (БЕЗ ЯПОНСКИХ СИМВОЛОВ) ---
+function showQuestRewardModal(amount) {
+    let rewardOverlay = document.getElementById('quest-reward-overlay');
+    if (!rewardOverlay) {
+        rewardOverlay = document.createElement('div');
+        rewardOverlay.id = 'quest-reward-overlay';
+        document.body.appendChild(rewardOverlay);
+    }
+
+    rewardOverlay.className = 'reward-overlay';
+    rewardOverlay.innerHTML = ''; 
+
+    const rewardCard = document.createElement('div');
+    rewardCard.className = 'reward-card';
+
+    rewardCard.innerHTML = `
+        <div class="reward-icon-animate">⛩️</div>
+        <h2 class="reward-title">Quest Completed</h2>
+        <p class="reward-subtitle">The mists reward your dedication, Wanderer.</p>
+        <div class="reward-amount">
+            <span class="reward-currency-symbol">⛩️</span>
+            <span class="reward-value">+${amount}</span>
+        </div>
+        <button id="btn-close-reward" class="reward-collect-btn">Claim Reward</button>
+    `;
+
+    rewardOverlay.appendChild(rewardCard);
+
+    const closeBtn = rewardCard.querySelector('#btn-close-reward');
+    closeBtn.onclick = () => {
+        rewardOverlay.classList.remove('show');
+        setTimeout(() => {
+            rewardOverlay.remove(); 
+        }, 300);
+    };
+
+    setTimeout(() => {
+        rewardOverlay.classList.add('show');
+    }, 50);
+}
