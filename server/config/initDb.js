@@ -31,7 +31,7 @@ async function autoInitDatabase() {
         if (dbVersion < CURRENT_CODE_VERSION) {
             console.log(`[DB] Upgrading schema: v${dbVersion} -> v${CURRENT_CODE_VERSION}`);
             
-            const sqlFilePath = path.join(__dirname, '../database/init.sql');
+            const sqlFilePath = path.join(__dirname, '../../database/init.sql');
             const sqlCode = fs.readFileSync(sqlFilePath, 'utf8');
 
             await connection.query(sqlCode);

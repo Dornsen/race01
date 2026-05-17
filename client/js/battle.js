@@ -308,11 +308,11 @@ function startTimer() {
     }, 1000);
 }
 
-function endTurn() {
+function endTurn(force = false) {
     if (!battleState.inBattle) return;
     
     // Если каким-то чудом клик прошел не в наш ход — просто игнорируем
-    if (battleState.turn !== 'player') return;
+    if (!force && battleState.turn !== 'player') return;
     
     const btnEndTurn = document.getElementById('btn-end-turn');
     if (btnEndTurn) btnEndTurn.classList.remove('my-turn-active');
@@ -906,7 +906,7 @@ function runOpponentTurn() {
     checkWin();
     renderBattle();
     if (typeof updateBoardArrows === 'function') updateBoardArrows(); // Обновляем стрелочки врага
-    if (battleState.inBattle) endTurn();
+    if (battleState.inBattle) endTurn(true);
 }
 
 // --- 7. END MATCH CONDITIONS ---
