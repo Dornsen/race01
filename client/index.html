@@ -536,8 +536,23 @@
                     <span class="slider-toggle"></span>
                 </label>
             </div>
-            <div class="music-row">
-                <input type="range" id="music-volume" min="0" max="1" step="0.01" value="0.5" oninput="changeVolume()">
+            <div class="scroll-slider-container">
+                <span class="scroll-slider-title">Music Volume</span>
+                
+                <input type="hidden" id="music-volume" value="0.5">
+                
+                <div class="scroll-altar">
+                    <div class="scroll-body" id="scroll-body">
+                        <div class="scroll-roller left-roller"></div>
+                        
+                        <div class="scroll-paper" id="scroll-paper">
+                            <span class="scroll-glow-text">KIRI MUSIC</span>
+                        </div>
+                        
+                        <div class="scroll-roller right-roller" id="scroll-drag-handle"></div>
+                    </div>
+                </div>
+                
                 <span id="music-volume-value" class="music-volume-value">50%</span>
             </div>
         </div>

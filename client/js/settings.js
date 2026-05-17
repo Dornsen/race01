@@ -397,3 +397,75 @@ function closeDeleteAccountModal() {
     if (modal) modal.classList.add('hidden');
     deleteStep = 1; // Сбрасываем шаги
 }
+
+// --- ИНТЕРАКТИВНЫЙ РАЗВОРАЧИВАЮЩИЙСЯ СВИТОК ---
+document.addEventListener('DOMContentLoaded', () => {
+    const handle = document.getElementById('scroll-drag-handle');
+    const paper = document.getElementById('scroll-paper');
+    const container = document.getElementById('scroll-body');
+    const volumeInput = document.getElementById('music-volume');
+    const volumeValue = document.getElementById('music-volume-value');
+    const music = document.getElementById('bg-music');
+
+    if (!handle || !paper || !container) return;
+
+    let isDragging = false;
+    const maxScrollWidth = 200; // Максимальная ширина разворачивания холста в пикселях
+
+    function updateScrollPosition(clientX) {
+        const containerRect = container.getBoundingClientRect();
+        // Считаем, сколько пикселей протащили от левого края (где стоит левый валик)
+        let width = clientX - containerRect.left;
+
+        // Зажимаем границы движения от 0 до максимума
+        if (width < 0) width = 0;
+        if (width > maxScrollWidth) width = maxScrollWidth;
+
+        // Рассчитываем процент громкости от 0.0 до 1.0
+        const volume = width / maxScrollWidth;
+
+        // Физически меняем ширину пергамента на экране
+        paper.style.width = `${width}px`;
+        
+        // Меняем прозрачность текста внутри свитка в зависимости от раскрытия
+        const glowText = paper.querySelector('.scroll-glow-text');
+        if (glowText) glowText.style.opacity = volume;
+
+        // Синхронизируем со звуковой системой игры
+        if (music) music.volume = volume;
+        if (volumeInput) volumeInput.value = volume;
+        if (volumeValue) volumeValue.innerText = `${Math.round(volume * 100)}%`;
+
+        pendingMusicVolume = volume;
+    }
+
+    // Слушатели событий мыши и сенсора
+    handle.addEventListener('mousedown', () => isDragging = true);
+    handle.addEventListener('touchstart', () => isDragging = true, { passive: true });
+
+    document.addEventListener('mousemove', (e) => {
+        if (isDragging) updateScrollPosition(e.clientX);
+    });
+
+    document.addEventListener('touchmove', (e) => {
+        if (isDragging && e.touches.length > 0) {
+            updateScrollPosition(e.touches[0].clientX);
+        }
+    }, { passive: false });
+
+    document.addEventListener('mouseup', () => isDragging = false);
+    document.addEventListener('touchend', () => isDragging = false);
+
+    // Поддержка синхронизации при открытии окна настроек
+    const oldSyncControls = window.syncMusicControls;
+    window.syncMusicControls = function() {
+        if (typeof oldSyncControls === 'function') oldSyncControls();
+        
+        const vol = Number(document.getElementById('music-volume').value || 0.5);
+        const targetWidth = vol * maxScrollWidth;
+        
+        if (paper) paper.style.width = `${targetWidth}px`;
+        const glowText = paper.querySelector('.scroll-glow-text');
+        if (glowText) glowText.style.opacity = vol;
+    };
+});
