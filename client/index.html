@@ -393,7 +393,7 @@
             </div>
         </div>
     </div>
-    
+
     <div id="battle-screen" class="battle-screen hidden">
         <div class="battle-bg" style="background-image: url('assets/matchback.png');"></div>
         
@@ -482,15 +482,26 @@
     </div>
 
     <div id="friend-invite-modal" class="invite-modal hidden">
-        <div class="invite-card">
-            <div class="invite-title">Battle Invitation</div>
-            <div class="invite-text" id="invite-text">Player invites you to battle.</div>
-            <div class="invite-actions">
-                <button id="btn-invite-accept" class="invite-accept">Accept</button>
-                <button id="btn-invite-decline" class="invite-decline">Decline</button>
-            </div>
+    <div class="modal-content invite-card-alt">
+        <h3 class="invite-title-alt">Battle Challenge</h3>
+        <p class="invite-text-alt" id="invite-text">A wanderer challenges you to a duel.</p>
+        <div class="invite-actions-alt">
+            <button id="btn-invite-accept" class="invite-btn accept-btn">Accept</button>
+            <button id="btn-invite-decline" class="invite-btn decline-btn">Decline</button>
         </div>
     </div>
+</div>
+
+    <div id="friend-delete-modal" class="modal hidden">
+    <div class="modal-content confirmation-card">
+        <h3 class="modal-title-alt">Delete Friend</h3>
+        <p class="modal-text-alt">Are you sure you want to remove <span id="delete-friend-name" style="color: #F4F1E1; font-weight: bold;"></span> from your friends list?</p>
+        <div class="modal-actions-alt">
+            <button id="btn-delete-confirm" class="ctx-btn danger-btn">Remove</button>
+            <button id="btn-delete-cancel" class="ctx-btn cancel-btn">Cancel</button>
+        </div>
+    </div>
+</div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="js/auth.js"></script>

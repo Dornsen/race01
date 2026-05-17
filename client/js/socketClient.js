@@ -104,16 +104,13 @@ function handleMatchStart(payload) {
 }
 
 async function handleMatchEnd(payload) {
-    // Вместо скучных алертов вызываем наш эпичный экран финала!
     if (typeof endBattle === 'function') {
-        // Если ничья, можно передать 'draw', иначе проверяем выиграл игрок или проиграл
         if (payload.result === 'draw') {
             endBattle('draw');
         } else {
             endBattle(payload.result === 'win' ? 'player' : 'opponent');
         }
     } else {
-        // Фаллбэк на случай, если что-то пошло не так
         if (payload.result === 'draw') {
             showNotification('Draw!');
         } else {
@@ -124,7 +121,6 @@ async function handleMatchEnd(payload) {
         }
     }
 
-    // Обновляем статистику (MMR, карточки и т.д.) в лобби
     if (typeof refreshPlayerStats === 'function') await refreshPlayerStats();
 }
 

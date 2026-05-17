@@ -1,67 +1,100 @@
 .friendlist-sidebar {
     width: 300px;
-    background: rgba(16, 18, 22, 0.6);
-    backdrop-filter: blur(10px);
+    background: rgba(12, 14, 18, 0.75); /* Чуть темнее и плотнее */
+    backdrop-filter: blur(12px);
     padding: 24px;
     display: flex;
     flex-direction: column;
-    border-right: 1px solid rgba(139, 126, 109, 0.1);
+    border-right: 1px solid rgba(99, 61, 61, 0.3); /* Цвет бордо вместо серого */
+    box-shadow: 5px 0 25px rgba(0, 0, 0, 0.5);
 }
 
 .friendlist-header {
+    font-family: 'Marcellus', serif;
+    font-size: 1.1rem;
     font-weight: 600;
     margin-bottom: 20px;
-    color: #8B7E6D;
+    color: #F4F1E1; /* Светлый благородный цвет */
     text-transform: uppercase;
-    letter-spacing: 1px;
-    font-size: 0.9rem;
+    letter-spacing: 2px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    border-bottom: 1px solid rgba(139, 126, 109, 0.2);
+    padding-bottom: 10px;
 }
 
 .add-friend-box { 
     display: flex; 
-    gap: 8px;
+    gap: 10px;
     margin-bottom: 24px; 
 }
 
 .add-friend-box input { 
     margin: 0; 
-    padding: 10px 12px;
+    padding: 12px 14px;
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(139, 126, 109, 0.2);
+    border-radius: 6px;
+    color: #D0CBB5;
+    font-size: 0.9rem;
 }
 
-.add-friend-box button { margin: 0; 
-    width: 44px; 
+.add-friend-box input:focus {
+    border-color: #633D3D;
+    box-shadow: 0 0 8px rgba(99, 61, 61, 0.4);
+}
+
+.add-friend-box button { 
+    margin: 0; 
+    width: 48px; 
     padding: 0; 
     display: flex; 
     justify-content: center; 
     align-items: center; 
-    font-size: 1.5rem; 
+    font-size: 1.4rem; 
+    border-radius: 6px;
+    background: linear-gradient(180deg, #633D3D 0%, #4A2D2D 100%);
 }
 
 .empty-friends { 
-    opacity: 0.5; 
+    opacity: 0.6; 
     font-size: 0.9rem; 
     color: #8B7E6D; 
     text-align: center; 
-    margin-top: 20px; 
+    margin-top: 30px;
+    font-style: italic;
 }
 
 .friend-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 8px 5px;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding: 10px 8px;
+    border-bottom: 1px solid rgba(139, 126, 109, 0.1);
     cursor: pointer;
     user-select: none;
-    transition: background 0.2s;
+    transition: all 0.25s ease;
+    border-radius: 6px;
+    margin-bottom: 4px;
 }
-.friend-item:hover { background: rgba(255,255,255,0.1); border-radius: 5px; }
+.friend-item:hover { 
+    background: rgba(99, 61, 61, 0.15); 
+    border-color: rgba(99, 61, 61, 0.3);
+    padding-left: 12px; /* Эффект легкого сдвига при наведении */
+}
 
 .friend-info {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
 }
+
+.friend-avatar-wrap {
+    flex-shrink: 0;
+    position: relative;
+    width: 38px;
+    height: 38px;
+}
+
 .friend-avatar {
     width: 100%;
     height: 100%;
@@ -69,28 +102,246 @@
     border: 1px solid #7f8c8d;
 }
 
-.friend-avatar-wrap {
-    flex-shrink: 0;
-    position: relative;
-    width: 30px;
-    height: 30px;
-}
 
 .friend-avatar-wrap .base-avatar {
-    border-radius: 50%;
-    border: 1px solid #7f8c8d;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%; /* Круглый аватар красивее в списке */
+    border: 1px solid rgba(139, 126, 109, 0.4);
     object-fit: cover;
-    background-color: #1A1C20;
+    background-color: #14161A;
+    transition: transform 0.2s;
+}
+
+.friend-item:hover .base-avatar {
+    transform: scale(1.05);
+    border-color: #633D3D;
 }
 
 .friend-avatar-wrap .frame-overlay {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    top: -2px;
+    left: -2px;
+    width: 104%;
+    height: 104%;
     pointer-events: none;
     z-index: 2;
     display: block;
     object-fit: contain;
+}
+
+.friend-name {
+    color: #D0CBB5;
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: color 0.2s;
+}
+
+.friend-item:hover .friend-name {
+    color: #F4F1E1;
+}
+
+/* Статус (Онлайн/В бою/Оффлайн) */
+.friend-status {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.friend-status.online {
+    color: #2ecc71;
+    border: 1px solid rgba(46, 204, 113, 0.2);
+}
+
+.friend-status.ingame {
+    color: #e67e22;
+    border: 1px solid rgba(230, 126, 34, 0.2);
+}
+
+.friend-status.offline {
+    color: #7f8c8d;
+    opacity: 0.6;
+}
+
+/* Стили для красивой модалки удаления */
+.confirmation-card {
+    border: 1px solid #633D3D !important;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    background: rgba(14, 16, 20, 0.98) !important;
+    max-width: 350px !important;
+    animation: modalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalFadeIn {
+    from { opacity: 0; transform: scale(0.92); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.modal-title-alt {
+    font-family: 'Marcellus', serif;
+    color: #F4F1E1;
+    font-size: 1.3rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-top: 0;
+    margin-bottom: 15px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.modal-text-alt {
+    color: #8B7E6D;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-bottom: 25px;
+}
+
+.modal-actions-alt {
+    display: flex;
+    gap: 12px;
+}
+
+/* Кнопки внутри модалки */
+.modal-actions-alt .ctx-btn {
+    width: 100%;
+    padding: 12px;
+    font-family: 'Marcellus', serif !important;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Кнопка удаления (Бордово-красная) */
+.modal-actions-alt .danger-btn {
+    background: linear-gradient(180deg, #8b3d3d 0%, #572d2d 100%);
+    border: 1px solid #4a1f1f;
+    color: #F4F1E1;
+}
+
+.modal-actions-alt .danger-btn:hover {
+    background: linear-gradient(180deg, #a64949 0%, #6e3939 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Кнопка отмены (Темная / Нейтральная) */
+.modal-actions-alt .cancel-btn {
+    background: linear-gradient(180deg, #2c2f36 0%, #1a1c20 100%);
+    border: 1px solid #141619;
+    color: #8B7E6D;
+}
+
+.modal-actions-alt .cancel-btn:hover {
+    background: linear-gradient(180deg, #3a3e47 0%, #22252b 100%);
+    color: #D0CBB5;
+    transform: translateY(-1px);
+}
+
+/* Обертка для карточки запроса прямо в сайдбаре */
+.friend-request-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
+    background: rgba(99, 61, 61, 0.04); /* Тонкий бордовый фон KIRI */
+    border: 1px solid rgba(139, 126, 109, 0.15);
+    border-left: 3px solid #633D3D; /* Акцентная линия */
+    border-radius: 6px;
+    margin-bottom: 10px;
+    transition: all 0.25s ease-in-out;
+}
+
+.friend-request-item:hover {
+    background: rgba(99, 61, 61, 0.1);
+    border-color: rgba(99, 61, 61, 0.25);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* Верхняя часть: аватар, имя и тег */
+.friend-request-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.friend-request-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Аккуратный тег "Request" */
+.friend-request-tag {
+    font-size: 0.65rem;
+    color: #8B7E6D;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid rgba(139, 126, 109, 0.1);
+}
+
+/* Блок с кнопками действий */
+.friend-request-actions {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+    margin-top: 4px;
+}
+
+/* Микро-кнопки под размер панели друзей */
+.friend-request-actions button {
+    flex: 1;
+    width: 100%;
+    padding: 8px 10px !important;
+    font-family: 'Marcellus', serif !important;
+    font-size: 0.75rem !important;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 0 !important;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Кнопка Accept (Благородный приглушенный зеленый) */
+.friend-request-actions .btn-accept {
+    background: linear-gradient(180deg, #2ecc71 0%, #219653 100%) !important;
+    border: 1px solid #27ae60 !important;
+    color: #FFF !important;
+}
+
+.friend-request-actions .btn-accept:hover {
+    background: linear-gradient(180deg, #27ae60 0%, #1e7e43 100%) !important;
+    box-shadow: 0 4px 10px rgba(46, 204, 113, 0.3);
+}
+
+/* Кнопка Decline (Темная, подсвечивается бордовым) */
+.friend-request-actions .btn-decline {
+    background: linear-gradient(180deg, #2c2f36 0%, #1a1c20 100%) !important;
+    border: 1px solid #141619 !important;
+    color: #8B7E6D !important;
+}
+
+.friend-request-actions .btn-decline:hover {
+    background: linear-gradient(180deg, #633D3D 0%, #4A2D2D 100%) !important;
+    border-color: #3A1F1F !important;
+    color: #F4F1E1 !important;
+    box-shadow: 0 4px 10px rgba(99, 61, 61, 0.3);
+}
+
+.friend-request-actions button:active {
+    transform: translateY(1px);
+    box-shadow: none;
 }

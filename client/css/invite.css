@@ -1,50 +1,120 @@
+/* Затемнение экрана под модалкой */
 .invite-modal {
     position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.7);
+    z-index: 10000; /* Выше всего интерфейса */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(5, 7, 10, 0.85);
+    backdrop-filter: blur(8px);
     display: flex;
-    align-items: center;
     justify-content: center;
-    z-index: 140;
+    align-items: center;
 }
 
-.invite-card {
-    background: rgba(20, 22, 26, 0.95);
-    border: 1px solid rgba(139, 126, 109, 0.2);
+/* Сама карточка приглашения */
+.invite-card-alt {
+    background: rgba(15, 18, 22, 0.98) !important;
+    border: 1px solid #633D3D !important; /* Наша фирменная бордовая рамка */
     border-radius: 12px;
-    padding: 18px 20px;
-    min-width: 260px;
-    color: #d0cbb5;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+    padding: 35px 30px !important;
+    max-width: 380px;
+    text-align: center;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    animation: inviteSlideIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-.invite-title {
-    font-weight: 600;
-    color: #f1c40f;
-    margin-bottom: 8px;
+@keyframes inviteSlideIn {
+    from { opacity: 0; transform: translateY(-30px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-.invite-actions {
+/* Иконка мечей сверху */
+.invite-icon-wrap {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+    filter: drop-shadow(0 0 10px rgba(99, 61, 61, 0.6));
+    animation: pulseSwords 2s infinite ease-in-out;
+}
+
+@keyframes pulseSwords {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+/* Заголовок окна */
+.invite-title-alt {
+    font-family: 'Marcellus', serif !important;
+    color: #F4F1E1;
+    font-size: 1.4rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-top: 0;
+    margin-bottom: 12px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+/* Текст внутри */
+.invite-text-alt {
+    color: #8B7E6D !important;
+    font-size: 0.95rem !important;
+    line-height: 1.5;
+    margin-bottom: 28px !important;
+}
+
+/* Контейнер кнопок */
+.invite-actions-alt {
     display: flex;
-    gap: 10px;
-    margin-top: 12px;
+    gap: 14px;
 }
 
-.invite-accept,
-.invite-decline {
-    width: auto;
-    padding: 8px 14px;
-    margin: 0;
-    font-size: 0.85rem;
+/* Общие стили кнопок реквеста */
+.invite-btn {
+    width: 100%;
+    padding: 14px 20px !important;
+    font-family: 'Marcellus', serif !important;
+    font-size: 0.9rem !important;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-top: 0 !important;
+    transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
 }
 
-.invite-accept {
-    background: #27ae60;
-    border: 1px solid #1f8a4d;
+/* Зелёная кнопка Accept (Принять вызов) */
+.invite-btn.accept-btn {
+    background: linear-gradient(180deg, #2ecc71 0%, #219653 100%) !important;
+    border: 1px solid #27ae60 !important;
+    color: #FFF !important;
 }
 
-.invite-decline {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    color: #d0cbb5;
+.invite-btn.accept-btn:hover {
+    background: linear-gradient(180deg, #27ae60 0%, #1e7e43 100%) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(46, 204, 113, 0.4);
+}
+
+/* Бордово-темная кнопка Decline (Отклонить) */
+.invite-btn.decline-btn {
+    background: linear-gradient(180deg, #2c2f36 0%, #1a1c20 100%) !important;
+    border: 1px solid #141619 !important;
+    color: #8B7E6D !important;
+}
+
+.invite-btn.decline-btn:hover {
+    background: linear-gradient(180deg, #633D3D 0%, #4A2D2D 100%) !important;
+    border-color: #3A1F1F !important;
+    color: #F4F1E1 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(99, 61, 61, 0.4);
+}
+
+.invite-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }

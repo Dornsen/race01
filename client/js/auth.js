@@ -361,24 +361,32 @@ async function loadFriends() {
         list.innerHTML = '';
 
         // Render Pending Requests
+       // Render Pending Requests (Beautiful compact cards inside sidebar)
         if (dataPending.requests && dataPending.requests.length > 0) {
             const head = document.createElement('li');
-            head.innerHTML = `<small style="color: #f1c40f">New requests:</small>`;
+            head.innerHTML = `<small style="color: #633D3D; font-family: 'Marcellus', serif; letter-spacing: 1px; text-transform: uppercase; display: block; margin-bottom: 8px; padding-left: 5px;">New Requests</small>`;
             list.appendChild(head);
 
             dataPending.requests.forEach(req => {
                 const li = document.createElement('li');
-                li.className = 'friend-item pending';
-                li.style.display = 'flex';
-                li.style.justifyContent = 'space-between';
-                li.style.padding = '5px 0';
-                li.style.borderBottom = '1px solid rgba(255,255,255,0.1)';
+                li.className = 'friend-request-item'; // Наш новый класс для красивой стилизации
                 
+                // Используем заготовленные аватарки, если они приходят с сервера, либо дефолтную
+                const avatarImg = req.avatar_url ? req.avatar_url : 'avatar1.png';
+
                 li.innerHTML = `
-                    <span>${req.username}</span>
-                    <div>
-                        <button onclick="handleFriend(${req.friendship_id}, 'accept')" style="background:#27ae60; color:white; border:none; padding:2px 6px; cursor:pointer; margin-right:4px">✓</button>
-                        <button onclick="handleFriend(${req.friendship_id}, 'decline')" style="background:#e74c3c; color:white; border:none; padding:2px 7px; cursor:pointer">✕</button>
+                    <div class="friend-request-header">
+                        <div class="friend-request-info">
+                            <div class="friend-avatar-wrap">
+                                <img class="base-avatar" src="assets/avatars/${avatarImg}" alt="avatar" style="border-radius: 50%; width: 28px; height: 28px; object-fit: cover; border: 1px solid rgba(139, 126, 109, 0.3);">
+                            </div>
+                            <span class="friend-name" style="color: #D0CBB5; font-weight: 500; font-size: 0.9rem;">${req.username}</span>
+                        </div>
+                        <span class="friend-request-tag">Request</span>
+                    </div>
+                    <div class="friend-request-actions">
+                        <button class="btn-accept" onclick="handleFriend(${req.friendship_id}, 'accept')">Accept</button>
+                        <button class="btn-decline" onclick="handleFriend(${req.friendship_id}, 'decline')">Decline</button>
                     </div>
                 `;
                 list.appendChild(li);
@@ -527,9 +535,32 @@ if (btnInvite) {
 
 // "Remove Friend" button
 const btnRemove = document.getElementById('ctx-remove');
+const deleteModal = document.getElementById('friend-delete-modal');
+const deleteFriendNameSpan = document.getElementById('delete-friend-name');
+const btnDeleteConfirm = document.getElementById('btn-delete-confirm');
+const btnDeleteCancel = document.getElementById('btn-delete-cancel');
+
 if (btnRemove) {
-    btnRemove.onclick = async () => {
-        if (!confirm(`Remove ${selectedTargetName} from friends?`)) return;
+    btnRemove.onclick = () => {
+        // Скрываем контекстное меню, чтобы оно не висело на экране
+        const ctxMenu = document.getElementById('friend-context-menu');
+        if (ctxMenu) ctxMenu.classList.add('hidden');
+
+        // Открываем кастомную модалку и подставляем имя друга
+        if (deleteModal && deleteFriendNameSpan) {
+            deleteFriendNameSpan.textContent = selectedTargetName || "этого игрока";
+            deleteModal.classList.remove('hidden');
+        }
+    };
+}
+
+// Клик по кнопке "Удалить" в кастомной модалке
+if (btnDeleteConfirm) {
+    btnDeleteConfirm.onclick = async () => {
+        // Сразу прячем модалку
+        if (deleteModal) deleteModal.classList.add('hidden');
+
+        if (!selectedTargetId) return;
 
         try {
             const res = await fetch('/api/friends/remove', {
@@ -539,11 +570,24 @@ if (btnRemove) {
             });
             const result = await res.json();
 
-            showNotification(result.message || result.error, res.ok ? 'success' : 'error');
-            if (res.ok) loadFriends();
+            // Показываем красивую игровую нотификацию (is-success / is-error)
+            const isSuccess = res.ok;
+            showNotification(result.message || result.error, isSuccess ? 'success' : 'error');
+            
+            // Перезагружаем список друзей, если удаление прошло успешно
+            if (res.ok && typeof loadFriends === 'function') {
+                loadFriends();
+            }
         } catch (e) {
-            showNotification('Removal failed', true);
+            console.error("Error removing friend:", e);
         }
+    };
+}
+
+// Клик по кнопке "Отмена" в кастомной модалке
+if (btnDeleteCancel) {
+    btnDeleteCancel.onclick = () => {
+        if (deleteModal) deleteModal.classList.add('hidden');
     };
 }
 
