@@ -23,8 +23,13 @@ function renderFrameShop(frames) {
             const card = document.createElement('div');
             card.className = 'shop-item shop-frame-item';
 
+            // Показываем аватар самого игрока под рамкой, а не заглушку
+            const playerAvatar = window.currentUserAvatar
+                ? `assets/avatars/${window.currentUserAvatar}`
+                : 'assets/avatars/avatar1.png';
+
             const preview = typeof createAvatarElement === 'function'
-                ? createAvatarElement(null, frame.image_url, getFramePreviewSize(isShopCard))
+                ? createAvatarElement(playerAvatar, frame.image_url, getFramePreviewSize(isShopCard))
                 : null;
 
             if (preview) {

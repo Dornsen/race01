@@ -118,10 +118,20 @@
     border-color: #633D3D;
 }
 
+/* Hover на контейнере аватара в друзьях — такая же анимация как в бою */
+.friend-info .avatar-container:hover {
+    transform: scale(1.1) translateY(-3px) !important;
+    box-shadow:
+        0 6px 18px rgba(0, 0, 0, 0.8),
+        0 0 14px rgba(241, 196, 15, 0.4) !important;
+}
+
+/* Рамка точно поверх аватара — как в лобби и в режиме боя.
+   FIX: было top:-2px; left:-2px — рамка чуть уезжала */
 .friend-avatar-wrap .frame-overlay {
     position: absolute;
-    top: -2px;
-    left: -2px;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
     pointer-events: none;

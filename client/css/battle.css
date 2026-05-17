@@ -213,12 +213,13 @@
         0 0 2.5vw rgba(241, 196, 15, 0.4) !important; /* Магический отсвет при наведении */
 }
 
-/* Сама картинка аватара внутри контейнера */
-.avatar-container .base-avatar {
+/* Сама картинка аватара внутри контейнера — строгие углы ТОЛЬКО в бою */
+.opponent-profile .avatar-container .base-avatar,
+.player-profile .avatar-container .base-avatar {
     width: 100% !important;
     height: 100% !important;
     object-fit: cover !important;
-    border-radius: 0 !important;     /* Картинка тоже прямоугольная */
+    border-radius: 0 !important;     /* Прямоугольник только в режиме боя */
     display: block !important;
 }
 

@@ -382,26 +382,36 @@ async function loadFriends() {
 
             dataPending.requests.forEach(req => {
                 const li = document.createElement('li');
-                li.className = 'friend-request-item'; // Наш новый класс для красивой стилизации
-                
-                // Используем заготовленные аватарки, если они приходят с сервера, либо дефолтную
-                const avatarImg = req.avatar_url ? req.avatar_url : 'avatar1.png';
+                li.className = 'friend-request-item';
 
-                li.innerHTML = `
-                    <div class="friend-request-header">
-                        <div class="friend-request-info">
-                            <div class="friend-avatar-wrap">
-                                <img class="base-avatar" src="assets/avatars/${avatarImg}" alt="avatar" style="border-radius: 50%; width: 28px; height: 28px; object-fit: cover; border: 1px solid rgba(139, 126, 109, 0.3);">
-                            </div>
-                            <span class="friend-name" style="color: #D0CBB5; font-weight: 500; font-size: 0.9rem;">${req.username}</span>
-                        </div>
-                        <span class="friend-request-tag">Request</span>
-                    </div>
-                    <div class="friend-request-actions">
-                        <button class="btn-accept" onclick="handleFriend(${req.friendship_id}, 'accept')">Accept</button>
-                        <button class="btn-decline" onclick="handleFriend(${req.friendship_id}, 'decline')">Decline</button>
-                    </div>
+                const header = document.createElement('div');
+                header.className = 'friend-request-header';
+
+                const info = document.createElement('div');
+                info.className = 'friend-request-info';
+
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'friend-name';
+                nameSpan.style.cssText = 'color:#D0CBB5;font-weight:500;font-size:0.9rem;';
+                nameSpan.textContent = req.username;
+                info.appendChild(nameSpan);
+
+                const tag = document.createElement('span');
+                tag.className = 'friend-request-tag';
+                tag.textContent = 'Request';
+
+                header.appendChild(info);
+                header.appendChild(tag);
+
+                const actions = document.createElement('div');
+                actions.className = 'friend-request-actions';
+                actions.innerHTML = `
+                    <button class="btn-accept" onclick="handleFriend(${req.friendship_id}, 'accept')">Accept</button>
+                    <button class="btn-decline" onclick="handleFriend(${req.friendship_id}, 'decline')">Decline</button>
                 `;
+
+                li.appendChild(header);
+                li.appendChild(actions);
                 list.appendChild(li);
             });
         }

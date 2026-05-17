@@ -207,6 +207,10 @@ button:active {
     display: inline-block;
     width: 64px;
     height: 64px;
+    cursor: pointer;
+    /* Глобальный transition — плавная анимация hover для ВСЕХ аватаров (лобби, лидерборд, друзья) */
+    transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1),
+                box-shadow 0.2s ease;
 }
 
 .avatar-container .base-avatar {
