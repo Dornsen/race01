@@ -242,6 +242,74 @@ exports.getUserEmotes = async (req, res) => {
         res.json({ success: true, emotes: emotes });
     } catch (error) {
         console.error("Error getting user emotes:", error);
-        res.status(500).json({ success: false, message: 'Ошибка сервера' });
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+};
+
+// Return all emotes available in the game
+exports.getAllEmotes = async (req, res) => {
+    try {
+        const [emotes] = await db.query('SELECT id, name, file_name FROM emotes ORDER BY id');
+        res.json({ success: true, emotes });
+    } catch (error) {
+        console.error('Error getting all emotes:', error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+};
+
+// Get saved emote deck for user
+exports.getUserEmoteDeck = async (req, res) => {
+    try {
+        const userId = req.session.userId;
+        if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+        const [rows] = await db.query('SELECT slot_index, emote_id FROM user_emote_decks WHERE user_id = ? ORDER BY slot_index', [userId]);
+        res.json({ success: true, deck: rows });
+    } catch (error) {
+        console.error('Error getting user emote deck:', error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+};
+
+// Save emote deck for user (expects { slots: [emoteId,...] })
+exports.saveUserEmoteDeck = async (req, res) => {
+    try {
+        const userId = req.session.userId;
+        if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+        const { slots } = req.body;
+        if (!Array.isArray(slots)) return res.status(400).json({ error: 'Invalid payload' });
+
+        // Replace existing deck for user
+        await db.query('DELETE FROM user_emote_decks WHERE user_id = ?', [userId]);
+
+        // Build insert values only for non-null emote ids
+        const insertRows = [];
+        for (let i = 0; i < slots.length; i++) {
+            const emoteId = slots[i];
+            if (emoteId === null || emoteId === undefined) continue;
+            // ensure numeric
+            const nid = Number(emoteId);
+            if (!Number.isInteger(nid)) continue;
+            insertRows.push([userId, i, nid]);
+        }
+
+        if (insertRows.length > 0) {
+            // Validate ownership: user_emotes must contain these emote ids for this user
+            const emoteIds = insertRows.map(r => r[2]);
+            const [owned] = await db.query('SELECT emote_id FROM user_emotes WHERE user_id = ? AND emote_id IN (?)', [userId, emoteIds]);
+            const ownedSet = new Set(owned.map(r => r.emote_id));
+            const notOwned = emoteIds.filter(id => !ownedSet.has(id));
+            if (notOwned.length > 0) {
+                return res.status(400).json({ success: false, error: 'You do not own some emotes', notOwned });
+            }
+
+            await db.query('INSERT INTO user_emote_decks (user_id, slot_index, emote_id) VALUES ?', [insertRows]);
+        }
+
+        res.json({ success: true, message: 'Emote deck saved' });
+    } catch (error) {
+        console.error('Error saving user emote deck:', error);
+        res.status(500).json({ success: false, message: 'Server error' });
     }
 };

@@ -155,13 +155,23 @@ CREATE TABLE IF NOT EXISTS user_frames (
 CREATE TABLE IF NOT EXISTS emotes (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
-    file_name VARCHAR(255) NOT NULL
+    file_name VARCHAR(255) NOT NULL,
+    price INT NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS user_emotes (
     user_id INT NOT NULL,
     emote_id INT NOT NULL,
     PRIMARY KEY (user_id, emote_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (emote_id) REFERENCES emotes(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS user_emote_decks (
+    user_id INT NOT NULL,
+    slot_index INT NOT NULL,
+    emote_id INT NOT NULL,
+    PRIMARY KEY (user_id, slot_index),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (emote_id) REFERENCES emotes(id) ON DELETE CASCADE
 );
@@ -245,15 +255,15 @@ ON DUPLICATE KEY UPDATE
     price = VALUES(price),
     image_url = VALUES(image_url);
 
-INSERT INTO emotes (name, file_name) VALUES
-('Angry', 'emote_angry.png'),
-('Confused', 'emote_confused.png'),
-('Cry baby', 'emote_cry_baby.png'),
-('Flirt', 'emote_flirt.png'),
-('Sad', 'emote_sad.png'),
-('Shy', 'emote_shy.png'),
-('Stair', 'emote_stair.png'),
-('Tilted', 'emote_tilted.png')
+INSERT INTO emotes (name, file_name, price) VALUES
+('Angry', 'emote_angry.png', 100),
+('Confused', 'emote_confused.png', 80),
+('Cry baby', 'emote_cry_baby.png', 120),
+('Flirt', 'emote_flirt.png', 150),
+('Sad', 'emote_sad.png', 80),
+('Shy', 'emote_shy.png', 90),
+('Stair', 'emote_stair.png', 70),
+('Tilted', 'emote_tilted.png', 110)
 
 ON DUPLICATE KEY UPDATE 
     name = VALUES(name),

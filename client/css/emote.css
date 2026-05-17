@@ -61,6 +61,108 @@
     transform: scale(1.2);
 }
 
+.emote-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px;
+    background: rgba(255,255,255,0.02);
+    border-radius: 8px;
+}
+
+/* Larger styles for Emote Deck modal */
+.emote-deck-container {
+    max-width: 1200px;
+    width: 92vw;
+    min-height: 56vh;
+    padding: 32px 36px;
+    border-radius: 14px;
+    background: linear-gradient(180deg, rgba(12,12,12,0.95), rgba(18,18,20,0.98));
+    box-shadow: 0 20px 50px rgba(0,0,0,0.6), 0 2px 6px rgba(0,0,0,0.3) inset;
+    border: 1px solid rgba(255,255,255,0.04);
+}
+
+.emote-deck-container h2 {
+    font-size: 1.5rem;
+    margin-bottom: 12px;
+    text-align: center;
+    letter-spacing: 1px;
+}
+
+.emote-deck-container .emote-deck-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr 420px;
+    gap: 20px;
+    align-items: start;
+}
+
+.emote-deck-container .emote-grid {
+    gap: 14px;
+    padding: 14px;
+}
+
+.emote-deck-container .emote-item {
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.02);
+    padding: 6px;
+}
+
+.emote-deck-container .emote-slot {
+    width: 100px;
+    height: 100px;
+    font-size: 24px;
+    border-radius: 10px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border: 1px dashed rgba(255,255,255,0.05);
+}
+
+.emote-deck-container .emote-slots-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    display: grid;
+}
+
+.emote-deck-container #btn-save-emote-deck {
+    display: inline-block;
+    background: linear-gradient(180deg,#7a3f39,#5a2b2a);
+    color: #fff;
+    border: none;
+    padding: 12px 22px;
+    border-radius: 8px;
+    font-weight: 700;
+    margin-top: 16px;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+}
+
+/* Responsive: stack columns on narrow screens */
+@media (max-width: 980px) {
+    .emote-deck-container .emote-deck-body { grid-template-columns: 1fr; }
+    .emote-deck-container { width: 96vw; padding: 20px; }
+    .emote-deck-container .emote-slots-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+.emote-slot {
+    width: 60px;
+    height: 60px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background: rgba(255,255,255,0.03);
+    border: 1px dashed rgba(255,255,255,0.06);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 20px;
+}
+
+.emote-slots-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+}
+
 .emote-bubble {
     position: absolute;
     top: -16px;

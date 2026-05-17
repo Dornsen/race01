@@ -96,6 +96,29 @@
         <div id="message" class="message"></div>
     </div>
 
+    <!-- Emote Deck Modal -->
+    <div id="emote-deck-modal" class="modal hidden">
+        <div class="modal-content emote-deck-container">
+            <span class="close-btn" id="close-emote-deck">&times;</span>
+            <h2>Emote Deck Builder</h2>
+            <div class="emote-deck-body" style="display:flex;gap:20px;">
+                    <div style="flex:1">
+                        <h3>Missing Emotes</h3>
+                        <div id="emote-all-grid" class="emote-grid"></div>
+                    </div>
+                <div style="flex:1">
+                    <h3>Your Emotes</h3>
+                    <div id="emote-owned-grid" class="emote-grid"></div>
+                </div>
+                <div style="width:300px">
+                    <h3>Your Emote Deck (slots)</h3>
+                    <div id="emote-deck-slots" class="emote-slots-grid"></div>
+                    <button id="btn-save-emote-deck" class="btn btn-primary" style="margin-top:12px;">Save Emote Deck</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="main-menu" class="lobby-container hidden">
         <header class="lobby-header">
             <div class="lobby-profile">
@@ -189,6 +212,7 @@
             </div>
             <div class="deck-header-actions">
                 <button id="btn-save-deck" class="btn-deck-save">✔ Save</button>
+                <button id="btn-open-emotes" class="btn-deck-emotes">🎭 Emotes</button>
                 <button id="btn-back-lobby" class="btn-deck-back">← Lobby</button>
             </div>
         </header>
@@ -327,6 +351,10 @@
         <div class="shop-section-title">Frames</div>
         <div class="shop-frame-note">Daily rotation shows 3 random frames and refreshes once per day.</div>
         <div class="shop-items-grid" id="shop-frame-grid"></div>
+        <hr style="margin:18px 0; opacity:0.06;" />
+        <div class="shop-section-title">Emotes</div>
+        <div class="shop-emote-note">Purchase emotes to use in battle.</div>
+        <div class="shop-items-grid" id="shop-emote-grid" style="display:flex;gap:12px;flex-wrap:wrap;"></div>
 
         <div class="shop-section-title">Donate</div>
         <div class="shop-donate">
@@ -615,6 +643,7 @@
     <script src="js/navigation.js"></script>
     <script src="js/socketClient.js"></script>
     <script src="js/quest.js"></script>
+    <script src="js/emoteDeck.js"></script>
     <script src="js/settings.js"></script>
     
 </body>

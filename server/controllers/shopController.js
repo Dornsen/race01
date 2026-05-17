@@ -144,3 +144,58 @@ exports.buyOrEquipFrame = async (req, res) => {
         res.status(500).json({ error: 'Error updating frame' });
     }
 };
+
+// --- Emote shop ---
+exports.getEmoteShop = async (req, res) => {
+    const userId = req.session.userId;
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+    try {
+        const [rows] = await db.query(`
+            SELECT e.id, e.name, e.file_name, se.price,
+                   CASE WHEN ue.user_id IS NULL THEN FALSE ELSE TRUE END AS owned
+            FROM emotes e
+            LEFT JOIN shop_emotes se ON se.emote_id = e.id
+            LEFT JOIN user_emotes ue ON ue.emote_id = e.id AND ue.user_id = ?
+            ORDER BY e.id
+        `, [userId]);
+
+        const [[userRow]] = await db.query('SELECT money FROM users WHERE id = ?', [userId]);
+
+        res.json({ emotes: rows.map(r => ({ id: r.id, name: r.name, file_name: r.file_name, price: r.price, owned: !!r.owned })), money: userRow ? userRow.money : 0 });
+    } catch (error) {
+        console.error('Error loading emote shop', error);
+        res.status(500).json({ error: 'Error loading emote shop' });
+    }
+};
+
+exports.buyEmote = async (req, res) => {
+    const userId = req.session.userId;
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+    const { emoteId } = req.body;
+    if (!emoteId) return res.status(400).json({ error: 'Emote id is required' });
+
+    try {
+        const [[row]] = await db.query('SELECT se.price, e.id FROM shop_emotes se JOIN emotes e ON e.id = se.emote_id WHERE e.id = ?', [emoteId]);
+        if (!row) return res.status(404).json({ error: 'Emote not found in shop' });
+
+        const price = row.price;
+        const [[userRow]] = await db.query('SELECT money FROM users WHERE id = ?', [userId]);
+        if (!userRow) return res.status(404).json({ error: 'User not found' });
+
+        const [ownedRows] = await db.query('SELECT 1 FROM user_emotes WHERE user_id = ? AND emote_id = ? LIMIT 1', [userId, emoteId]);
+        if (ownedRows.length > 0) return res.status(400).json({ error: 'Already owned' });
+
+        if (userRow.money < price) return res.status(400).json({ error: 'Insufficient funds' });
+
+        await db.query('UPDATE users SET money = money - ? WHERE id = ?', [price, userId]);
+        await db.query('INSERT IGNORE INTO user_emotes (user_id, emote_id) VALUES (?, ?)', [userId, emoteId]);
+
+        const [[updatedUser]] = await db.query('SELECT money FROM users WHERE id = ?', [userId]);
+        res.json({ message: 'Emote purchased!', money: updatedUser ? updatedUser.money : 0, emoteId });
+    } catch (error) {
+        console.error('Error purchasing emote', error);
+        res.status(500).json({ error: 'Error purchasing emote' });
+    }
+};

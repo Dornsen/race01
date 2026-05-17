@@ -74,6 +74,8 @@ app.get('/api/leaderboard', gameController.getLeaderboard);
 app.post('/api/gacha/open', gameController.openGacha);
 app.get('/api/shop/frames', shopController.getFrameShop);
 app.post('/api/shop/frames', shopController.buyOrEquipFrame);
+app.get('/api/shop/emotes', shopController.getEmoteShop);
+app.post('/api/shop/emotes', shopController.buyEmote);
 
 // --- Quest Routes ---
 app.get('/api/quests', questController.getQuests);
@@ -90,6 +92,9 @@ app.delete('/api/admin/frames/:id', adminController.checkAdmin, adminController.
 
 // --- Emotes ---
 app.get('/api/emotes', authController.requireAuth, gameController.getUserEmotes);
+app.get('/api/emotes/all', gameController.getAllEmotes);
+app.get('/api/emotes/deck', authController.requireAuth, gameController.getUserEmoteDeck);
+app.post('/api/emotes/deck', authController.requireAuth, gameController.saveUserEmoteDeck);
 
 const PORT = process.env.PORT || 3000;
 const server = http.createServer(app);
