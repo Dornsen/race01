@@ -151,6 +151,21 @@ CREATE TABLE IF NOT EXISTS user_frames (
     FOREIGN KEY (frame_id) REFERENCES shop_frames(id) ON DELETE CASCADE
 );
 
+-- Emotes table
+CREATE TABLE IF NOT EXISTS emotes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    file_name VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS user_emotes (
+    user_id INT NOT NULL,
+    emote_id INT NOT NULL,
+    PRIMARY KEY (user_id, emote_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (emote_id) REFERENCES emotes(id) ON DELETE CASCADE
+);
+
 INSERT INTO cards (name, description, avatar_url, attack, cost, defense, rarity, is_basic, clan, ability_code, ability_description) VALUES
 -- 🟢 COMMON
 ('Kodama', 'Tiny forest spirits that dwell in ancient trees. Their presence brings peace to the fractured world.', 'assets/cards/Kodama_Card.png', 1, 1, 2, 'common', TRUE, 'Wild Spirits', 'HEAL_AVATAR', 'Harmony: Restores 1 HP to your avatar at the end of the turn.'),
@@ -229,3 +244,17 @@ ON DUPLICATE KEY UPDATE
     name = VALUES(name),
     price = VALUES(price),
     image_url = VALUES(image_url);
+
+INSERT INTO emotes (name, file_name) VALUES
+('Angry', 'emote_angry.png'),
+('Confused', 'emote_confused.png'),
+('Cry baby', 'emote_cry_baby.png'),
+('Flirt', 'emote_flirt.png'),
+('Sad', 'emote_sad.png'),
+('Shy', 'emote_shy.png'),
+('Stair', 'emote_stair.png'),
+('Tilted', 'emote_tilted.png')
+
+ON DUPLICATE KEY UPDATE 
+    name = VALUES(name),
+    file_name = VALUES(file_name);

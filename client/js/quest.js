@@ -98,6 +98,12 @@ window.claimReward = async function(questId) {
         const data = await response.json();
         
         if (data.success) {
+            if (typeof window.setUserMoney === 'function' && data.newBalance !== undefined) {
+                window.setUserMoney(data.newBalance);
+            } else if (typeof window.refreshBalance === 'function') {
+                window.refreshBalance();
+            }
+
             // ВМЕСТО ALERT: Вызываем наше красивое модальное окно награды!
             showQuestRewardModal(data.reward);
 
