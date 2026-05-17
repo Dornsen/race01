@@ -1,0 +1,347 @@
+let selectedAvatarPath = null;
+let avatarsLoaded = false;
+let pendingMusicEnabled = null;
+let pendingMusicVolume = null;
+
+function notify(text, isError = false) {
+    if (typeof showNotification === 'function') {
+        showNotification(text, isError);
+    }
+
+    const status = document.getElementById('settings-status');
+    if (status) {
+        status.innerText = text;
+        status.classList.remove('is-success', 'is-error');
+        status.classList.add(isError ? 'is-error' : 'is-success');
+    }
+
+    if (typeof showNotification !== 'function') {
+        alert(text);
+    }
+}
+
+function getCurrentAvatarName() {
+    if (window.currentUserAvatar) return window.currentUserAvatar;
+
+    const avatarImg = document.getElementById('lobby-avatar-img');
+    if (avatarImg && avatarImg.src) {
+        const match = avatarImg.src.match(/([^/\\]+\.(?:png|jpe?g|webp|gif))(?:\?.*)?$/i);
+        if (match) return match[1];
+    }
+
+    return 'avatar1.png';
+}
+
+function syncMusicControls() {
+    const music = document.getElementById('bg-music');
+    const volumeSlider = document.getElementById('music-volume');
+    const musicToggle = document.getElementById('music-toggle');
+    const volumeValue = document.getElementById('music-volume-value');
+
+    if (!music || !volumeSlider || !musicToggle) return;
+
+    const savedVolume = pendingMusicVolume !== null ? Number(pendingMusicVolume) : Number(localStorage.getItem('game_music_volume') || 0.5);
+    const isMusicPlaying = pendingMusicEnabled !== null ? Boolean(pendingMusicEnabled) : localStorage.getItem('game_music_playing') === 'true';
+
+    music.volume = savedVolume;
+    volumeSlider.value = savedVolume;
+    musicToggle.checked = isMusicPlaying;
+
+    if (volumeValue) {
+        volumeValue.innerText = `${Math.round(savedVolume * 100)}%`;
+    }
+}
+
+function applyMusicSettingsFromServer(user) {
+    if (!user) return;
+
+    if (Object.prototype.hasOwnProperty.call(user, 'music_enabled')) {
+        localStorage.setItem('game_music_playing', user.music_enabled ? 'true' : 'false');
+    }
+
+    if (Object.prototype.hasOwnProperty.call(user, 'music_volume')) {
+        localStorage.setItem('game_music_volume', String(user.music_volume));
+    }
+
+    syncMusicControls();
+}
+
+window.applyMusicSettingsFromServer = applyMusicSettingsFromServer;
+
+function syncMusicPlayback() {
+    const music = document.getElementById('bg-music');
+    if (!music) return;
+
+    syncMusicControls();
+
+    const shouldPlay = pendingMusicEnabled !== null ? pendingMusicEnabled : localStorage.getItem('game_music_playing') === 'true';
+    if (!shouldPlay) {
+        music.pause();
+        return;
+    }
+
+    const tryPlay = () => music.play().catch(() => {
+        if (window.__musicResumeListenerAttached) return;
+        window.__musicResumeListenerAttached = true;
+
+        const resume = () => {
+            window.__musicResumeListenerAttached = false;
+            music.play().catch(() => {});
+        };
+
+        document.addEventListener('pointerdown', resume, { once: true });
+        document.addEventListener('keydown', resume, { once: true });
+    });
+
+    tryPlay();
+}
+
+window.syncMusicPlayback = syncMusicPlayback;
+
+// Инициализация звука при загрузке страницы
+document.addEventListener('DOMContentLoaded', () => {
+    syncMusicControls();
+});
+
+// Открытие окна настроек
+async function toggleSettingsModal() {
+    const modal = document.getElementById('settings-modal');
+    modal.classList.toggle('hidden');
+
+    const status = document.getElementById('settings-status');
+    if (status) {
+        status.innerText = '';
+        status.classList.remove('is-success', 'is-error');
+    }
+
+    if (modal.classList.contains('hidden')) {
+        pendingMusicEnabled = null;
+        pendingMusicVolume = null;
+    }
+
+    if (!modal.classList.contains('hidden') && !avatarsLoaded) {
+        await loadAvatars();
+    }
+
+    if (!modal.classList.contains('hidden')) {
+        syncMusicControls();
+    }
+}
+
+// Загрузка и рендер аватарок
+async function loadAvatars() {
+    try {
+        const res = await fetch('/api/avatars');
+        const data = await res.json();
+
+        if (data.avatars) {
+            const grid = document.getElementById('avatar-grid');
+            grid.innerHTML = ''; 
+            const currentAvatar = getCurrentAvatarName();
+            selectedAvatarPath = currentAvatar;
+
+            data.avatars.forEach(avatarFileName => {
+                const img = document.createElement('img');
+                img.src = `assets/avatars/${avatarFileName}`;
+                img.className = 'avatar-option';
+                img.onclick = (e) => selectAvatar(avatarFileName, e.target);
+                if (avatarFileName === currentAvatar) {
+                    img.classList.add('selected');
+                }
+                grid.appendChild(img);
+            });
+            
+            avatarsLoaded = true;
+        }
+    } catch (err) {
+        console.error('Ошибка при загрузке списка аватаров:', err);
+    }
+}
+
+// Функция выбора аватара
+function selectAvatar(avatarName, targetElement) {
+    selectedAvatarPath = avatarName;
+    const avatars = document.querySelectorAll('.avatar-option');
+    avatars.forEach(img => img.classList.remove('selected'));
+    targetElement.classList.add('selected');
+}
+
+// Сохранение аватара
+async function saveAvatar() {
+    if (!selectedAvatarPath) return alert('Выберите аватар!');
+
+    return saveAvatarInternal(true, true);
+}
+
+async function saveAvatarInternal(closeModal = true, showMessage = true) {
+    if (!selectedAvatarPath) return;
+
+    try {
+        const res = await fetch('/api/update-avatar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ avatar_url: selectedAvatarPath })
+        });
+        const data = await res.json();
+        
+        if (res.ok) {
+            window.currentUserAvatar = selectedAvatarPath;
+            if (typeof updatePlayerUI === 'function') {
+                updatePlayerUI({ avatar: selectedAvatarPath });
+            }
+            if (showMessage) {
+                notify(data.message || 'Avatar updated successfully!');
+            }
+            if (closeModal) {
+                const modal = document.getElementById('settings-modal');
+                if (modal) modal.classList.add('hidden');
+            }
+            return true;
+        } else {
+            if (showMessage) {
+                notify(data.error || 'Ошибка при смене аватара', true);
+            }
+            return false;
+        }
+    } catch (err) {
+        console.error(err);
+        if (showMessage) {
+            notify('Ошибка при смене аватара', true);
+        }
+        return false;
+    }
+}
+
+// Переключатель музыки (Вкл/Выкл)
+function toggleMusic() {
+    const music = document.getElementById('bg-music');
+    const isChecked = document.getElementById('music-toggle').checked;
+    pendingMusicEnabled = isChecked;
+    
+    if (isChecked) {
+        syncMusicPlayback();
+    } else {
+        if (music) music.pause();
+    }
+}
+
+// Ползунок громкости
+function changeVolume() {
+    const music = document.getElementById('bg-music');
+    const volumeSlider = document.getElementById('music-volume');
+    const volumeValue = document.getElementById('music-volume-value');
+    
+    if (music && volumeSlider) {
+        const newVolume = volumeSlider.value;
+        music.volume = Number(newVolume);
+        pendingMusicVolume = Number(newVolume);
+        if (volumeValue) {
+            volumeValue.innerText = `${Math.round(Number(newVolume) * 100)}%`;
+        }
+    }
+}
+
+let musicSettingsSaveTimer = null;
+
+async function saveMusicSettings() {
+    const music = document.getElementById('bg-music');
+    const musicToggle = document.getElementById('music-toggle');
+
+    if (!music || !musicToggle) return;
+
+    const enabled = pendingMusicEnabled !== null ? pendingMusicEnabled : musicToggle.checked;
+    const volume = pendingMusicVolume !== null ? pendingMusicVolume : Number(music.volume);
+
+    const res = await fetch('/api/update-music-settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({
+            musicEnabled: enabled,
+            musicVolume: Number(volume)
+        })
+    });
+
+    if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Ошибка при сохранении музыки');
+    }
+
+    return true;
+}
+
+async function saveSettings() {
+    const currentAvatar = getCurrentAvatarName();
+
+    try {
+        if (selectedAvatarPath && selectedAvatarPath !== currentAvatar) {
+            const avatarSaved = await saveAvatarInternal(false, false);
+            if (!avatarSaved) return;
+        }
+
+        await saveMusicSettings();
+
+        const savedEnabled = pendingMusicEnabled !== null ? pendingMusicEnabled : document.getElementById('music-toggle').checked;
+        const savedVolume = pendingMusicVolume !== null ? pendingMusicVolume : Number(document.getElementById('music-volume').value);
+        localStorage.setItem('game_music_playing', savedEnabled ? 'true' : 'false');
+        localStorage.setItem('game_music_volume', String(savedVolume));
+        pendingMusicEnabled = null;
+        pendingMusicVolume = null;
+
+        notify('Settings saved successfully!');
+        const modal = document.getElementById('settings-modal');
+        if (modal) modal.classList.add('hidden');
+    } catch (err) {
+        console.error(err);
+        notify(err.message || 'Ошибка при сохранении настроек', true);
+    }
+}
+
+// Смена пароля
+async function changePassword() {
+    const oldPassword = document.getElementById('old-password').value.trim();
+    const newPassword = document.getElementById('new-password').value.trim();
+
+    if (!oldPassword || !newPassword) return alert('Заполните оба поля!');
+
+    try {
+        const res = await fetch('/api/update-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ oldPassword, newPassword })
+        });
+        const data = await res.json();
+        notify(data.message || data.error, !res.ok);
+        
+        if (res.ok) {
+            document.getElementById('old-password').value = '';
+            document.getElementById('new-password').value = '';
+        }
+    } catch (err) {
+        console.error(err);
+        notify('Ошибка при смене пароля', true);
+    }
+}
+
+// Удаление аккаунта
+async function deleteAccount() {
+    if (!confirm('Вы уверены? Это действие навсегда удалит ваш аккаунт, все карты и рейтинг!')) return;
+    if (!confirm('ТОЧНО УДАЛЯЕМ? Пути назад нет.')) return;
+
+    try {
+        const res = await fetch('/api/delete-account', { method: 'DELETE', credentials: 'same-origin' });
+        const data = await res.json();
+        
+        if (res.ok) {
+            notify(data.message || 'Аккаунт удален. Прощайте!');
+            window.location.href = '/'; 
+        } else {
+            notify(data.error || 'Ошибка удаления аккаунта', true);
+        }
+    } catch (err) {
+        console.error(err);
+        notify('Ошибка удаления аккаунта', true);
+    }
+}

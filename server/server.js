@@ -44,6 +44,10 @@ app.post('/api/verify', authController.verifyEmail);
 app.post('/api/login', authController.login);
 app.post('/api/logout', authController.logout);
 app.post('/api/update-avatar', authController.updateAvatar);
+app.get('/api/avatars', authController.getAvatars);
+app.post('/api/update-password', authController.updatePassword);
+app.post('/api/update-music-settings', authController.updateMusicSettings);
+app.delete('/api/delete-account', authController.deleteAccount);
 app.post('/api/forgot-password', authController.forgotPassword);
 app.post('/api/reset-password', authController.resetPassword);
 

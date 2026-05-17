@@ -23,6 +23,14 @@ async function refreshPlayerStats() {
 function updatePlayerUI(user) {
     if (!user) return;
 
+    if (user.avatar) {
+        window.currentUserAvatar = user.avatar;
+    }
+
+    if (typeof window.applyMusicSettingsFromServer === 'function') {
+        window.applyMusicSettingsFromServer(user);
+    }
+
     const greeting = document.getElementById('user-greeting');
     const mmr = document.getElementById('user-mmr');
     
@@ -75,6 +83,7 @@ window.onload = async () => {
         if (result.isLoggedIn) {
             updatePlayerUI(result.user);
             showBox('main-menu');
+            if (typeof window.syncMusicPlayback === 'function') window.syncMusicPlayback();
             loadFriends();
             
             // Trigger external initializers if they exist
@@ -105,9 +114,12 @@ function showBox(boxId) {
                 friendPollInterval = setInterval(loadFriends, 5000);
             }
             if (typeof window.refreshBalance === 'function') window.refreshBalance();
+            if (typeof window.syncMusicPlayback === 'function') window.syncMusicPlayback();
         } else {
             mainMenu.classList.add('hidden');
             if (typeof leaveQueue === 'function') leaveQueue();
+            const music = document.getElementById('bg-music');
+            if (music) music.pause();
             
             // Stop polling to save server resources when not in lobby
             if (friendPollInterval) {
@@ -248,6 +260,7 @@ document.getElementById('login-form').onsubmit = async (e) => {
     if (res.success) {
         updatePlayerUI(res.data.user);
         showBox('main-menu');
+        if (typeof window.syncMusicPlayback === 'function') window.syncMusicPlayback();
         loadFriends();
         if (typeof fetchCardsFromDB === 'function') fetchCardsFromDB();
         if (typeof fetchMyDeck === 'function') fetchMyDeck();

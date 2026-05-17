@@ -20,6 +20,7 @@
     <link rel="stylesheet" href="css/quest.css">
     <link rel="stylesheet" href="css/queue.css">
     <link rel="stylesheet" href="css/shop.css">
+    <link rel="stylesheet" href="css/settings.css">
 </head>
 <body>
     <div class="auth-container">
@@ -117,7 +118,10 @@
                 <button id="btn-gacha" class="nav-btn">Gacha</button>
             </nav>
 
-            <button id="btn-logout" class="logout-btn">Logout</button>
+            <div class="lobby-header-actions">
+                <button id="btn-settings" class="logout-btn settings-btn" type="button" onclick="toggleSettingsModal()">Settings</button>
+                <button id="btn-logout" class="logout-btn">Logout</button>
+            </div>
         </header>
 
         <main class="lobby-main">
@@ -503,6 +507,54 @@
     </div>
 </div>
 
+<audio id="bg-music" loop>
+    <source src="assets/music/menu.mp3" type="audio/mpeg">
+</audio>
+
+<div id="settings-modal" class="modal hidden">
+    <div class="modal-content settings-container">
+        <span class="close-btn" onclick="toggleSettingsModal()">&times;</span>
+        <h2 class="settings-title">Settings</h2>
+        <div id="settings-status" class="settings-status" aria-live="polite"></div>
+
+        <div class="settings-section">
+            <h3>Avatar Selection</h3>
+            <div class="avatar-grid" id="avatar-grid"></div>
+            <button class="btn btn-primary" onclick="saveAvatar()">Save Avatar</button>
+            <div class="settings-note">Pick a profile avatar and save it to update your lobby, battle, and social cards.</div>
+        </div>
+
+        <div class="settings-section">
+            <h3>Audio</h3>
+            <label class="switch-container">
+                <input type="checkbox" id="music-toggle" onchange="toggleMusic()">
+                Enable Background Music
+            </label>
+            <div class="music-row">
+                <input type="range" id="music-volume" min="0" max="1" step="0.01" value="0.5" oninput="changeVolume()">
+                <span id="music-volume-value" class="music-volume-value">50%</span>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <h3>Change Password</h3>
+            <input type="password" id="old-password" class="input-field" placeholder="Old Password">
+            <input type="password" id="new-password" class="input-field" placeholder="New Password">
+            <button class="btn btn-secondary" onclick="changePassword()">Change Password</button>
+        </div>
+
+        <div class="settings-section danger-zone">
+            <h3>Danger Zone</h3>
+            <button class="btn btn-danger" onclick="deleteAccount()">Delete Account</button>
+        </div>
+
+        <div class="settings-footer">
+            <button class="btn btn-primary" onclick="saveSettings()">Done</button>
+            <button class="btn btn-secondary" onclick="toggleSettingsModal()">Exit</button>
+        </div>
+    </div>
+</div>
+
     <script src="/socket.io/socket.io.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/gameConfig.js"></script>
@@ -516,5 +568,7 @@
     <script src="js/navigation.js"></script>
     <script src="js/socketClient.js"></script>
     <script src="js/quest.js"></script>
+    <script src="js/settings.js"></script>
+    
 </body>
 </html>

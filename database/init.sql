@@ -33,7 +33,9 @@ CREATE TABLE IF NOT EXISTS users (
     reset_token VARCHAR(255) DEFAULT NULL,
     reset_token_expires DATETIME DEFAULT NULL,
     money INT DEFAULT 0,
-    equipped_frame VARCHAR(50) DEFAULT 'frame_default.png'
+    equipped_frame VARCHAR(50) DEFAULT 'frame_default.png',
+    music_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    music_volume DECIMAL(3,2) NOT NULL DEFAULT 0.50
 );
 
 -- 3. Cards table

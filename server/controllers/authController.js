@@ -1,8 +1,23 @@
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
 const db = require('../config/database');
 const transporter = require('../config/mailer');
 const questController = require('./questController');
+
+function mapUserPayload(user) {
+    return {
+        id: user.id,
+        username: user.username,
+        avatar: user.avatar_url,
+        frame_url: user.frame_url,
+        mmr: user.match_making_rating,
+        money: user.money,
+        music_enabled: Boolean(user.music_enabled),
+        music_volume: Number(user.music_volume ?? 0.5)
+    };
+}
 
 exports.register = async (req, res) => {
     const { username, email, password, avatar_url } = req.body; 
@@ -116,14 +131,7 @@ exports.login = async (req, res) => {
 
         res.json({
             message: 'Login successful! Welcome to Kiri!',
-            user: {
-                id: user.id,
-                username: user.username,
-                avatar: user.avatar_url,
-                frame_url: user.frame_url,
-                mmr: user.match_making_rating,
-                money: user.money
-            }
+            user: mapUserPayload(user)
         });
     } catch (error) {
         console.error(error);
@@ -135,7 +143,7 @@ exports.checkAuth = async (req, res) => {
     if (req.session.userId) {
         try {
             const [users] = await db.query(`
-                SELECT u.username, u.avatar_url, u.match_making_rating, u.status, u.money, sf.image_url AS frame_url 
+                SELECT u.username, u.avatar_url, u.match_making_rating, u.status, u.money, u.music_enabled, u.music_volume, sf.image_url AS frame_url 
                 FROM users u
                 LEFT JOIN shop_frames sf ON u.equipped_frame = sf.id
                 WHERE u.id = ?
@@ -150,14 +158,16 @@ exports.checkAuth = async (req, res) => {
                 
                 res.json({ 
                     isLoggedIn: true, 
-                    user: { 
-                        id: req.session.userId, 
+                    user: mapUserPayload({
+                        id: req.session.userId,
                         username: user.username,
-                        avatar: user.avatar_url, 
+                        avatar_url: user.avatar_url,
                         frame_url: user.frame_url,
-                        mmr: user.match_making_rating,
-                        money: user.money
-                    } 
+                        match_making_rating: user.match_making_rating,
+                        money: user.money,
+                        music_enabled: user.music_enabled,
+                        music_volume: user.music_volume
+                    }) 
                 });
             } else {
                 res.json({ isLoggedIn: false });
@@ -171,7 +181,78 @@ exports.checkAuth = async (req, res) => {
 };
 
 exports.updateAvatar = async (req, res) => {
-    const { avatar_url } = req.body;
+    const { avatar_url, avatar } = req.body;
+    const userId = req.session.userId;
+    const selectedAvatar = avatar_url || avatar;
+
+    if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    if (!selectedAvatar) {
+        return res.status(400).json({ error: 'Avatar is required' });
+    }
+
+    try {
+        await db.query('UPDATE users SET avatar_url = ? WHERE id = ?', [selectedAvatar, userId]);
+        res.json({ message: 'Avatar updated successfully!' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error updating avatar' });
+    }
+};
+
+exports.getAvatars = async (req, res) => {
+    try {
+        const avatarsDir = path.join(__dirname, '../../client/assets/avatars');
+        const avatars = await fs.promises.readdir(avatarsDir);
+        const filtered = avatars.filter(file => /\.(png|jpe?g|webp|gif)$/i.test(file)).sort();
+        res.json({ avatars: filtered });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error loading avatars' });
+    }
+};
+
+exports.updatePassword = async (req, res) => {
+    const userId = req.session.userId;
+    const oldPassword = req.body.oldPassword || req.body.currentPassword || req.body.old_password;
+    const newPassword = req.body.newPassword || req.body.password || req.body.new_password;
+
+    if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    if (!oldPassword || !newPassword) {
+        return res.status(400).json({ error: 'Old and new passwords are required' });
+    }
+
+    if (newPassword.length < 6) {
+        return res.status(400).json({ error: 'New password must be at least 6 characters long' });
+    }
+
+    try {
+        const [users] = await db.query('SELECT password FROM users WHERE id = ?', [userId]);
+        if (users.length === 0) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const isMatch = await bcrypt.compare(oldPassword, users[0].password);
+        if (!isMatch) {
+            return res.status(400).json({ error: 'Current password is incorrect' });
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        await db.query('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, userId]);
+
+        res.json({ message: 'Password updated successfully!' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error updating password' });
+    }
+};
+
+exports.deleteAccount = async (req, res) => {
     const userId = req.session.userId;
 
     if (!userId) {
@@ -179,11 +260,15 @@ exports.updateAvatar = async (req, res) => {
     }
 
     try {
-        await db.query('UPDATE users SET avatar_url = ? WHERE id = ?', [avatar_url, userId]);
-        res.json({ message: 'Avatar updated successfully!' });
+        await db.query('UPDATE users SET status = "offline" WHERE id = ?', [userId]);
+        await db.query('DELETE FROM users WHERE id = ?', [userId]);
+
+        req.session.destroy(() => {});
+        res.clearCookie('connect.sid');
+        res.json({ message: 'Account deleted successfully!' });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Error updating avatar' });
+        res.status(500).json({ error: 'Error deleting account' });
     }
 };
 
@@ -252,4 +337,38 @@ exports.logout = (req, res) => {
         
         return res.json({ message: 'Exit successful!' });
     });
+};
+
+exports.updateMusicSettings = async (req, res) => {
+    const userId = req.session.userId;
+    const { musicEnabled, musicVolume } = req.body;
+
+    if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const enabledValue = Boolean(musicEnabled);
+    const volumeNumber = Number(musicVolume);
+
+    if (Number.isNaN(volumeNumber) || volumeNumber < 0 || volumeNumber > 1) {
+        return res.status(400).json({ error: 'Music volume must be between 0 and 1' });
+    }
+
+    try {
+        await db.query(
+            'UPDATE users SET music_enabled = ?, music_volume = ? WHERE id = ?',
+            [enabledValue, volumeNumber, userId]
+        );
+
+        res.json({
+            message: 'Music settings saved',
+            user: {
+                music_enabled: enabledValue,
+                music_volume: volumeNumber
+            }
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error saving music settings' });
+    }
 };
