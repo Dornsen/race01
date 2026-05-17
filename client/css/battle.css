@@ -757,8 +757,21 @@
 .battle-stats { margin-top: auto; font-size: 0.8rem; display: flex; justify-content: space-between; color: #d0cbb5; }
 .battle-hp { color: #2ecc71; }
 
-.opponent-side .battle-board { justify-content: flex-end; }
+/* ФИКС: flex-end вызывал overflow влево (scrollLeft не уходит в минус) — стрелки не работали.
+   Теперь flex-start + ::before спейсер: карты визуально прижаты вправо когда их мало,
+   при переполнении спейсер схлопывается, overflow идёт вправо — скролл работает корректно. */
+.opponent-side .battle-board { justify-content: flex-start; }
 .player-side   .battle-board { justify-content: flex-start; }
+
+/* Спейсер перед картами оппонента: растягивается когда есть место → карты вправо;
+   не может сжаться → при overflow становится 0 и карты уходят вправо (скролл работает) */
+#opponent-board::before {
+    content: '';
+    display: block;
+    flex: 1 0 0;          /* grow=1, shrink=0, basis=0 */
+    min-width: 0;
+    pointer-events: none;
+}
 
 /* размер board-карт — задаётся через переменную :root */
 .battle-board .battle-card {
@@ -1121,6 +1134,8 @@
     display: flex;
     align-items: center;
     overflow: visible; /* важно! */
+    padding: 0 4.5vmin; /* резервируем место под стрелки — расстояние между ними шире */
+    box-sizing: border-box;
 }
 
 /* Скрываем стандартный скроллбар, но оставляем функционал скролла */
@@ -1171,11 +1186,11 @@
 }
 
 .board-scroll-btn.scroll-left {
-    left: -2vmin;
+    left: 0.5vmin;
 }
 
 .board-scroll-btn.scroll-right {
-    right: -2vmin;
+    right: -4.5vmin;
 }
 
 /* ==================================================

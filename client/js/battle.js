@@ -578,15 +578,21 @@ function renderBattleBoard(side) {
         boardEl.appendChild(cardEl);
 
         const oppAvatarContainer = document.querySelector('.opponent-profile .avatar-container');
-    if (oppAvatarContainer) {
-        // Если у противника нет карт на столе и у нас выбран атакующий — меняем курсор на "меч/указатель"
-        if (battleState.opponent.board.length === 0 && battleState.selectedAttackerId) {
-            oppAvatarContainer.style.cursor = 'crosshair';
-        } else {
-            oppAvatarContainer.style.cursor = 'default';
+        if (oppAvatarContainer) {
+            if (battleState.opponent.board.length === 0 && battleState.selectedAttackerId) {
+                oppAvatarContainer.style.cursor = 'crosshair';
+            } else {
+                oppAvatarContainer.style.cursor = 'default';
+            }
         }
-    }
     });
+
+    // Скролл к последней сыгранной карте оппонента (если есть overflow)
+    if (side === 'opponent') {
+        setTimeout(() => {
+            boardEl.scrollTo({ left: boardEl.scrollWidth, behavior: 'smooth' });
+        }, 50);
+    }
 }
 
 function renderBattleHand() {
@@ -1122,6 +1128,11 @@ window.exitBattle = exitBattle;
 
 // Функция для проверки необходимости отображения стрелок прокрутки на досках
 function updateBoardArrows() {
+    // ФИКС: единая логика для обоих досок.
+    // Ранее оппонент использовал justify-content:flex-end → overflow уходил влево
+    // (scrollLeft не может быть < 0), стрелки вызывали scrollBy но ничего не происходило.
+    // Теперь оба борда — flex-start, overflow вправо, скролл работает корректно.
+    // Убрано лишнее условие children.length >= 3 — достаточно факта overflow.
     const checkBoard = (boardId, leftBtnId, rightBtnId) => {
         const board = document.getElementById(boardId);
         const leftBtn = document.getElementById(leftBtnId);
@@ -1130,36 +1141,14 @@ function updateBoardArrows() {
         if (!board || !leftBtn || !rightBtn) return;
 
         setTimeout(() => {
-            const hasOverflow = board.scrollWidth > board.clientWidth + 20;
-            
-            if (hasOverflow && board.children.length >= 3) {
-                leftBtn.classList.add('active');
-                rightBtn.classList.add('active');
-            } else {
-                leftBtn.classList.remove('active');
-                rightBtn.classList.remove('active');
-            }
+            const hasOverflow = board.scrollWidth > board.clientWidth + 2;
+            leftBtn.classList.toggle('active', hasOverflow);
+            rightBtn.classList.toggle('active', hasOverflow);
         }, 20);
     };
 
-    // Проверяем только оппонента (игрока не трогаем)
+    checkBoard('player-board',   'ply-scroll-left', 'ply-scroll-right');
     checkBoard('opponent-board', 'opt-scroll-left', 'opt-scroll-right');
-    
-    // Игрок оставляем как было
-    const playerBoard = document.getElementById('player-board');
-    const plyLeft = document.getElementById('ply-scroll-left');
-    const plyRight = document.getElementById('ply-scroll-right');
-    if (playerBoard && plyLeft && plyRight) {
-        // оставляем логику игрока без изменений
-        const pHasOverflow = playerBoard.scrollWidth > playerBoard.clientWidth + 20;
-        if (pHasOverflow && playerBoard.children.length >= 3) {
-            plyLeft.classList.add('active');
-            plyRight.classList.add('active');
-        } else {
-            plyLeft.classList.remove('active');
-            plyRight.classList.remove('active');
-        }
-    }
 }
 
 function initBoardScrollControls() {
@@ -1202,4 +1191,3 @@ document.addEventListener('DOMContentLoaded', () => {
         initBoardScrollControls();
     }
 });
-
