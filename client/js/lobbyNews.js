@@ -56,10 +56,19 @@ function goToScreenFromNews(targetId) {
     const mainMenu = document.getElementById('main-menu');
     if (!mainMenu) return;
 
-    if (typeof refreshBalance === 'function') refreshBalance();
+    const targetButtonMap = {
+        quests: 'btn-quests',
+        leaderboard: 'btn-leaderboard',
+        shop: 'btn-shop',
+        gacha: 'btn-gacha'
+    };
 
-    if (targetId === 'shop' && typeof fetchFrameShop === 'function') {
-        fetchFrameShop();
+    const buttonId = targetButtonMap[targetId];
+    const targetButton = buttonId ? document.getElementById(buttonId) : null;
+
+    if (targetButton) {
+        targetButton.click();
+        return;
     }
 
     if (typeof switchScreen === 'function') {

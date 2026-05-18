@@ -98,6 +98,31 @@ function syncMusicPlayback() {
 
 window.syncMusicPlayback = syncMusicPlayback;
 
+// Switch between menu and battle music tracks
+function switchMusicTrack(trackName) {
+    const music = document.getElementById('bg-music');
+    if (!music) return;
+
+    const isMusicEnabled = localStorage.getItem('game_music_playing') === 'true';
+    if (!isMusicEnabled) {
+        music.pause();
+        return;
+    }
+
+    const validTracks = ['menu', 'battle'];
+    const track = validTracks.includes(trackName) ? trackName : 'menu';
+    
+    const trackPath = `assets/music/${track}.mp3`;
+    if (music.src !== trackPath) {
+        music.src = trackPath;
+        music.play().catch(() => {
+            // Fallback if autoplay is blocked
+        });
+    }
+}
+
+window.switchMusicTrack = switchMusicTrack;
+
 // Инициализация звука при загрузке страницы
 document.addEventListener('DOMContentLoaded', () => {
     syncMusicControls();
