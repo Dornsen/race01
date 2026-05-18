@@ -42,10 +42,14 @@ function setBattleScreenVisible(isVisible) {
         lobby.classList.add('hidden');
         battle.classList.remove('hidden');
         loadUserEmotes(true);
+        // Switch to battle music
+        if (typeof switchMusicTrack === 'function') switchMusicTrack('battle');
     } else {
         resetBattleEmotePanel();
         battle.classList.add('hidden');
         lobby.classList.remove('hidden');
+        // Switch back to menu music
+        if (typeof switchMusicTrack === 'function') switchMusicTrack('menu');
     }
 }
 
