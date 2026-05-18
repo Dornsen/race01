@@ -299,3 +299,41 @@
     transform: scale(1.15);
     filter: drop-shadow(0 0 12px rgba(241, 196, 15, 0.5));
 }
+
+/* --- СЕТКА ЭМОДЗИ В МАГАЗИНЕ (СТРОГО 4 В РЯД) --- */
+#shop-emote-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 16px !important;
+}
+
+/* Украшаем сами карточки эмодзи в магазине */
+.shop-emote-item {
+    background: radial-gradient(circle, rgba(20, 24, 32, 0.8) 0%, rgba(10, 12, 16, 0.9) 100%);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+    border-radius: 12px;
+    padding: 20px 15px;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.shop-emote-item:hover {
+    border-color: #d4af37;
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.2), inset 0 0 10px rgba(212, 175, 55, 0.1);
+    transform: translateY(-5px);
+}
+
+/* Красивое свечение для превью эмодзи */
+.shop-emote-preview {
+    width: 70px;
+    height: 70px;
+    object-fit: contain;
+    margin-bottom: 12px;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.6));
+    transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+.shop-emote-item:hover .shop-emote-preview {
+    transform: scale(1.15) rotate(3deg);
+    filter: drop-shadow(0 0 15px rgba(241, 196, 15, 0.6));
+}

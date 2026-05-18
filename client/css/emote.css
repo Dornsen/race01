@@ -6,47 +6,60 @@
 }
 
 .emote-toggle-btn {
-    font-size: 24px;
-    background: #2a2a2a;
-    border: 2px solid #4CAF50;
+    font-size: 22px;
+    /* Оформляем кнопку в стиле кнопки End Turn */
+    background: radial-gradient(circle, rgba(25, 30, 40, 0.95) 0%, rgba(10, 12, 18, 0.98) 100%);
+    border: 2px solid #d4af37;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.8), inset 0 0 8px rgba(212, 175, 55, 0.3);
     border-radius: 50%;
-    width: 50px;
-    height: 50px;
+    width: 55px;
+    height: 55px;
     padding: 0;
     margin: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    line-height: 1;
-    letter-spacing: 0;
-    text-transform: none !important;
-    font-family: 'Segoe UI Emoji', 'Noto Color Emoji', 'Apple Color Emoji', sans-serif !important;
     color: #f5f5f5;
     cursor: pointer;
-    transition: transform 0.2s;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    z-index: 101; /* Поверх панели */
 }
 
 .emote-toggle-btn:hover {
     transform: scale(1.1);
+    border-color: #f5d060;
+    box-shadow: 0 0 15px rgba(245, 208, 90, 0.4), inset 0 0 12px rgba(245, 208, 90, 0.5);
 }
 
 .emote-panel {
     position: absolute;
-    bottom: 60px;
+    bottom: 70px;
     left: 0;
-    background: rgba(0, 0, 0, 0.85);
-    border: 2px solid #4CAF50;
-    border-radius: 10px;
-    padding: 10px;
-    display: flex;
-    flex-wrap: wrap;
-    width: 160px;
-    gap: 10px;
-    transition: opacity 0.3s;
+    /* Убираем черный фон и зеленый бордер, добавляем мистику */
+    background: rgba(15, 17, 20, 0.85);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(212, 175, 55, 0.5);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.8), inset 0 0 15px rgba(212, 175, 55, 0.1);
+    border-radius: 12px;
+    padding: 12px;
+    
+    /* Делаем сетку 4 в ряд для матча (или авто, зависит от количества) */
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    width: 220px; /* Слегка расширили под 4 колонки */
+    
+    transform-origin: bottom left;
+    animation: panelSlideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 
 .emote-panel.hidden {
     display: none;
+}
+
+@keyframes panelSlideUp {
+    from { opacity: 0; transform: scale(0.8) translateY(20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 .emote-item {
@@ -151,13 +164,13 @@
 }
 
 .emote-deck-container .emote-item {
-    width: 70px;
-    height: 70px;
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.05);
-    padding: 8px;
+    width: 60px;
+    height: 60px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 6px;
     border: 1px solid transparent;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease-out;
 }
 
 .emote-deck-container .emote-item:hover {
@@ -178,30 +191,32 @@
 }
 
 .emote-deck-container .emote-slot {
-    width: 80px;
-    height: 80px;
-    font-size: 24px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0, 0, 0, 0.4);
-    border: 1px dashed rgba(187, 167, 141, 0.4);
-    color: rgba(187, 167, 141, 0.5);
-    cursor: pointer;
+    width: 100%;
+    aspect-ratio: 1; /* Квадратные слоты */
+    height: auto;
+    font-size: 28px;
+    border-radius: 12px;
+    background: rgba(25, 30, 40, 0.6);
+    border: 2px dashed rgba(212, 175, 55, 0.4);
+    color: rgba(212, 175, 55, 0.5);
     transition: all 0.3s ease;
 }
 
 .emote-deck-container .emote-slot:hover {
-    border-color: #f1c40f;
+    border: 2px solid #f1c40f;
     color: #f1c40f;
-    background: rgba(241, 196, 15, 0.05);
+    background: rgba(241, 196, 15, 0.1);
+    box-shadow: 0 0 15px rgba(241, 196, 15, 0.2), inset 0 0 10px rgba(241, 196, 15, 0.2);
 }
 
 .emote-deck-container .emote-slots-grid {
+    display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 12px;
-    display: grid;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 15px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .emote-deck-container #btn-save-emote-deck {
@@ -287,4 +302,101 @@
 }
 @keyframes fadeOut {
     to { opacity: 0; transform: scale(0.5); }
+}
+
+.emote-deck-body {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr 1fr !important;
+    gap: 30px !important;
+    margin-top: 20px;
+}
+
+.emote-deck-container .emote-item:hover:not(.disabled) {
+    transform: scale(1.15) translateY(-3px);
+    border-color: #f1c40f;
+    background: rgba(241, 196, 15, 0.15);
+    box-shadow: 0 5px 15px rgba(241, 196, 15, 0.3);
+}
+
+.emote-panel .emote-item {
+    width: 100%;
+    height: 40px;
+    object-fit: contain;
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1), filter 0.2s;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+}
+
+.emote-panel .emote-item:hover {
+    transform: scale(1.35) translateY(-5px);
+    filter: drop-shadow(0 5px 10px rgba(241, 196, 15, 0.6));
+    z-index: 10;
+}
+/* --- КНОПКА ОТКРЫТИЯ КОЛОДЫ ЭМОДЗИ (В ЛОББИ) --- */
+.btn-deck-emotes {
+    background: linear-gradient(135deg, rgba(241, 196, 15, 0.1), rgba(241, 196, 15, 0.05)) !important;
+    border: 1px solid #d4af37 !important;
+    border-radius: 8px !important;
+    color: #f1c40f !important;
+    padding: 10px 24px !important;
+    font-family: 'Marcellus', serif !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1.5px !important;
+    font-weight: 700 !important;
+    font-size: 0.85rem !important;
+    cursor: pointer !important;
+    transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1) !important;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.4) !important;
+    backdrop-filter: blur(5px) !important;
+    -webkit-backdrop-filter: blur(5px) !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+    width: auto !important;
+    margin: 0 !important;
+}
+
+.btn-deck-emotes:hover {
+    background: #d4af37 !important;
+    color: #121417 !important;
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.5) !important;
+    transform: translateY(-2px) !important;
+}
+/* --- ФИКС РАЗМЕРОВ СЕТКИ И СЛОТОВ В РЕДАКТОРЕ --- */
+
+/* Перебиваем инлайн style="width:300px" из HTML */
+.emote-deck-body > div:nth-child(3) {
+    width: auto !important;
+    min-width: 340px;
+}
+
+/* Картинка внутри слота: идеально вписывается в квадрат */
+.emote-deck-container .emote-slot img {
+    width: 80% !important;
+    height: 80% !important;
+    object-fit: contain !important;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
+    transition: transform 0.2s ease;
+}
+
+/* При наведении на картинку в слоте (чтобы удалить) */
+.emote-deck-container .emote-slot img:hover {
+    transform: scale(1.1) rotate(-3deg);
+    filter: drop-shadow(0 0 8px rgba(231, 76, 60, 0.8)); /* Подсветка красным, намекающая на удаление */
+}
+
+/* Если слот пустой (без картинки) - делаем плюсик аккуратным */
+.emote-deck-container .emote-slot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+/* Корректируем иконку кнопки в матче */
+.emote-toggle-btn svg {
+    display: block;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
+    transition: transform 0.2s ease;
+}
+.emote-toggle-btn:hover svg {
+    transform: scale(1.1);
 }
