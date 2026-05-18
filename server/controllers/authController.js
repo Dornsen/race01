@@ -18,7 +18,7 @@ async function grantStarterEmotes(userId) {
 
     const placeholders = STARTER_EMOTE_FILES.map(() => '?').join(', ');
     const [rows] = await db.query(
-        `SELECT id FROM emotes WHERE file_name IN (${placeholders})`,
+        `SELECT id FROM emotes WHERE file_name IN (${placeholders}) OR is_basic = TRUE`,
         STARTER_EMOTE_FILES
     );
 
@@ -115,6 +115,13 @@ exports.verifyEmail = async (req, res) => {
         if (basicCards.length > 0) {
             const inventoryData = basicCards.map(card => [userId, card.id]);
             await db.query('INSERT IGNORE INTO user_cards (user_id, card_id) VALUES ?', [inventoryData]);
+        }
+
+        // Grant basic emotes to verified user
+        const [basicEmotes] = await db.query('SELECT id FROM emotes WHERE is_basic = TRUE');
+        if (basicEmotes.length > 0) {
+            const emoteData = basicEmotes.map(e => [userId, e.id]);
+            await db.query('INSERT IGNORE INTO user_emotes (user_id, emote_id) VALUES ?', [emoteData]);
         }
 
         await questController.ensureUserQuests(userId);

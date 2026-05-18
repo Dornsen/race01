@@ -129,7 +129,7 @@ const adminController = {
     getAllEmotes: async (req, res) => {
         try {
             const [rows] = await db.query(`
-                SELECT e.id, e.name, e.file_name, se.price
+                SELECT e.id, e.name, e.file_name, e.is_basic, se.price
                 FROM emotes e
                 LEFT JOIN shop_emotes se ON se.emote_id = e.id
                 ORDER BY e.id DESC
@@ -141,19 +141,33 @@ const adminController = {
     },
 
     saveEmote: async (req, res) => {
-        const { id, name, file_name, price } = req.body;
+        const { id, name, file_name, price, is_basic } = req.body;
+        const isBasicValue = is_basic ? 1 : 0;
         try {
             if (id) {
-                await db.query('UPDATE emotes SET name = ?, file_name = ? WHERE id = ?', [name, file_name, id]);
+                await db.query('UPDATE emotes SET name = ?, file_name = ?, is_basic = ? WHERE id = ?', [name, file_name, isBasicValue, id]);
                 if (price !== undefined) {
                     await db.query('INSERT INTO shop_emotes (emote_id, price) VALUES (?, ?) ON DUPLICATE KEY UPDATE price = VALUES(price)', [id, price]);
                 }
+                if (isBasicValue === 1) {
+                    await db.query('INSERT IGNORE INTO user_emotes (user_id, emote_id) SELECT id, ? FROM users', [id]);
+                }
                 return res.json({ success: true, message: 'Emote updated.' });
             } else {
-                const [result] = await db.query('INSERT INTO emotes (name, file_name) VALUES (?, ?)', [name, file_name]);
+                const [result] = await db.query(`
+                    INSERT INTO emotes (name, file_name, is_basic)
+                    VALUES (?, ?, ?)
+                    ON DUPLICATE KEY UPDATE
+                        id = LAST_INSERT_ID(id),
+                        name = VALUES(name),
+                        is_basic = VALUES(is_basic)
+                `, [name, file_name, isBasicValue]);
                 const newId = result.insertId;
                 if (price !== undefined) {
                     await db.query('INSERT INTO shop_emotes (emote_id, price) VALUES (?, ?)', [newId, price]);
+                }
+                if (isBasicValue === 1) {
+                    await db.query('INSERT IGNORE INTO user_emotes (user_id, emote_id) SELECT id, ? FROM users', [newId]);
                 }
                 return res.json({ success: true, message: 'Emote created.', id: newId });
             }
@@ -185,7 +199,15 @@ const adminController = {
             const name = req.body.name || fileName;
             const price = req.body.price;
 
-            const [result] = await db.query('INSERT INTO emotes (name, file_name) VALUES (?, ?)', [name, fileName]);
+            const isBasic = req.body && req.body.is_basic ? 1 : 0;
+            const [result] = await db.query(`
+                INSERT INTO emotes (name, file_name, is_basic)
+                VALUES (?, ?, ?)
+                ON DUPLICATE KEY UPDATE
+                    id = LAST_INSERT_ID(id),
+                    name = VALUES(name),
+                    is_basic = VALUES(is_basic)
+            `, [name, fileName, isBasic]);
             const newId = result.insertId;
             if (price !== undefined && price !== '') {
                 await db.query('INSERT INTO shop_emotes (emote_id, price) VALUES (?, ?)', [newId, price]);
@@ -224,7 +246,15 @@ const adminController = {
             const buffer = Buffer.from(base64, 'base64');
             fs.writeFileSync(filePath, buffer);
 
-            const [result] = await db.query('INSERT INTO emotes (name, file_name) VALUES (?, ?)', [name || safeName, safeName]);
+            const isBasic2 = req.body && (req.body.is_basic === 1 || req.body.is_basic === true) ? 1 : 0;
+            const [result] = await db.query(`
+                INSERT INTO emotes (name, file_name, is_basic)
+                VALUES (?, ?, ?)
+                ON DUPLICATE KEY UPDATE
+                    id = LAST_INSERT_ID(id),
+                    name = VALUES(name),
+                    is_basic = VALUES(is_basic)
+            `, [name || safeName, safeName, isBasic2]);
             const newId = result.insertId;
             if (price !== undefined && price !== '') {
                 await db.query('INSERT INTO shop_emotes (emote_id, price) VALUES (?, ?)', [newId, price]);

@@ -249,7 +249,7 @@ exports.getUserEmotes = async (req, res) => {
 // Return all emotes available in the game
 exports.getAllEmotes = async (req, res) => {
     try {
-        const [emotes] = await db.query('SELECT id, name, file_name FROM emotes ORDER BY id');
+        const [emotes] = await db.query('SELECT id, name, file_name, is_basic FROM emotes ORDER BY id');
         res.json({ success: true, emotes });
     } catch (error) {
         console.error('Error getting all emotes:', error);

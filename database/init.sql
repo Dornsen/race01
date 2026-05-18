@@ -151,12 +151,13 @@ CREATE TABLE IF NOT EXISTS user_frames (
     FOREIGN KEY (frame_id) REFERENCES shop_frames(id) ON DELETE CASCADE
 );
 
--- Emotes table
 CREATE TABLE IF NOT EXISTS emotes (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
     file_name VARCHAR(255) NOT NULL,
-    price INT NOT NULL DEFAULT 0
+    price INT NOT NULL DEFAULT 0,
+    is_basic TINYINT(1) NOT NULL DEFAULT 0,
+    UNIQUE KEY uniq_emotes_file_name (file_name)
 );
 
 CREATE TABLE IF NOT EXISTS user_emotes (
@@ -255,19 +256,20 @@ ON DUPLICATE KEY UPDATE
     price = VALUES(price),
     image_url = VALUES(image_url);
 
-INSERT INTO emotes (name, file_name, price) VALUES
-('Angry', 'emote_angry.png', 750),
-('Confused', 'emote_confused.png', 750),
-('Cry baby', 'emote_cry_baby.png', 750),
-('Flirt', 'emote_flirt.png', 750),
-('Sad', 'emote_sad.png', 750),
-('Shy', 'emote_shy.png', 750),
-('Stair', 'emote_stair.png', 750),
-('Tilted', 'emote_tilted.png', 750)
+INSERT IGNORE INTO emotes (name, file_name, price, is_basic) VALUES
+('Angry', 'emote_angry.png', 750, 1),
+('Confused', 'emote_confused.png', 750, 1),
+('Cry baby', 'emote_cry_baby.png', 750, 0),
+('Flirt', 'emote_flirt.png', 750, 0),
+('Sad', 'emote_sad.png', 750, 0),
+('Shy', 'emote_shy.png', 750, 1),
+('Stair', 'emote_stair.png', 750, 0),
+('Tilted', 'emote_tilted.png', 750, 1)
 
 ON DUPLICATE KEY UPDATE 
     name = VALUES(name),
-    file_name = VALUES(file_name);
+    file_name = VALUES(file_name),
+    is_basic = VALUES(is_basic);
 
 CREATE TABLE IF NOT EXISTS lobby_news (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -325,7 +327,7 @@ SELECT * FROM (
         'GET OMAMORI',
         'gacha',
         'image',
-        'assets/gachabaner.png',
+        'assets/news/gachabaner.png',
         1,
         'published',
         1,
