@@ -32,6 +32,12 @@
         .btn-edit { background: #f59e0b; border: none; color: #fff; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
         .btn-delete { background: #dc2626; border: none; color: #fff; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
         .checkbox-row { flex-direction: row; align-items: center; gap: 10px; margin-top: 5px; }
+        .news-preview { margin-top: 14px; border: 1px solid #30363d; border-radius: 8px; padding: 10px; background: #0d1117; }
+        .news-preview-card { border: 1px solid rgba(196, 164, 108, 0.22); border-radius: 8px; min-height: 190px; padding: 16px; display: flex; flex-direction: column; justify-content: flex-end; gap: 8px; background: linear-gradient(135deg, rgba(106, 23, 17, 0.75), rgba(16, 18, 25, 0.9)); }
+        .news-preview-chip { display: inline-flex; align-self: flex-start; border-radius: 999px; padding: 3px 8px; font-size: 11px; border: 1px solid rgba(255, 127, 80, 0.35); background: rgba(195, 34, 58, 0.24); }
+        .news-preview-title { font-size: 22px; margin: 0; color: #fff; text-transform: uppercase; }
+        .news-preview-body { margin: 0; color: #d0cbb5; }
+        .news-preview-btn { width: auto; margin-top: 6px; padding: 8px 12px; }
     </style>
 </head>
 <body>
@@ -41,9 +47,10 @@
     </div>
 
     <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('cards')">⛩️ Card Balancing & Management</button>
-        <button class="tab-btn" onclick="switchTab('frames')">🖼️ Avatar Frames Store</button>
-        <button class="tab-btn" onclick="switchTab('emotes')">🎭 Emotes</button>
+        <button class="tab-btn active" onclick="switchTab('cards', event)">⛩️ Card Balancing & Management</button>
+        <button class="tab-btn" onclick="switchTab('frames', event)">🖼️ Avatar Frames Store</button>
+        <button class="tab-btn" onclick="switchTab('emotes', event)">🎭 Emotes</button>
+        <button class="tab-btn" onclick="switchTab('news', event)">📰 Lobby News</button>
     </div>
 
     <div class="admin-layout">
@@ -68,7 +75,6 @@
         let serverDataCache = [];
         let isEditMode = false;
 
-        // Конфигурация полей под таблицы БД
         const uiConfig = {
             cards: {
                 formTitle: 'Add New Mythical Card',
@@ -82,7 +88,7 @@
                     { id: 'cost', label: 'Energy/Mana Cost', type: 'number', required: true },
                     { id: 'avatar_url', label: 'Asset Path (Image URL)', type: 'text', required: true, val: 'assets/cards/' },
                     { id: 'ability_code', label: 'Ability Trigger Code', type: 'text', required: true },
-                    { id: 'is_basic', label: 'Is Starter/Basic Card?', type: 'checkbox' },
+                    { id: 'is_basic', label: 'Is Starter/Basic Card?', type: 'checkbox', val: false },
                     { id: 'description', label: 'Flavor Lore Text', type: 'textarea', required: true },
                     { id: 'ability_description', label: 'Ability Mechanics Text', type: 'textarea', required: true }
                 ]
@@ -96,8 +102,7 @@
                     { id: 'price', label: 'In-Game Gold Price', type: 'number', required: true },
                     { id: 'image_url', label: 'Asset Image URL Path', type: 'text', required: true, val: '/assets/avatar_frames/' }
                 ]
-            }
-            ,
+            },
             emotes: {
                 formTitle: 'Create / Edit Emote',
                 viewTitle: 'Emotes Catalog',
@@ -108,60 +113,145 @@
                     { id: 'file', label: 'Upload File', type: 'file', required: false },
                     { id: 'price', label: 'Shop Price (optional)', type: 'number', required: false }
                 ]
+            },
+            news: {
+                formTitle: 'Create Lobby News',
+                viewTitle: 'Lobby News & Banner Queue',
+                fields: [
+                    { id: 'title', label: 'Headline', type: 'text', required: true },
+                    { id: 'body', label: 'News Description', type: 'textarea', required: true },
+                    { id: 'chip', label: 'Chip Label', type: 'text', required: false, val: 'Update' },
+                    { id: 'cta_text', label: 'CTA Button Text', type: 'text', required: false, val: 'Open' },
+                    { id: 'cta_target', label: 'CTA Target Screen', type: 'select', options: ['', 'quests', 'gacha', 'shop', 'leaderboard', 'deck-builder'], optionLabels: ['None', 'Quests', 'Omamori', 'Shop', 'Leaderboard', 'Deck Builder'] },
+                    { id: 'background_type', label: 'Background Type', type: 'select', options: ['gradient', 'image'] },
+                    { id: 'background_value', label: 'Background Value (CSS gradient or image url/path)', type: 'textarea', required: true, val: 'linear-gradient(135deg, rgba(106, 23, 17, 0.75), rgba(16, 18, 25, 0.9))' },
+                    { id: 'background_file', label: 'Upload Background Image', type: 'file', required: false },
+                    { id: 'status', label: 'Status', type: 'select', options: ['draft', 'published', 'archived'] },
+                    { id: 'is_active', label: 'Active In Rotation?', type: 'checkbox', val: true },
+                    { id: 'sort_order', label: 'Sort Order', type: 'number', required: false, val: 1 },
+                    { id: 'publish_from', label: 'Publish From', type: 'datetime-local', required: false },
+                    { id: 'publish_to', label: 'Publish To', type: 'datetime-local', required: false }
+                ]
             }
         };
 
-        function switchTab(tabName) {
+        function switchTab(tabName, ev) {
             currentTab = tabName;
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
+            document.querySelectorAll('.tab-btn').forEach((b) => b.classList.remove('active'));
+            if (ev && ev.target) ev.target.classList.add('active');
             clearForm();
             buildFormInputs();
             fetchSystemData();
         }
 
+        function formatDateTimeLocal(value) {
+            if (!value) return '';
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return '';
+            const pad = (n) => `${n}`.padStart(2, '0');
+            return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+        }
+
         function buildFormInputs() {
             const container = document.getElementById('form-fields-wrapper');
             container.innerHTML = '';
-            
-            uiConfig[currentTab].fields.forEach(f => {
+
+            uiConfig[currentTab].fields.forEach((f) => {
                 let html = `<div class="form-group ${f.type === 'checkbox' ? 'checkbox-row' : ''}">`;
-                if(f.type !== 'checkbox' && f.type !== 'file') html += `<label for="inp-${f.id}">${f.label}</label>`;
-                
-                if(f.type === 'select') {
+                if (f.type !== 'checkbox' && f.type !== 'file') html += `<label for="inp-${f.id}">${f.label}</label>`;
+
+                if (f.type === 'select') {
                     html += `<select id="inp-${f.id}">`;
-                    f.options.forEach(opt => html += `<option value="${opt}">${opt.toUpperCase()}</option>`);
+                    f.options.forEach((opt, idx) => {
+                        const label = f.optionLabels && f.optionLabels[idx] ? f.optionLabels[idx] : `${opt}`.toUpperCase();
+                        html += `<option value="${opt}">${label}</option>`;
+                    });
                     html += `</select>`;
-                } else if(f.type === 'textarea') {
-                    html += `<textarea id="inp-${f.id}" rows="3" ${f.required ? 'required' : ''}></textarea>`;
-                } else if(f.type === 'file') {
+                } else if (f.type === 'textarea') {
+                    html += `<textarea id="inp-${f.id}" rows="3" ${f.required ? 'required' : ''}>${f.val || ''}</textarea>`;
+                } else if (f.type === 'file') {
                     html += `<input type="file" id="inp-${f.id}">`;
-                } else if(f.type === 'checkbox') {
-                    html += `<input type="checkbox" id="inp-${f.id}"> <label for="inp-${f.id}">${f.label}</label>`;
+                } else if (f.type === 'checkbox') {
+                    html += `<input type="checkbox" id="inp-${f.id}" ${f.val ? 'checked' : ''}> <label for="inp-${f.id}">${f.label}</label>`;
                 } else {
                     html += `<input type="${f.type}" id="inp-${f.id}" value="${f.val || ''}" ${f.required ? 'required' : ''}>`;
                 }
+
                 html += `</div>`;
                 container.innerHTML += html;
             });
+
+            if (currentTab === 'news') {
+                container.innerHTML += `
+                    <div class="news-preview">
+                        <div style="font-size:12px;color:#8b949e;margin-bottom:8px;">Live Preview</div>
+                        <div id="news-preview-card" class="news-preview-card">
+                            <span id="news-preview-chip" class="news-preview-chip">Update</span>
+                            <h4 id="news-preview-title" class="news-preview-title">News headline</h4>
+                            <p id="news-preview-body" class="news-preview-body">News body text...</p>
+                            <button id="news-preview-btn" type="button" class="news-preview-btn">Open</button>
+                        </div>
+                    </div>
+                `;
+                attachNewsPreviewListeners();
+                updateNewsPreview();
+            }
+        }
+
+        function attachNewsPreviewListeners() {
+            ['title', 'body', 'chip', 'cta_text', 'background_type', 'background_value'].forEach((id) => {
+                const el = document.getElementById(`inp-${id}`);
+                if (el) el.addEventListener('input', updateNewsPreview);
+            });
+        }
+
+        function updateNewsPreview() {
+            const card = document.getElementById('news-preview-card');
+            if (!card) return;
+
+            const title = document.getElementById('inp-title');
+            const body = document.getElementById('inp-body');
+            const chip = document.getElementById('inp-chip');
+            const ctaText = document.getElementById('inp-cta_text');
+            const bgType = document.getElementById('inp-background_type');
+            const bgValue = document.getElementById('inp-background_value');
+
+            document.getElementById('news-preview-title').innerText = (title && title.value.trim()) || 'News headline';
+            document.getElementById('news-preview-body').innerText = (body && body.value.trim()) || 'News body text...';
+            document.getElementById('news-preview-chip').innerText = (chip && chip.value.trim()) || 'Update';
+
+            const btn = document.getElementById('news-preview-btn');
+            btn.innerText = (ctaText && ctaText.value.trim()) || 'Open';
+            btn.style.display = ctaText && ctaText.value.trim() ? 'inline-block' : 'none';
+
+            const value = (bgValue && bgValue.value.trim()) || '';
+            if (bgType && bgType.value === 'image') {
+                const imageUrl = value.startsWith('url(') ? value : `url('${value}')`;
+                card.style.background = `linear-gradient(180deg, rgba(10, 11, 16, 0.35), rgba(10, 11, 16, 0.72)), ${imageUrl}`;
+                card.style.backgroundSize = 'cover';
+                card.style.backgroundPosition = 'center';
+            } else {
+                card.style.background = value || 'linear-gradient(135deg, rgba(106, 23, 17, 0.75), rgba(16, 18, 25, 0.9))';
+            }
         }
 
         async function fetchSystemData() {
             document.getElementById('view-title').innerText = uiConfig[currentTab].viewTitle;
             const res = await fetch(`/api/admin/${currentTab}`);
-            
+
             if (res.status === 401 || res.status === 403) {
-                alert("🔴 Access Denied: Unauthorized admin signature.");
+                alert('🔴 Access Denied: Unauthorized admin signature.');
                 window.location.href = '/lobby.html';
                 return;
             }
-            
+
             serverDataCache = await res.json();
             const grid = document.getElementById('data-grid');
             grid.innerHTML = '';
 
-            serverDataCache.forEach(item => {
+            serverDataCache.forEach((item, index) => {
                 let node = `<div class="card-item" onclick="triggerEditMode('${item.id}')">`;
+
                 if (currentTab === 'cards') {
                     node += `
                         <img src="${item.avatar_url}" onerror="this.src='assets/card_back.png'">
@@ -169,30 +259,50 @@
                         <div class="meta">${item.clan} | ${item.rarity.toUpperCase()}</div>
                         <div class="stats">⚔️ ${item.attack} | 🛡️ ${item.defense} | 💎 ${item.cost}</div>
                     `;
-                } else {
-                        if (currentTab === 'emotes') {
-                            node += `
-                            <img src="assets/emotes/${item.file_name}" style="height:100px; object-fit:contain;">
-                            <h4>${item.name}</h4>
-                            <div class="meta">ID: ${item.id}</div>
-                            <div class="stats">💰 ${(item.price || '—')}</div>
-                        `;
-                        } else {
+                } else if (currentTab === 'emotes') {
+                    node += `
+                        <img src="assets/emotes/${item.file_name}" style="height:100px; object-fit:contain;">
+                        <h4>${item.name}</h4>
+                        <div class="meta">ID: ${item.id}</div>
+                        <div class="stats">💰 ${(item.price || '—')}</div>
+                    `;
+                } else if (currentTab === 'frames') {
                     node += `
                         <img src="${item.image_url}" style="height:100px; object-fit:contain;">
                         <h4>${item.name}</h4>
                         <div class="meta">ID: ${item.id}</div>
                         <div class="stats">💰 ${item.price} Gold</div>
                     `;
-                        }
+                } else if (currentTab === 'news') {
+                    const bg = item.background_type === 'image'
+                        ? `linear-gradient(180deg, rgba(10, 11, 16, 0.35), rgba(10, 11, 16, 0.72)), url('${item.background_value}')`
+                        : item.background_value;
+
+                    node += `
+                        <div style="height:100px;border-radius:6px;border:1px solid #30363d;background:${bg};background-size:cover;background-position:center;"></div>
+                        <h4>${item.title}</h4>
+                        <div class="meta">#${item.sort_order} | ${item.status.toUpperCase()} | ${item.is_active ? 'ACTIVE' : 'OFF'}</div>
+                        <div class="meta">${item.publish_from ? ('FROM: ' + new Date(item.publish_from).toLocaleString()) : 'FROM: NOW'} | ${item.publish_to ? ('TO: ' + new Date(item.publish_to).toLocaleString()) : 'TO: ∞'}</div>
+                        <div class="stats">👁️ ${item.impressions} | 🖱️ ${item.clicks} | CTR ${item.ctr}%</div>
+                    `;
                 }
-                node += `
-                    <div class="actions">
-                            <button class="btn-edit" onclick="event.stopPropagation(); triggerEditMode('${item.id}')">✏️</button>
-                            <button class="btn-delete" onclick="event.stopPropagation(); triggerDelete('${item.id}')">❌</button>
-                            ${currentTab === 'emotes' ? `<button class="btn-edit" onclick="event.stopPropagation(); triggerGrant('${item.id}')">🎁 Grant to All</button>` : ''}
-                    </div>
-                </div>`;
+
+                node += '<div class="actions">';
+                node += `<button class="btn-edit" onclick="event.stopPropagation(); triggerEditMode('${item.id}')">✏️</button>`;
+                node += `<button class="btn-delete" onclick="event.stopPropagation(); triggerDelete('${item.id}')">❌</button>`;
+
+                if (currentTab === 'emotes') {
+                    node += `<button class="btn-edit" onclick="event.stopPropagation(); triggerGrant('${item.id}')">🎁</button>`;
+                }
+
+                if (currentTab === 'news') {
+                    node += `<button class="btn-edit" onclick="event.stopPropagation(); triggerCloneNews('${item.id}')">⧉</button>`;
+                    node += `<button class="btn-edit" onclick="event.stopPropagation(); triggerToggleNews('${item.id}')">${item.is_active ? '⏸' : '▶'}</button>`;
+                    node += `<button class="btn-edit" onclick="event.stopPropagation(); triggerMoveNews('${item.id}', -1)">↑</button>`;
+                    node += `<button class="btn-edit" onclick="event.stopPropagation(); triggerMoveNews('${item.id}', 1)">↓</button>`;
+                }
+
+                node += '</div></div>';
                 grid.innerHTML += node;
             });
         }
@@ -202,11 +312,8 @@
             const id = document.getElementById('item-id').value;
             const payload = id ? { id } : {};
 
-            if (currentTab === 'frames') {
-                payload.isNewFrame = !isEditMode;
-            }
+            if (currentTab === 'frames') payload.isNewFrame = !isEditMode;
 
-            // handle file upload for emotes
             if (currentTab === 'emotes') {
                 const fileInput = document.getElementById('inp-file');
                 const hasFile = fileInput && fileInput.files && fileInput.files.length > 0;
@@ -219,26 +326,69 @@
                         reader.readAsDataURL(file);
                     });
 
-                    const nameField = document.getElementById('inp-name');
-                    const priceField = document.getElementById('inp-price');
                     const payloadUpload = {
-                        name: nameField ? nameField.value : file.name,
+                        name: document.getElementById('inp-name') ? document.getElementById('inp-name').value : file.name,
                         file_name: file.name,
-                        price: priceField ? priceField.value : '',
+                        price: document.getElementById('inp-price') ? document.getElementById('inp-price').value : '',
                         data: base64
                     };
 
-                    const res = await fetch('/api/admin/emotes/upload-base64', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payloadUpload) });
-                    if (res.ok) { clearForm(); fetchSystemData(); return; }
-                    else { alert('🔴 Upload failed'); return; }
+                    const uploadRes = await fetch('/api/admin/emotes/upload-base64', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payloadUpload)
+                    });
+                    if (uploadRes.ok) {
+                        clearForm();
+                        fetchSystemData();
+                        return;
+                    }
+                    alert('🔴 Upload failed');
+                    return;
                 }
             }
 
-            uiConfig[currentTab].fields.forEach(f => {
+            uiConfig[currentTab].fields.forEach((f) => {
                 const element = document.getElementById(`inp-${f.id}`);
-                if(f.type === 'checkbox') payload[f.id] = element.checked;
-                else payload[f.id] = element.value;
+                if (!element) return;
+                payload[f.id] = f.type === 'checkbox' ? element.checked : element.value;
             });
+
+            // If a background image file was provided for news, upload it first and set background_value
+            if (currentTab === 'news') {
+                const fileInput = document.getElementById('inp-background_file');
+                const hasFile = fileInput && fileInput.files && fileInput.files.length > 0;
+                if (hasFile) {
+                    const file = fileInput.files[0];
+                    const base64 = await new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onerror = () => reject('File read error');
+                        reader.onload = () => resolve(reader.result);
+                        reader.readAsDataURL(file);
+                    });
+
+                    const uploadRes = await fetch('/api/admin/news/upload-image', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ file_name: file.name, data: base64 })
+                    });
+
+                    if (uploadRes.ok) {
+                        const up = await uploadRes.json().catch(() => ({}));
+                        if (up && up.file) payload.background_value = up.file;
+                        payload.background_type = 'image';
+                    } else {
+                        alert('🔴 Background image upload failed');
+                        return;
+                    }
+                }
+            }
+
+            if (currentTab === 'news') {
+                payload.sort_order = Number(payload.sort_order || 0);
+                payload.publish_from = payload.publish_from || null;
+                payload.publish_to = payload.publish_to || null;
+            }
 
             const res = await fetch(`/api/admin/${currentTab}`, {
                 method: 'POST',
@@ -250,36 +400,44 @@
                 clearForm();
                 fetchSystemData();
             } else {
-                alert('🔴 Error executing pipeline update.');
+                const data = await res.json().catch(() => ({}));
+                alert(`🔴 ${data.error || 'Error executing update.'}`);
             }
         }
 
         function triggerEditMode(id) {
             isEditMode = true;
-            const item = serverDataCache.find(i => String(i.id) === String(id));
+            const item = serverDataCache.find((i) => String(i.id) === String(id));
             if (!item) return;
 
             document.getElementById('item-id').value = item.id;
-            document.getElementById('form-title').innerText = `Balancing Asset ID: ${item.id}`;
+            document.getElementById('form-title').innerText = `Editing ID: ${item.id}`;
             document.getElementById('cancel-btn').style.display = 'block';
 
-            uiConfig[currentTab].fields.forEach(f => {
+            uiConfig[currentTab].fields.forEach((f) => {
                 const element = document.getElementById(`inp-${f.id}`);
+                if (!element) return;
+
                 if (f.type === 'checkbox') {
                     element.checked = !!item[f.id];
+                } else if (f.type === 'datetime-local') {
+                    element.value = formatDateTimeLocal(item[f.id]);
                 } else {
-                    element.value = item[f.id];
+                    element.value = item[f.id] ?? '';
                 }
+
                 if (f.disableOnEdit) element.disabled = true;
             });
+
+            if (currentTab === 'news') updateNewsPreview();
         }
 
         async function triggerDelete(id) {
-            if (!confirm('💥 Purge this asset permanently from client/database records?')) return;
+            if (!confirm('💥 Purge this asset permanently from database records?')) return;
             const res = await fetch(`/api/admin/${currentTab}/${id}`, { method: 'DELETE' });
             if (res.ok) {
                 fetchSystemData();
-                if(document.getElementById('item-id').value === String(id)) clearForm();
+                if (document.getElementById('item-id').value === String(id)) clearForm();
             } else {
                 alert('🔴 Deletion failed.');
             }
@@ -288,11 +446,42 @@
         async function triggerGrant(id) {
             if (!confirm('Grant this emote to ALL users?')) return;
             const res = await fetch(`/api/admin/emotes/grant/${id}`, { method: 'POST' });
-            if (res.ok) {
-                alert('✅ Emote granted to all users.');
-            } else {
-                alert('🔴 Grant failed.');
-            }
+            if (res.ok) alert('✅ Emote granted to all users.');
+            else alert('🔴 Grant failed.');
+        }
+
+        async function triggerToggleNews(id) {
+            const res = await fetch(`/api/admin/news/${id}/toggle`, { method: 'PATCH' });
+            if (res.ok) fetchSystemData();
+            else alert('🔴 Failed to toggle news.');
+        }
+
+        async function triggerCloneNews(id) {
+            const res = await fetch(`/api/admin/news/${id}/clone`, { method: 'POST' });
+            if (res.ok) fetchSystemData();
+            else alert('🔴 Failed to clone news.');
+        }
+
+        async function triggerMoveNews(id, direction) {
+            const idx = serverDataCache.findIndex((item) => String(item.id) === String(id));
+            if (idx < 0) return;
+
+            const target = idx + direction;
+            if (target < 0 || target >= serverDataCache.length) return;
+
+            const reordered = serverDataCache.map((n) => n.id);
+            const tmp = reordered[idx];
+            reordered[idx] = reordered[target];
+            reordered[target] = tmp;
+
+            const res = await fetch('/api/admin/news/reorder', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderedIds: reordered })
+            });
+
+            if (res.ok) fetchSystemData();
+            else alert('🔴 Failed to reorder news.');
         }
 
         function clearForm() {
@@ -300,18 +489,23 @@
             document.getElementById('item-id').value = '';
             document.getElementById('form-title').innerText = uiConfig[currentTab].formTitle;
             document.getElementById('cancel-btn').style.display = 'none';
-            
-            uiConfig[currentTab].fields.forEach(f => {
+
+            uiConfig[currentTab].fields.forEach((f) => {
                 const element = document.getElementById(`inp-${f.id}`);
-                if(element) {
-                    if (f.type === 'checkbox') element.checked = false;
-                    else element.value = f.val || '';
-                    if (f.disableOnEdit) element.disabled = false;
+                if (!element) return;
+
+                if (f.type === 'checkbox') {
+                    element.checked = !!f.val;
+                } else {
+                    element.value = f.val || '';
                 }
+
+                if (f.disableOnEdit) element.disabled = false;
             });
+
+            if (currentTab === 'news') updateNewsPreview();
         }
 
-        // Run
         buildFormInputs();
         fetchSystemData();
     </script>

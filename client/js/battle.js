@@ -37,12 +37,47 @@ function setBattleScreenVisible(isVisible) {
     if (!battle || !lobby) return;
     
     if (isVisible) {
+        resetBattleFieldVisuals();
         if (deck) deck.classList.add('hidden');
         lobby.classList.add('hidden');
         battle.classList.remove('hidden');
+        loadUserEmotes(true);
     } else {
+        resetBattleEmotePanel();
         battle.classList.add('hidden');
         lobby.classList.remove('hidden');
+    }
+}
+
+function resetBattleFieldVisuals() {
+    const playerBoard = document.getElementById('player-board');
+    const opponentBoard = document.getElementById('opponent-board');
+    const playerHand = document.getElementById('player-hand');
+    const opponentHand = document.getElementById('opponent-hand');
+
+    if (playerBoard) playerBoard.innerHTML = '';
+    if (opponentBoard) opponentBoard.innerHTML = '';
+    if (playerHand) playerHand.innerHTML = '';
+    if (opponentHand) opponentHand.innerHTML = '';
+}
+
+function resetBattleEmotePanel() {
+    const panel = document.getElementById('emote-panel');
+    if (panel) {
+        panel.innerHTML = '';
+        panel.classList.add('hidden');
+    }
+
+    const playerBubble = document.getElementById('player-avatar-emote-bubble');
+    if (playerBubble) {
+        playerBubble.innerHTML = '';
+        playerBubble.classList.add('hidden');
+    }
+
+    const opponentBubble = document.getElementById('opponent-avatar-emote-bubble');
+    if (opponentBubble) {
+        opponentBubble.innerHTML = '';
+        opponentBubble.classList.add('hidden');
     }
 }
 
@@ -93,8 +128,68 @@ function applyAvatarFrame(frameElement, frameUrl) {
     }
 }
 
-function showCoinFlip(text) {
+function playCoinFlipAnimation(starter, onComplete) {
+    return new Promise((resolve) => {
+        const coinOverlay = document.getElementById('coin-flip-overlay');
+        const centerCoin = document.getElementById('coin-flip-center');
 
+        if (!coinOverlay || !centerCoin) {
+            if (typeof onComplete === 'function') onComplete(starter);
+            resolve();
+            return;
+        }
+
+        coinOverlay.innerHTML = '';
+        coinOverlay.classList.remove('hidden');
+
+        const bigCoin = document.createElement('div');
+        bigCoin.id = 'coin-flip-center';
+        bigCoin.className = 'turn-coin start-coin spinning-fast';
+        bigCoin.innerHTML = `<span class="start-coin-kanji">命</span>`;
+        coinOverlay.appendChild(bigCoin);
+
+        setTimeout(() => {
+            bigCoin.classList.remove('spinning-fast');
+
+            if (starter === 'player') {
+                bigCoin.innerHTML = `<span class="start-coin-kanji">先</span>`;
+            } else {
+                bigCoin.innerHTML = `<span class="start-coin-kanji">後</span>`;
+            }
+
+            const resultEl = document.createElement('div');
+            resultEl.className = 'coin-flip-result';
+            resultEl.innerHTML = starter === 'player'
+                ? `<span class="kanji-big">先攻</span>
+                   <span class="kanji-sub">SENKOU</span>
+                   <span class="kanji-ruby">Your turn first</span>`
+                : `<span class="kanji-big">後攻</span>
+                   <span class="kanji-sub">KOUKOU</span>
+                   <span class="kanji-ruby">Opponent goes first</span>`;
+            coinOverlay.appendChild(resultEl);
+
+            const smallCoin = document.getElementById('turn-coin');
+            if (smallCoin) {
+                smallCoin.innerHTML = `<span class="turn-coin-kanji">${starter === 'player' ? '先' : '後'}</span>`;
+            }
+
+            setTimeout(() => {
+                bigCoin.classList.add('move-to-indicator');
+
+                setTimeout(() => {
+                    coinOverlay.classList.add('hidden');
+                    bigCoin.classList.remove('move-to-indicator');
+                    if (typeof onComplete === 'function') onComplete(starter);
+                    resolve();
+                }, 750);
+            }, 1400);
+        }, 1100);
+    });
+}
+
+function showCoinFlip(text, starterSocketId = null) {
+    const starter = starterSocketId && socket && socket.id === starterSocketId ? 'player' : 'opponent';
+    return playCoinFlipAnimation(starter);
 }
 
 // --- 2. MATCH INITIALIZATION & STATE ---
@@ -135,76 +230,21 @@ async function startPracticeMatch() {
     drawUpToLimit(battleState.player);
     drawUpToLimit(battleState.opponent);
 
+    const playerName = document.getElementById('player-name');
+    const opponentName = document.getElementById('opponent-name');
+    if (playerName && window.socketUser && window.socketUser.username) {
+        playerName.innerText = window.socketUser.username;
+    }
+    if (opponentName) opponentName.innerText = 'Opponent';
+
     setBattleScreenVisible(true);
     syncBattleAvatars();
     await coinFlipStart();
 }
 
 function coinFlipStart() {
-    return new Promise((resolve) => {
-        const coinOverlay = document.getElementById('coin-flip-overlay');
-        const centerCoin = document.getElementById('coin-flip-center');
-
-        if (!coinOverlay || !centerCoin) {
-            startTurn(Math.random() > 0.5 ? 'player' : 'opponent');
-            resolve();
-            return;
-        }
-
-        // Очищаем предыдущий результат и запускаем спин
-        coinOverlay.innerHTML = '';
-        coinOverlay.classList.remove('hidden');
-
-        // Большая монета — вопрос (知: «знание/судьба»)
-        const bigCoin = document.createElement('div');
-        bigCoin.id = 'coin-flip-center';
-        bigCoin.className = 'turn-coin start-coin spinning-fast';
-        bigCoin.innerHTML = `<span class="start-coin-kanji">命</span>`;
-        coinOverlay.appendChild(bigCoin);
-
-        // Через 1.1s — останавливаем, показываем результат
-        setTimeout(() => {
-            const starter = Math.random() > 0.5 ? 'player' : 'opponent';
-            bigCoin.classList.remove('spinning-fast');
-
-            // 先攻 (senkou) = ходишь первым | 後攻 (koukou) = вторым
-            if (starter === 'player') {
-                bigCoin.innerHTML = `<span class="start-coin-kanji">先</span>`;
-            } else {
-                bigCoin.innerHTML = `<span class="start-coin-kanji">後</span>`;
-            }
-
-            // Текст-результат под монетой
-            const resultEl = document.createElement('div');
-            resultEl.className = 'coin-flip-result';
-            resultEl.innerHTML = starter === 'player'
-                ? `<span class="kanji-big">先攻</span>
-                   <span class="kanji-sub">SENKOU</span>
-                   <span class="kanji-ruby">Your turn first</span>`
-                : `<span class="kanji-big">後攻</span>
-                   <span class="kanji-sub">KOUKOU</span>
-                   <span class="kanji-ruby">Opponent goes first</span>`;
-            coinOverlay.appendChild(resultEl);
-
-            // Обновляем маленькую монету на трекере заранее
-            const smallCoin = document.getElementById('turn-coin');
-            if (smallCoin) {
-                smallCoin.innerHTML = `<span class="turn-coin-kanji">${starter === 'player' ? '先' : '後'}</span>`;
-            }
-
-            // Через 1.4s — монета улетает влево к трекеру
-            setTimeout(() => {
-                bigCoin.classList.add('move-to-indicator');
-
-                setTimeout(() => {
-                    coinOverlay.classList.add('hidden');
-                    bigCoin.classList.remove('move-to-indicator');
-                    startTurn(starter);
-                    resolve();
-                }, 750);
-            }, 1400);
-        }, 1100);
-    });
+    const starter = Math.random() > 0.5 ? 'player' : 'opponent';
+    return playCoinFlipAnimation(starter, startTurn);
 }
 
 function applyServerState(state) {
@@ -1018,6 +1058,8 @@ function exitBattle(skipServer) {
         clearInterval(battleState.timerId);
         battleState.timerId = null;
     }
+
+    resetBattleEmotePanel();
     
     setBattleScreenVisible(false);
 }
@@ -1201,18 +1243,24 @@ if (emoteBtn) {
         const willOpen = panel.classList.contains('hidden');
         panel.classList.toggle('hidden');
 
-        if (willOpen && panel.children.length === 0) {
-            await loadUserEmotes();
+        if (willOpen) {
+            await loadUserEmotes(true);
         }
     });
 }
 
-async function loadUserEmotes() {
+async function loadUserEmotes(forceRefresh = false) {
     try {
         const panel = document.getElementById('emote-panel');
         if (!panel) return;
 
-        const response = await fetch('/api/emotes');
+        if (forceRefresh) {
+            panel.innerHTML = '';
+        }
+
+        const response = await fetch(`/api/emotes/deck?ts=${Date.now()}`, {
+            cache: 'no-store'
+        });
         if (!response.ok) {
             return;
         }
@@ -1222,12 +1270,16 @@ async function loadUserEmotes() {
         if (data.success) {
             panel.innerHTML = ''; 
 
-            if (!Array.isArray(data.emotes) || data.emotes.length === 0) {
+            const emotes = Array.isArray(data.deck)
+                ? data.deck.filter(item => item && item.file_name)
+                : [];
+
+            if (emotes.length === 0) {
                 panel.innerHTML = '<div style="color:#cfcfcf;font-size:12px;text-align:center;width:100%;">No emotes unlocked yet</div>';
                 return;
             }
 
-            data.emotes.forEach(emote => {
+            emotes.forEach(emote => {
                 const img = document.createElement('img');
                 img.src = `assets/emotes/${emote.file_name}`; 
                 img.className = 'emote-item';
@@ -1293,5 +1345,7 @@ function showEmote(target, fileName) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    loadUserEmotes();
+    loadUserEmotes(true);
 });
+
+window.refreshBattleEmotes = () => loadUserEmotes(true);

@@ -144,7 +144,7 @@
                 <button id="btn-leaderboard" class="nav-btn">Leaderboard</button>
                 <button id="btn-quests" class="nav-btn">Quests</button>
                 <button id="btn-shop" class="nav-btn">Shop</button>
-                <button id="btn-gacha" class="nav-btn">Gacha</button>
+                <button id="btn-gacha" class="nav-btn">Omamori</button>
             </nav>
 
             <div class="lobby-header-actions">
@@ -164,6 +164,23 @@
                     <li class="empty-friends">No friends online</li>
                 </ul>
             </aside>
+
+            <section id="lobby-news" class="lobby-news-panel" aria-label="Lobby News">
+                <div class="lobby-news-topbar">
+                    <div class="lobby-news-title">Kiri Chronicle</div>
+                    <div id="lobby-news-counter" class="lobby-news-counter">01 / 01</div>
+                </div>
+
+                <div class="lobby-news-viewport">
+                    <div id="lobby-news-track" class="lobby-news-track"></div>
+                </div>
+
+                <div class="lobby-news-controls">
+                    <button id="lobby-news-prev" class="lobby-news-nav" aria-label="Previous news">&#10094;</button>
+                    <div id="lobby-news-dots" class="lobby-news-dots"></div>
+                    <button id="lobby-news-next" class="lobby-news-nav" aria-label="Next news">&#10095;</button>
+                </div>
+            </section>
 
             <div class="play-section">
                 <div id="play-modes" class="play-modes hidden">
@@ -376,12 +393,14 @@
                 <div class="shop-item-title">Omamori Pack</div>
                 <div class="shop-item-desc">Random cards x5</div>
                 <div class="shop-item-price">Price: ⛩️ 100</div>
+                <button id="btn-shop-omamori-pack" class="shop-frame-btn primary">Open in Omamori</button>
             </div>
 
             <div class="shop-item pack-ritual">
-                <div class="shop-item-title">Omamori Ritual x10</div>
+                <div class="shop-item-title">Omamori Ritual x5</div>
                 <div class="shop-item-desc">Guarantee of epic+ in the last pack</div>
-                <div class="shop-item-price">Price: ⛩️ 900</div>
+                <div class="shop-item-price">Price: ⛩️ 450</div>
+                <button id="btn-shop-omamori-ritual" class="shop-frame-btn primary">Open in Omamori</button>
             </div>
         </div>
     </div>
@@ -428,7 +447,7 @@
             <div class="gacha-hint" id="gacha-hint">Grab the golden knot and pull down to invoke the ritual</div>
             <div class="gacha-controls">
                 <button id="btn-gacha-open" class="gacha-open-btn">Open (⛩️ 100)</button>
-                <button id="btn-gacha-open-10" class="gacha-open-btn secondary">Ritual x10 (⛩️ 900)</button>
+                <button id="btn-gacha-open-10" class="gacha-open-btn secondary">Ritual x5 (⛩️ 450)</button>
                 <button id="btn-gacha-flip" class="gacha-open-btn ghost">Reveal All</button>
                 <button id="btn-gacha-reset" class="gacha-open-btn ghost">Reset Stage</button>
             </div>
@@ -652,6 +671,7 @@
     <script src="js/gacha.js"></script>
     <script src="js/shop.js"></script>
     <script src="js/matchHistory.js"></script>
+    <script src="js/lobbyNews.js"></script>
     <script src="js/navigation.js"></script>
     <script src="js/socketClient.js"></script>
     <script src="js/quest.js"></script>

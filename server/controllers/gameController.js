@@ -263,7 +263,13 @@ exports.getUserEmoteDeck = async (req, res) => {
         const userId = req.session.userId;
         if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
-        const [rows] = await db.query('SELECT slot_index, emote_id FROM user_emote_decks WHERE user_id = ? ORDER BY slot_index', [userId]);
+        const [rows] = await db.query(`
+            SELECT ued.slot_index, ued.emote_id, e.name, e.file_name
+            FROM user_emote_decks ued
+            JOIN emotes e ON e.id = ued.emote_id
+            WHERE ued.user_id = ?
+            ORDER BY ued.slot_index
+        `, [userId]);
         res.json({ success: true, deck: rows });
     } catch (error) {
         console.error('Error getting user emote deck:', error);

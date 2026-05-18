@@ -14,7 +14,9 @@ app.use((req, res, next) => {
     next();
 });
 
-app.use(express.json());
+// Allow larger JSON payloads for base64 image uploads (emotes/news)
+app.use(express.json({ limit: '12mb' }));
+app.use(express.urlencoded({ extended: true, limit: '12mb' }));
 app.use(express.static(path.join(__dirname, '../client')));
 
 app.use(session({
@@ -36,6 +38,7 @@ const shopController = require('./controllers/shopController');
 const { setupSocket } = require('./game/socketGame');
 const questController = require('./controllers/questController');
 const adminController = require('./controllers/adminController');
+const newsController = require('./controllers/newsController');
 const fs = require('fs');
 
 const emoteStoragePath = path.join(__dirname, '../client/assets/emotes');
@@ -85,6 +88,11 @@ app.post('/api/shop/emotes', shopController.buyEmote);
 app.get('/api/quests', questController.getQuests);
 app.post('/api/quests/claim', questController.claimReward);
 
+// --- Lobby News Routes ---
+app.get('/api/news/lobby', newsController.getLobbyNews);
+app.post('/api/news/:id/impression', newsController.trackImpression);
+app.post('/api/news/:id/click', newsController.trackClick);
+
 // --- ADMIN API ROUTES (ПОЛНОСТЬЮ ЗАЩИЩЕНЫ CHECKADMIN) ---
 app.get('/api/admin/cards', adminController.checkAdmin, adminController.getAllCards);
 app.post('/api/admin/cards', adminController.checkAdmin, adminController.saveCard);
@@ -101,6 +109,17 @@ app.delete('/api/admin/emotes/:id', adminController.checkAdmin, adminController.
 // Upload via base64 JSON (no multer required)
 app.post('/api/admin/emotes/upload-base64', adminController.checkAdmin, adminController.uploadEmoteBase64);
 app.post('/api/admin/emotes/grant/:id', adminController.checkAdmin, adminController.grantEmoteToAll);
+
+// Admin news image upload (base64)
+app.post('/api/admin/news/upload-image', adminController.checkAdmin, newsController.uploadNewsImageBase64);
+
+// Admin news management
+app.get('/api/admin/news', adminController.checkAdmin, newsController.getAllNewsAdmin);
+app.post('/api/admin/news', adminController.checkAdmin, newsController.saveNewsAdmin);
+app.delete('/api/admin/news/:id', adminController.checkAdmin, newsController.deleteNewsAdmin);
+app.patch('/api/admin/news/:id/toggle', adminController.checkAdmin, newsController.toggleNewsAdmin);
+app.post('/api/admin/news/:id/clone', adminController.checkAdmin, newsController.cloneNewsAdmin);
+app.patch('/api/admin/news/reorder', adminController.checkAdmin, newsController.reorderNewsAdmin);
 
 // --- Emotes ---
 app.get('/api/emotes', authController.requireAuth, gameController.getUserEmotes);

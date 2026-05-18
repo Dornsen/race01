@@ -105,7 +105,10 @@ function handleMatchStart(payload) {
     if (playerName) playerName.innerText = socketUser.username || 'Player';
     if (opponentName) opponentName.innerText = payload.opponent || 'Opponent';
     
-    if (typeof showCoinFlip === 'function') showCoinFlip('Flipping...');
+    if (typeof showCoinFlip === 'function') {
+        hasShownOnlineTurn = true;
+        showCoinFlip('Flipping...', payload.starterSocketId);
+    }
 }
 
 async function handleMatchEnd(payload) {

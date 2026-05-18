@@ -91,6 +91,22 @@ if (btnBackShop) {
     btnBackShop.onclick = () => switchScreen('shop', 'main-menu');
 }
 
+const btnShopOmamoriPack = document.getElementById('btn-shop-omamori-pack');
+if (btnShopOmamoriPack) {
+    btnShopOmamoriPack.onclick = () => {
+        if (typeof refreshBalance === 'function') refreshBalance();
+        switchScreen('shop', 'gacha');
+    };
+}
+
+const btnShopOmamoriRitual = document.getElementById('btn-shop-omamori-ritual');
+if (btnShopOmamoriRitual) {
+    btnShopOmamoriRitual.onclick = () => {
+        if (typeof refreshBalance === 'function') refreshBalance();
+        switchScreen('shop', 'gacha');
+    };
+}
+
 const btnBackGacha = document.getElementById('btn-back-gacha');
 if (btnBackGacha) {
     btnBackGacha.onclick = () => {

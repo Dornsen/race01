@@ -304,6 +304,7 @@ async function endMatch(match, io, result) {
    ========================================= */
 function createMatch(io, mode, playerA, playerB) {
     const matchId = `match_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const starter = Math.random() > 0.5 ? playerA : playerB;
     const match = {
         id: matchId,
         mode,
@@ -324,13 +325,12 @@ function createMatch(io, mode, playerA, playerB) {
     setUserStatus(playerA.userId, 'in battle');
     setUserStatus(playerB.userId, 'in battle');
 
-    io.to(playerA.socketId).emit('match_start', { mode, opponent: playerB.username, opponentAvatar: playerB.avatar, opponentFrameUrl: playerB.frameUrl });
-    io.to(playerB.socketId).emit('match_start', { mode, opponent: playerA.username, opponentAvatar: playerA.avatar, opponentFrameUrl: playerA.frameUrl });
+    io.to(playerA.socketId).emit('match_start', { mode, opponent: playerB.username, opponentAvatar: playerB.avatar, opponentFrameUrl: playerB.frameUrl, starterSocketId: starter.socketId });
+    io.to(playerB.socketId).emit('match_start', { mode, opponent: playerA.username, opponentAvatar: playerA.avatar, opponentFrameUrl: playerA.frameUrl, starterSocketId: starter.socketId });
 
     setTimeout(() => {
-        const starter = Math.random() > 0.5 ? playerA : playerB;
         startTurn(match, starter, io);
-    }, 1200);
+    }, 3250);
 }
 
 async function handleQueueJoin(io, socket, payload) {
