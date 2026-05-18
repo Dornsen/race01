@@ -4,7 +4,7 @@ module.exports = {
         await db.query(`
             CREATE TABLE IF NOT EXISTS shop_emotes (
                 emote_id INT PRIMARY KEY,
-                price INT NOT NULL DEFAULT 100,
+                price INT NOT NULL DEFAULT 750,
                 FOREIGN KEY (emote_id) REFERENCES emotes(id) ON DELETE CASCADE
             )
         `);
@@ -12,7 +12,7 @@ module.exports = {
         // Seed default prices for any emotes missing in shop_emotes
         const [emotes] = await db.query('SELECT id FROM emotes');
         if (emotes && emotes.length > 0) {
-            const values = emotes.map(e => [e.id, 100]);
+            const values = emotes.map(e => [e.id, 750]);
             await db.query('INSERT IGNORE INTO shop_emotes (emote_id, price) VALUES ?', [values]);
         }
 

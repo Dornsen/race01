@@ -36,6 +36,10 @@ const shopController = require('./controllers/shopController');
 const { setupSocket } = require('./game/socketGame');
 const questController = require('./controllers/questController');
 const adminController = require('./controllers/adminController');
+const fs = require('fs');
+
+const emoteStoragePath = path.join(__dirname, '../client/assets/emotes');
+if (!fs.existsSync(emoteStoragePath)) fs.mkdirSync(emoteStoragePath, { recursive: true });
 
 
 // --- Authentication Routes ---
@@ -89,6 +93,14 @@ app.delete('/api/admin/cards/:id', adminController.checkAdmin, adminController.d
 app.get('/api/admin/frames', adminController.checkAdmin, adminController.getAllFrames);
 app.post('/api/admin/frames', adminController.checkAdmin, adminController.saveFrame);
 app.delete('/api/admin/frames/:id', adminController.checkAdmin, adminController.deleteFrame);
+
+// Admin emotes management
+app.get('/api/admin/emotes', adminController.checkAdmin, adminController.getAllEmotes);
+app.post('/api/admin/emotes', adminController.checkAdmin, adminController.saveEmote);
+app.delete('/api/admin/emotes/:id', adminController.checkAdmin, adminController.deleteEmote);
+// Upload via base64 JSON (no multer required)
+app.post('/api/admin/emotes/upload-base64', adminController.checkAdmin, adminController.uploadEmoteBase64);
+app.post('/api/admin/emotes/grant/:id', adminController.checkAdmin, adminController.grantEmoteToAll);
 
 // --- Emotes ---
 app.get('/api/emotes', authController.requireAuth, gameController.getUserEmotes);

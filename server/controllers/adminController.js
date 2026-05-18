@@ -1,4 +1,6 @@
 const db = require('../config/database');
+const fs = require('fs');
+const path = require('path');
 
 const adminController = {
     checkAdmin: async (req, res, next) => {
@@ -117,6 +119,117 @@ const adminController = {
         try {
             await db.query('DELETE FROM shop_frames WHERE id = ?', [id]);
             res.json({ success: true, message: 'Frame deleted from the shop.' });
+        } catch (err) {
+            res.status(500).json({ error: err.message });
+        }
+    }
+,
+
+    // --- Emotes management for admin panel ---
+    getAllEmotes: async (req, res) => {
+        try {
+            const [rows] = await db.query(`
+                SELECT e.id, e.name, e.file_name, se.price
+                FROM emotes e
+                LEFT JOIN shop_emotes se ON se.emote_id = e.id
+                ORDER BY e.id DESC
+            `);
+            res.json(rows);
+        } catch (err) {
+            res.status(500).json({ error: err.message });
+        }
+    },
+
+    saveEmote: async (req, res) => {
+        const { id, name, file_name, price } = req.body;
+        try {
+            if (id) {
+                await db.query('UPDATE emotes SET name = ?, file_name = ? WHERE id = ?', [name, file_name, id]);
+                if (price !== undefined) {
+                    await db.query('INSERT INTO shop_emotes (emote_id, price) VALUES (?, ?) ON DUPLICATE KEY UPDATE price = VALUES(price)', [id, price]);
+                }
+                return res.json({ success: true, message: 'Emote updated.' });
+            } else {
+                const [result] = await db.query('INSERT INTO emotes (name, file_name) VALUES (?, ?)', [name, file_name]);
+                const newId = result.insertId;
+                if (price !== undefined) {
+                    await db.query('INSERT INTO shop_emotes (emote_id, price) VALUES (?, ?)', [newId, price]);
+                }
+                return res.json({ success: true, message: 'Emote created.', id: newId });
+            }
+        } catch (err) {
+            res.status(500).json({ error: err.message });
+        }
+    },
+
+    deleteEmote: async (req, res) => {
+        const { id } = req.params;
+        try {
+            await db.query('DELETE FROM emotes WHERE id = ?', [id]);
+            await db.query('DELETE FROM user_emotes WHERE emote_id = ?', [id]);
+            await db.query('DELETE FROM shop_emotes WHERE emote_id = ?', [id]);
+            await db.query('DELETE FROM user_emote_decks WHERE emote_id = ?', [id]);
+            res.json({ success: true, message: 'Emote and related references removed.' });
+        } catch (err) {
+            res.status(500).json({ error: err.message });
+        }
+    }
+
+    ,
+
+    uploadEmote: async (req, res) => {
+        // multer places file on req.file
+        try {
+            if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+            const fileName = req.file.filename || req.file.originalname;
+            const name = req.body.name || fileName;
+            const price = req.body.price;
+
+            const [result] = await db.query('INSERT INTO emotes (name, file_name) VALUES (?, ?)', [name, fileName]);
+            const newId = result.insertId;
+            if (price !== undefined && price !== '') {
+                await db.query('INSERT INTO shop_emotes (emote_id, price) VALUES (?, ?)', [newId, price]);
+            }
+            res.json({ success: true, message: 'Emote uploaded', id: newId });
+        } catch (err) {
+            res.status(500).json({ error: err.message });
+        }
+    },
+
+    grantEmoteToAll: async (req, res) => {
+        const { id } = req.params;
+        try {
+            await db.query('INSERT IGNORE INTO user_emotes (user_id, emote_id) SELECT id, ? FROM users', [id]);
+            res.json({ success: true, message: 'Emote granted to all users.' });
+        } catch (err) {
+            res.status(500).json({ error: err.message });
+        }
+    }
+
+    ,
+
+    uploadEmoteBase64: async (req, res) => {
+        try {
+            const { data, file_name, name, price } = req.body;
+            if (!data) return res.status(400).json({ error: 'Missing file data' });
+
+            const emoteDir = path.resolve(__dirname, '..', '..', 'client', 'assets', 'emotes');
+            if (!fs.existsSync(emoteDir)) fs.mkdirSync(emoteDir, { recursive: true });
+
+            const rawName = file_name || (`emote-${Date.now()}.png`);
+            const safeName = rawName.replace(/[^a-zA-Z0-9\.\-_]/g, '_');
+            const filePath = path.join(emoteDir, safeName);
+
+            const base64 = data.replace(/^data:.*;base64,/, '');
+            const buffer = Buffer.from(base64, 'base64');
+            fs.writeFileSync(filePath, buffer);
+
+            const [result] = await db.query('INSERT INTO emotes (name, file_name) VALUES (?, ?)', [name || safeName, safeName]);
+            const newId = result.insertId;
+            if (price !== undefined && price !== '') {
+                await db.query('INSERT INTO shop_emotes (emote_id, price) VALUES (?, ?)', [newId, price]);
+            }
+            res.json({ success: true, message: 'Emote uploaded (base64)', id: newId });
         } catch (err) {
             res.status(500).json({ error: err.message });
         }
