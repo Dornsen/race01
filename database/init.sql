@@ -278,6 +278,7 @@ CREATE TABLE IF NOT EXISTS lobby_news (
     cta_target VARCHAR(40) DEFAULT '',
     background_type ENUM('gradient', 'image') NOT NULL DEFAULT 'gradient',
     background_value TEXT NOT NULL,
+    clean_banner TINYINT(1) NOT NULL DEFAULT 0,
     status ENUM('draft', 'published', 'archived') NOT NULL DEFAULT 'draft',
     is_active TINYINT(1) NOT NULL DEFAULT 1,
     sort_order INT NOT NULL DEFAULT 0,
@@ -292,7 +293,7 @@ CREATE TABLE IF NOT EXISTS lobby_news (
     INDEX idx_news_dates (publish_from, publish_to)
 );
 
-INSERT INTO lobby_news (title, body, chip, cta_text, cta_target, background_type, background_value, status, is_active, sort_order)
+INSERT INTO lobby_news (title, body, chip, cta_text, cta_target, background_type, background_value, clean_banner, status, is_active, sort_order)
 SELECT * FROM (
     SELECT 'Season of Ash is Live' AS title,
         'New balance pass, faster queue timings and improved battle emote sync are now active in all modes.' AS body,
@@ -301,6 +302,7 @@ SELECT * FROM (
         'quests' AS cta_target,
         'gradient' AS background_type,
         'linear-gradient(135deg, rgba(106, 23, 17, 0.75), rgba(16, 18, 25, 0.9)), radial-gradient(circle at 15% 20%, rgba(240, 164, 84, 0.35), transparent 40%)' AS background_value,
+        0 AS clean_banner,
         'published' AS status,
         1 AS is_active,
         2 AS sort_order
@@ -312,19 +314,21 @@ SELECT * FROM (
         'leaderboard',
         'gradient',
         'linear-gradient(135deg, rgba(35, 53, 28, 0.75), rgba(12, 15, 18, 0.9)), radial-gradient(circle at 20% 15%, rgba(171, 209, 112, 0.3), transparent 40%)',
+        0,
         'published',
         1,
         3
-        UNION ALL
-        SELECT 'DIVINE PRESENCE',
-    'Legendary drops are now live. Claim your Omamori.',
-    'Divine',
-    'GET OMAMORI',
-    'gacha',
-    'image',
-    'assets/gachabaner.png',
-    'published',
-    1,
-    1
+    UNION ALL
+    SELECT 'DIVINE PRESENCE',
+        'Legendary drops are now live. Claim your Omamori.',
+        'Divine',
+        'GET OMAMORI',
+        'gacha',
+        'image',
+        'assets/gachabaner.png',
+        1,
+        'published',
+        1,
+        1
 ) AS seed
 WHERE NOT EXISTS (SELECT 1 FROM lobby_news LIMIT 1);

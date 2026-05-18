@@ -24,7 +24,8 @@ const fallbackLobbyNewsItems = [
         actionText: 'Go to Omamori',
         actionType: 'screen',
         actionTarget: 'gacha',
-        background: 'linear-gradient(135deg, rgba(26, 43, 68, 0.72), rgba(13, 16, 20, 0.92)), radial-gradient(circle at 80% 10%, rgba(89, 159, 255, 0.32), transparent 40%)'
+        background: 'linear-gradient(135deg, rgba(26, 43, 68, 0.72), rgba(13, 16, 20, 0.92)), radial-gradient(circle at 80% 10%, rgba(89, 159, 255, 0.32), transparent 40%)',
+        clean_banner: true
     },
     {
         id: 0,
@@ -126,14 +127,23 @@ function setLobbyNewsSlide(nextIndex) {
 
 function createLobbyNewsSlide(item) {
     const slide = document.createElement('article');
-    slide.className = 'lobby-news-slide';
+    slide.className = 'lobby-news-slide' + (item.clean_banner ? ' lobby-news-slide--clean' : '');
 
     if (item.background_type === 'image') {
         const bgValue = String(item.background || '').trim();
         const safeImage = bgValue.startsWith('url(') ? bgValue : `url('${bgValue}')`;
-        slide.style.background = `linear-gradient(180deg, rgba(10, 11, 16, 0.35), rgba(10, 11, 16, 0.72)), ${safeImage}`;
+        // Для clean_banner — без затемняющего градиента, только картинка
+        const bgImage = item.clean_banner
+            ? safeImage
+            : `linear-gradient(180deg, rgba(10, 11, 16, 0.35), rgba(10, 11, 16, 0.72)), ${safeImage}`;
+        slide.style.backgroundImage = bgImage;
+        slide.style.backgroundSize = item.clean_banner ? 'cover' : 'auto, cover';
+        slide.style.backgroundPosition = 'center, center';
+        slide.style.backgroundRepeat = 'no-repeat, no-repeat';
     } else {
-        slide.style.background = item.background;
+        slide.style.backgroundImage = item.background;
+        slide.style.backgroundSize = 'auto';
+        slide.style.backgroundPosition = 'center';
     }
 
     const chip = document.createElement('span');
@@ -177,7 +187,9 @@ function normalizeServerNews(rows) {
         actionType: row.cta_target ? 'screen' : '',
         actionTarget: row.cta_target || '',
         background_type: row.background_type || 'gradient',
-        background: row.background_value || 'linear-gradient(135deg, rgba(106, 23, 17, 0.75), rgba(16, 18, 25, 0.9))'
+        background: row.background_value || 'linear-gradient(135deg, rgba(106, 23, 17, 0.75), rgba(16, 18, 25, 0.9))',
+        // Явный флаг из БД, либо авто-определение для гача-баннеров с картинкой
+        clean_banner: !!row.clean_banner || (row.cta_target === 'gacha' && row.background_type === 'image')
     }));
 }
 
