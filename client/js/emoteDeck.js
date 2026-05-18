@@ -27,20 +27,31 @@ async function loadUserEmoteDeck() {
     } catch (e) { console.error('loadUserEmoteDeck', e); return []; }
 }
 
-function renderEmoteGrid(container, emotes, onClick) {
+function renderEmoteGrid(container, emotes, onClick, selectedIds = new Set(), forceDisabled = false) {
     container.innerHTML = '';
     emotes.forEach(e => {
         const img = document.createElement('img');
         img.src = `assets/emotes/${e.file_name}`;
         img.title = e.name;
         img.className = 'emote-item';
-        img.style.cursor = 'pointer';
-        img.onclick = () => onClick(e);
+        img.dataset.emoteId = String(e.id);
+        if (forceDisabled) {
+            img.classList.add('disabled');
+            img.style.cursor = 'not-allowed';
+            img.onclick = () => showNotification('You do not own this emote', true);
+        } else if (selectedIds.has(e.id)) {
+            img.classList.add('disabled');
+            img.style.cursor = 'not-allowed';
+            img.onclick = () => showNotification('Emote already in deck', true);
+        } else {
+            img.style.cursor = 'pointer';
+            img.onclick = () => onClick(e);
+        }
         container.appendChild(img);
     });
 }
 
-function renderSlots(container, slots) {
+function renderSlots(container, slots, onSlotChange) {
     container.innerHTML = '';
     for (let i = 0; i < EMOTE_DECK_SIZE; i++) {
         const slot = document.createElement('div');
@@ -51,7 +62,11 @@ function renderSlots(container, slots) {
             img.src = `assets/emotes/${slots[i].file_name}`;
             img.className = 'emote-item';
             slot.appendChild(img);
-            slot.onclick = () => { slots[i] = null; renderSlots(container, slots); };
+            slot.onclick = () => {
+                slots[i] = null;
+                renderSlots(container, slots, onSlotChange);
+                if (typeof onSlotChange === 'function') onSlotChange();
+            };
         } else {
             slot.innerText = '+';
             slot.onclick = () => {
@@ -86,23 +101,29 @@ async function openEmoteDeckModal() {
         }
     }
 
-    renderEmoteGrid(allGrid, missingEmotes, (em) => {
-        // place into first empty slot
+    // helper to compute selected ids
+    const selectedIds = () => new Set(slotEmotes.filter(Boolean).map(s => s.id));
+
+    const addEmoteToFirstEmpty = (em) => {
+        if (selectedIds().has(em.id)) return showNotification('Emote already in deck', true);
         const idx = slotEmotes.findIndex(s => s === null);
         if (idx === -1) return showNotification('No empty slot available', true);
         slotEmotes[idx] = em;
-        renderSlots(slotsGrid, slotEmotes);
-    });
+        renderSlots(slotsGrid, slotEmotes, refreshGrids);
+        // re-render grids to update disabled states
+        refreshGrids();
+    };
 
-    renderEmoteGrid(ownedGrid, ownedEmotes, (em) => {
-        // similar behavior
-        const idx = slotEmotes.findIndex(s => s === null);
-        if (idx === -1) return showNotification('No empty slot available', true);
-        slotEmotes[idx] = em;
-        renderSlots(slotsGrid, slotEmotes);
-    });
+    function refreshGrids() {
+        // missing emotes: show but disallow adding (not owned)
+        renderEmoteGrid(allGrid, missingEmotes, () => showNotification('You do not own this emote', true), selectedIds(), true);
+        // owned emotes: allow adding
+        renderEmoteGrid(ownedGrid, ownedEmotes, addEmoteToFirstEmpty, selectedIds());
+    }
 
-    renderSlots(slotsGrid, slotEmotes);
+    refreshGrids();
+
+    renderSlots(slotsGrid, slotEmotes, refreshGrids);
 
     document.getElementById('btn-save-emote-deck').onclick = async () => {
         const payload = slotEmotes.map(s => s ? s.id : null);

@@ -99,7 +99,12 @@
     <!-- Emote Deck Modal -->
     <div id="emote-deck-modal" class="modal hidden">
         <div class="modal-content emote-deck-container">
-            <span class="close-btn" id="close-emote-deck">&times;</span>
+            <button type="button" class="emote-deck-close-btn emote-deck-close-icon" id="close-emote-deck" aria-label="Close emote deck">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M6 18L18 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
             <h2>Emote Deck Builder</h2>
             <div class="emote-deck-body" style="display:flex;gap:20px;">
                     <div style="flex:1">
@@ -211,8 +216,8 @@
                 <p>Selected: <span id="deck-count" style="color: #2ecc71; font-weight: bold;">0</span> / <span id="deck-max">10</span></p>
             </div>
             <div class="deck-header-actions">
-                <button id="btn-save-deck" class="btn-deck-save">✔ Save</button>
                 <button id="btn-open-emotes" class="btn-deck-emotes">🎭 Emotes</button>
+                <button id="btn-save-deck" class="btn-deck-save">✔ Save</button>
                 <button id="btn-back-lobby" class="btn-deck-back">← Lobby</button>
             </div>
         </header>

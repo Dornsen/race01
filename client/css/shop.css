@@ -280,3 +280,22 @@
 
 .shop-body::-webkit-scrollbar { width: 5px; }
 .shop-body::-webkit-scrollbar-thumb { background: #633D3D; border-radius: 10px; }
+
+/* Стили для эмоций в магазине */
+.shop-emote-item::before {
+    display: none; /* Убирает пустой отступ от базового ::before */
+}
+
+.shop-emote-preview {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    margin-bottom: 10px;
+    filter: drop-shadow(0 0 8px rgba(0,0,0,0.5));
+    transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+.shop-emote-item:hover .shop-emote-preview {
+    transform: scale(1.15);
+    filter: drop-shadow(0 0 12px rgba(241, 196, 15, 0.5));
+}

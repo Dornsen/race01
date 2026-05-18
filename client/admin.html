@@ -43,6 +43,7 @@
     <div class="tabs">
         <button class="tab-btn active" onclick="switchTab('cards')">⛩️ Card Balancing & Management</button>
         <button class="tab-btn" onclick="switchTab('frames')">🖼️ Avatar Frames Store</button>
+        <button class="tab-btn" onclick="switchTab('emotes')">🎭 Emotes</button>
     </div>
 
     <div class="admin-layout">
@@ -96,6 +97,18 @@
                     { id: 'image_url', label: 'Asset Image URL Path', type: 'text', required: true, val: '/assets/avatar_frames/' }
                 ]
             }
+            ,
+            emotes: {
+                formTitle: 'Create / Edit Emote',
+                viewTitle: 'Emotes Catalog',
+                fields: [
+                    { id: 'id', label: 'Emote ID', type: 'text', required: false, disableOnEdit: true },
+                    { id: 'name', label: 'Emote Name', type: 'text', required: true },
+                    { id: 'file_name', label: 'File Name (assets/emotes/...)', type: 'text', required: false, val: 'assets/emotes/' },
+                    { id: 'file', label: 'Upload File', type: 'file', required: false },
+                    { id: 'price', label: 'Shop Price (optional)', type: 'number', required: false }
+                ]
+            }
         };
 
         function switchTab(tabName) {
@@ -113,7 +126,7 @@
             
             uiConfig[currentTab].fields.forEach(f => {
                 let html = `<div class="form-group ${f.type === 'checkbox' ? 'checkbox-row' : ''}">`;
-                if(f.type !== 'checkbox') html += `<label for="inp-${f.id}">${f.label}</label>`;
+                if(f.type !== 'checkbox' && f.type !== 'file') html += `<label for="inp-${f.id}">${f.label}</label>`;
                 
                 if(f.type === 'select') {
                     html += `<select id="inp-${f.id}">`;
@@ -121,6 +134,8 @@
                     html += `</select>`;
                 } else if(f.type === 'textarea') {
                     html += `<textarea id="inp-${f.id}" rows="3" ${f.required ? 'required' : ''}></textarea>`;
+                } else if(f.type === 'file') {
+                    html += `<input type="file" id="inp-${f.id}">`;
                 } else if(f.type === 'checkbox') {
                     html += `<input type="checkbox" id="inp-${f.id}"> <label for="inp-${f.id}">${f.label}</label>`;
                 } else {
@@ -146,7 +161,7 @@
             grid.innerHTML = '';
 
             serverDataCache.forEach(item => {
-                let node = `<div class="card-item">`;
+                let node = `<div class="card-item" onclick="triggerEditMode('${item.id}')">`;
                 if (currentTab === 'cards') {
                     node += `
                         <img src="${item.avatar_url}" onerror="this.src='assets/card_back.png'">
@@ -155,17 +170,27 @@
                         <div class="stats">⚔️ ${item.attack} | 🛡️ ${item.defense} | 💎 ${item.cost}</div>
                     `;
                 } else {
+                        if (currentTab === 'emotes') {
+                            node += `
+                            <img src="assets/emotes/${item.file_name}" style="height:100px; object-fit:contain;">
+                            <h4>${item.name}</h4>
+                            <div class="meta">ID: ${item.id}</div>
+                            <div class="stats">💰 ${(item.price || '—')}</div>
+                        `;
+                        } else {
                     node += `
                         <img src="${item.image_url}" style="height:100px; object-fit:contain;">
                         <h4>${item.name}</h4>
                         <div class="meta">ID: ${item.id}</div>
                         <div class="stats">💰 ${item.price} Gold</div>
                     `;
+                        }
                 }
                 node += `
                     <div class="actions">
-                        <button class="btn-edit" onclick="triggerEditMode('${item.id}')">✏️</button>
-                        <button class="btn-delete" onclick="triggerDelete('${item.id}')">❌</button>
+                            <button class="btn-edit" onclick="event.stopPropagation(); triggerEditMode('${item.id}')">✏️</button>
+                            <button class="btn-delete" onclick="event.stopPropagation(); triggerDelete('${item.id}')">❌</button>
+                            ${currentTab === 'emotes' ? `<button class="btn-edit" onclick="event.stopPropagation(); triggerGrant('${item.id}')">🎁 Grant to All</button>` : ''}
                     </div>
                 </div>`;
                 grid.innerHTML += node;
@@ -179,6 +204,34 @@
 
             if (currentTab === 'frames') {
                 payload.isNewFrame = !isEditMode;
+            }
+
+            // handle file upload for emotes
+            if (currentTab === 'emotes') {
+                const fileInput = document.getElementById('inp-file');
+                const hasFile = fileInput && fileInput.files && fileInput.files.length > 0;
+                if (hasFile) {
+                    const file = fileInput.files[0];
+                    const base64 = await new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onerror = () => reject('File read error');
+                        reader.onload = () => resolve(reader.result);
+                        reader.readAsDataURL(file);
+                    });
+
+                    const nameField = document.getElementById('inp-name');
+                    const priceField = document.getElementById('inp-price');
+                    const payloadUpload = {
+                        name: nameField ? nameField.value : file.name,
+                        file_name: file.name,
+                        price: priceField ? priceField.value : '',
+                        data: base64
+                    };
+
+                    const res = await fetch('/api/admin/emotes/upload-base64', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payloadUpload) });
+                    if (res.ok) { clearForm(); fetchSystemData(); return; }
+                    else { alert('🔴 Upload failed'); return; }
+                }
             }
 
             uiConfig[currentTab].fields.forEach(f => {
@@ -229,6 +282,16 @@
                 if(document.getElementById('item-id').value === String(id)) clearForm();
             } else {
                 alert('🔴 Deletion failed.');
+            }
+        }
+
+        async function triggerGrant(id) {
+            if (!confirm('Grant this emote to ALL users?')) return;
+            const res = await fetch(`/api/admin/emotes/grant/${id}`, { method: 'POST' });
+            if (res.ok) {
+                alert('✅ Emote granted to all users.');
+            } else {
+                alert('🔴 Grant failed.');
             }
         }
 

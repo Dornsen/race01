@@ -256,14 +256,14 @@ ON DUPLICATE KEY UPDATE
     image_url = VALUES(image_url);
 
 INSERT INTO emotes (name, file_name, price) VALUES
-('Angry', 'emote_angry.png', 100),
-('Confused', 'emote_confused.png', 80),
-('Cry baby', 'emote_cry_baby.png', 120),
-('Flirt', 'emote_flirt.png', 150),
-('Sad', 'emote_sad.png', 80),
-('Shy', 'emote_shy.png', 90),
-('Stair', 'emote_stair.png', 70),
-('Tilted', 'emote_tilted.png', 110)
+('Angry', 'emote_angry.png', 750),
+('Confused', 'emote_confused.png', 750),
+('Cry baby', 'emote_cry_baby.png', 750),
+('Flirt', 'emote_flirt.png', 750),
+('Sad', 'emote_sad.png', 750),
+('Shy', 'emote_shy.png', 750),
+('Stair', 'emote_stair.png', 750),
+('Tilted', 'emote_tilted.png', 750)
 
 ON DUPLICATE KEY UPDATE 
     name = VALUES(name),
