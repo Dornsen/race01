@@ -173,7 +173,7 @@
     text-shadow: 0 2px 10px rgba(0, 0, 0, 0.55);
     overflow: hidden;
     display: -webkit-box;
-    -webkit-line-clamp: 3;
+    line-clamp: 3;
     -webkit-box-orient: vertical;
 }
 
@@ -270,12 +270,67 @@
 
 .lobby-news-slide--clean .lobby-news-action {
     align-self: center !important;
-    margin: 0 0 24px;
-    padding: 10px 28px;
-    font-size: 0.95rem;
-    background: rgba(0, 0, 0, 0.5) !important;
-    border-color: rgba(196, 164, 108, 0.55) !important;
-    backdrop-filter: blur(4px);
+    margin: 0 0 28px; /* Оставляем аккуратный отступ от нижнего края */
+    padding: 12px 36px; /* Делаем кнопку более вытянутой и солидной */
+    font-size: 1rem;
+    font-family: 'Marcellus', serif; /* Твой фирменный шрифт из разметки лобби */
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #F4F1E1 !important;
+    
+    /* Эффект глубокого Liquid Glass (матовое багровое сукно) */
+    background: linear-gradient(180deg, rgba(139, 35, 50, 0.5) 0%, rgba(94, 20, 31, 0.35) 100%) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    
+    /* Древне-золотая рамка с упором на нижнюю грань */
+    border: 1px solid rgba(196, 164, 108, 0.35) !important;
+    border-bottom: 3px solid #C4A46C !important;
+    border-radius: 10px;
+    
+    /* Объемные мягкие тени и внутренний свет */
+    box-shadow: 
+        0 12px 24px rgba(0, 0, 0, 0.55),
+        inset 0 1px 1px rgba(255, 255, 255, 0.15);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+    
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.lobby-news-slide--clean .lobby-news-action:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(180deg, rgba(156, 39, 56, 0.7) 0%, rgba(110, 23, 36, 0.5) 100%) !important;
+    border-color: #ffd700 !important;
+    border-bottom-color: #ffd700 !important;
+    color: #FFF !important;
+    box-shadow: 
+        0 16px 32px rgba(0, 0, 0, 0.65),
+        0 0 20px rgba(241, 196, 15, 0.4),
+        inset 0 1px 1px rgba(255, 255, 255, 0.25);
+}
+
+.lobby-news-slide--clean .lobby-news-action:active {
+    transform: translateY(1px);
+    border-bottom-width: 1px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+/* Мягкий световой блик, пробегающий по стеклу при наведении */
+.lobby-news-slide--clean .lobby-news-action::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 50%; height: 100%;
+    background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.18), transparent);
+    transform: skewX(-25deg);
+    transition: left 0.55s ease;
+}
+
+.lobby-news-slide--clean .lobby-news-action:hover::before {
+    left: 150%;
 }
 
 /* Hover-анимация аватара в лобби — такая же как в режиме боя */
