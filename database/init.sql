@@ -303,18 +303,7 @@ SELECT * FROM (
         'linear-gradient(135deg, rgba(106, 23, 17, 0.75), rgba(16, 18, 25, 0.9)), radial-gradient(circle at 15% 20%, rgba(240, 164, 84, 0.35), transparent 40%)' AS background_value,
         'published' AS status,
         1 AS is_active,
-        1 AS sort_order
-    UNION ALL
-    SELECT 'Omamori Event Banner',
-        'Ritual x5 is still discounted. Visit Omamori and claim your guaranteed epic+ card in the final pack.',
-        'Shop',
-        'Go to Omamori',
-        'gacha',
-        'gradient',
-        'linear-gradient(135deg, rgba(26, 43, 68, 0.72), rgba(13, 16, 20, 0.92)), radial-gradient(circle at 80% 10%, rgba(89, 159, 255, 0.32), transparent 40%)',
-        'published',
-        1,
-        2
+        2 AS sort_order
     UNION ALL
     SELECT 'Challenge Friends Instantly',
         'Right-click a friend to send a duel invite and jump straight into a live PvP match.',
@@ -326,5 +315,16 @@ SELECT * FROM (
         'published',
         1,
         3
+        UNION ALL
+        SELECT 'DIVINE PRESENCE',
+    'Legendary drops are now live. Claim your Omamori.',
+    'Divine',
+    'GET OMAMORI',
+    'gacha',
+    'image',
+    'assets/gachabaner.png',
+    'published',
+    1,
+    1
 ) AS seed
 WHERE NOT EXISTS (SELECT 1 FROM lobby_news LIMIT 1);
