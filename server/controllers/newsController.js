@@ -15,6 +15,7 @@ function normalizeNewsPayload(payload = {}) {
     const backgroundValue = String(payload.background_value || '').trim();
     const status = ['draft', 'published', 'archived'].includes(payload.status) ? payload.status : 'draft';
     const isActive = payload.is_active ? 1 : 0;
+    const cleanBanner = payload.clean_banner ? 1 : 0;
     const sortOrder = Number.isFinite(Number(payload.sort_order)) ? Number(payload.sort_order) : 0;
 
     const publishFrom = payload.publish_from ? new Date(payload.publish_from) : null;
@@ -38,6 +39,7 @@ function normalizeNewsPayload(payload = {}) {
         backgroundValue,
         status,
         isActive,
+        cleanBanner,
         sortOrder,
         publishFrom: fromSql,
         publishTo: toSql
@@ -128,6 +130,7 @@ const newsController = {
                     cta_target,
                     background_type,
                     background_value,
+                    clean_banner,
                     status,
                     is_active,
                     sort_order,
@@ -166,6 +169,7 @@ const newsController = {
                         cta_target = ?,
                         background_type = ?,
                         background_value = ?,
+                        clean_banner = ?,
                         status = ?,
                         is_active = ?,
                         sort_order = ?,
@@ -180,6 +184,7 @@ const newsController = {
                     payload.ctaTarget,
                     payload.backgroundType,
                     payload.backgroundValue,
+                    payload.cleanBanner,
                     payload.status,
                     payload.isActive,
                     payload.sortOrder,
@@ -192,8 +197,8 @@ const newsController = {
 
             await db.query(`
                 INSERT INTO lobby_news
-                    (title, body, chip, cta_text, cta_target, background_type, background_value, status, is_active, sort_order, publish_from, publish_to, created_by)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    (title, body, chip, cta_text, cta_target, background_type, background_value, clean_banner, status, is_active, sort_order, publish_from, publish_to, created_by)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `, [
                 payload.title,
                 payload.body,
@@ -202,6 +207,7 @@ const newsController = {
                 payload.ctaTarget,
                 payload.backgroundType,
                 payload.backgroundValue,
+                payload.cleanBanner,
                 payload.status,
                 payload.isActive,
                 payload.sortOrder,
@@ -246,8 +252,8 @@ const newsController = {
 
             await db.query(`
                 INSERT INTO lobby_news
-                    (title, body, chip, cta_text, cta_target, background_type, background_value, status, is_active, sort_order, publish_from, publish_to, created_by)
-                VALUES (?, ?, ?, ?, ?, ?, ?, 'draft', 0, ?, ?, ?, ?)
+                    (title, body, chip, cta_text, cta_target, background_type, background_value, clean_banner, status, is_active, sort_order, publish_from, publish_to, created_by)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'draft', 0, ?, ?, ?, ?)
             `, [
                 `${source.title} (Copy)`,
                 source.body,
@@ -256,6 +262,7 @@ const newsController = {
                 source.cta_target,
                 source.background_type,
                 source.background_value,
+                source.clean_banner,
                 nextOrder,
                 source.publish_from,
                 source.publish_to,
