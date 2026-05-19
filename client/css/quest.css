@@ -136,10 +136,6 @@
 .quests-body::-webkit-scrollbar { width: 6px; }
 .quests-body::-webkit-scrollbar-thumb { background: #633D3D; border-radius: 10px; }
 
-/* ==================================================
-   ЭЛЕГАНТНОЕ ОКНО НАГРАДЫ ЗА КВЕСТЫ (QUEST REWARD)
-   ================================================== */
-
 .reward-overlay {
     position: fixed;
     inset: 0;
@@ -148,7 +144,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 99999; /* Поверх всех меню и списков */
+    z-index: 99999;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.35s ease;
@@ -161,11 +157,11 @@
 
 .reward-card {
     background: radial-gradient(circle, rgba(24, 28, 35, 0.99) 0%, rgba(12, 14, 18, 1) 100%);
-    border: 2px solid #BBA78D; /* Благородное старое золото квестов */
+    border: 2px solid #BBA78D;
     box-shadow: 
         0 15px 40px rgba(0, 0, 0, 0.9),
         inset 0 0 25px rgba(187, 167, 141, 0.15),
-        0 0 50px rgba(187, 167, 141, 0.15); /* Мягкий золотой ореол */
+        0 0 50px rgba(187, 167, 141, 0.15);
     padding: 45px 50px;
     border-radius: 16px;
     text-align: center;
@@ -182,7 +178,6 @@
     opacity: 1;
 }
 
-/* Фирменная штрихованная внутренняя рамка KIRI */
 .reward-card::before {
     content: '';
     position: absolute;
@@ -192,7 +187,6 @@
     pointer-events: none;
 }
 
-/* Левитирующая иконка награды */
 .reward-icon-animate {
     font-size: 3.8rem;
     line-height: 1;
@@ -219,7 +213,6 @@
     line-height: 1.45;
 }
 
-/* Подложка для счетчика монет */
 .reward-amount {
     display: inline-flex;
     align-items: center;
@@ -245,7 +238,6 @@
     text-shadow: 0 0 10px rgba(241, 196, 15, 0.3);
 }
 
-/* Кнопка Claim Reward */
 .reward-collect-btn {
     width: auto !important;
     min-width: 190px;
@@ -259,7 +251,7 @@
     cursor: pointer;
     margin: 0 auto !important;
     display: inline-block;
-    background: linear-gradient(180deg, #633D3D 0%, #4A2D2D 100%) !important; /* Твой оригинальный цвет кнопок лобби */
+    background: linear-gradient(180deg, #633D3D 0%, #4A2D2D 100%) !important; 
     border: 1px solid #3A1F1F !important;
     color: #F4F1E1 !important;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
@@ -277,7 +269,6 @@
     transform: translateY(0px) !important;
 }
 
-/* Анимация парения тори */
 @keyframes reward-icon-bounce {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-6px); filter: drop-shadow(0 0 20px rgba(241, 196, 15, 0.7)); }

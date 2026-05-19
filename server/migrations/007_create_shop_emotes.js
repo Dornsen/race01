@@ -7,9 +7,7 @@ module.exports = {
                 price INT NOT NULL DEFAULT 750,
                 FOREIGN KEY (emote_id) REFERENCES emotes(id) ON DELETE CASCADE
             )
-        `);
-
-        // Seed default prices for any emotes missing in shop_emotes
+        `); 
         const [emotes] = await db.query('SELECT id FROM emotes');
         if (emotes && emotes.length > 0) {
             const values = emotes.map(e => [e.id, 750]);

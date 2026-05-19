@@ -36,10 +36,29 @@ module.exports = {
             await db.query('DELETE FROM emotes WHERE id IN (?)', [duplicateIds]);
         }
 
-        await db.query(`
-            ALTER TABLE emotes
-            ADD UNIQUE KEY uniq_emotes_file_name (file_name)
-        `);
+        const [existingKey] = await db.query(
+            `
+            SELECT INDEX_NAME, NON_UNIQUE
+            FROM information_schema.statistics
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = 'emotes'
+              AND INDEX_NAME = 'uniq_emotes_file_name'
+            LIMIT 1
+            `
+        );
+
+        if (existingKey.length === 0) {
+            await db.query(`
+                ALTER TABLE emotes
+                ADD UNIQUE KEY uniq_emotes_file_name (file_name)
+            `);
+        } else if (Number(existingKey[0].NON_UNIQUE) === 1) {
+            await db.query(`
+                ALTER TABLE emotes
+                DROP INDEX uniq_emotes_file_name,
+                ADD UNIQUE KEY uniq_emotes_file_name (file_name)
+            `);
+        }
 
         console.log('[Migration 009] Duplicate emotes removed and file_name uniqueness enforced.');
     }

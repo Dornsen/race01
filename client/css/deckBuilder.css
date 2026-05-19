@@ -81,10 +81,9 @@
     box-shadow: 0 0 5px rgba(46, 204, 113, 0.3) !important;
 }
 
-/* ── КНОПКА НАЗАД В ЛОББИ (Приглушенный багрово-алый в стиль вашей темы) ── */
 .btn-deck-back {
     background: rgba(99, 61, 61, 0.2) !important;
-    color: #D0CBB5 !important; /* Приятный кремовый цвет вместо агрессивного красного */
+    color: #D0CBB5 !important;
     padding: 10px 24px !important;
     border: 1px solid rgba(99, 61, 61, 0.5) !important;
     border-radius: 8px !important;
@@ -104,7 +103,7 @@
 
 .btn-deck-back:hover {
     background: rgba(99, 61, 61, 0.45) !important;
-    border-color: #ff4d4d !important; /* Алое свечение при наведении */
+    border-color: #ff4d4d !important;
     color: #F4F1E1 !important;
     box-shadow: 0 0 15px rgba(99, 61, 61, 0.6), 0 4px 15px rgba(0, 0, 0, 0.5) !important;
     transform: translateY(-1px) !important;
@@ -350,7 +349,7 @@
     width: 160px;
     height: auto;
     aspect-ratio: 600 / 984;
-    background: transparent !important; /* Убираем черный фон, чтобы видеть арт целиком */
+    background: transparent !important;
     border: 1px solid rgba(139, 126, 109, 0.3);
     border-radius: 8px;
     overflow: visible;
@@ -363,9 +362,8 @@
 }
 
 .card:hover {
-    transform: translateY(-8px); /* Карта просто приподнимается */
+    transform: translateY(-8px);
     border-color: #633D3D;
-    /* Багровое свечение вместо зума */
     filter: drop-shadow(0 0 12px rgba(99, 61, 61, 0.6)); 
     z-index: 20;
 }
@@ -414,7 +412,6 @@
     align-items: center;
     gap: 10px;
     padding: 8px 8px 0;
-    /* Убираем черный градиент и делаем фон прозрачным */
     background: transparent !important; 
     text-align: right;
     
@@ -426,12 +423,12 @@
     flex-shrink: 0;
     width: 42px;
     height: 42px;
-    margin-left: -8px; /* Небольшой отступ от левого края карты */
+    margin-left: -8px;
     margin-top: -5px;
 }
 
 .card-cost-icon {
-    width: 48px;  /* Было 34px */
+    width: 48px;
     height: 48px;
     display: block;
     filter: drop-shadow(0 1px 3px rgba(0,0,0,0.9));
@@ -488,7 +485,6 @@
     align-items: center;
     justify-content: space-between;
     padding: 0 8px 8px;
-    /* Убираем черный градиент и делаем фон прозрачным */
     background: transparent !important;
 }
 
@@ -727,9 +723,8 @@
     background: transparent !important;
 }
 
-/* Базовый стиль для всех иконок клана */
 .clan-icon-svg {
-    width: 26px; /* или твой размер */
+    width: 26px; 
     height: 26px;
     display: block;
 }
@@ -755,24 +750,21 @@
     transform: translate(0, -0.5px);
 }
 
-/* Когда к модальному окну добавляется класс .with-preview, 
-   мы превращаем его во флекс-контейнер, чтобы всё выстроилось в ряд */
 .deck-modal-content.with-preview {
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 20px; /* Расстояние между текстом и картой */
-    max-width: 700px; /* Увеличиваем ширину окна, чтобы поместилась и инфа, и карта */
+    gap: 20px; 
+    max-width: 700px;
 }
 
-/* Стили для контейнера самой карты рядом с инфой */
 .modal-side-card-preview {
     flex-shrink: 0;
     animation: fadeIn 0.2s ease-in-out;
 }
 
 .modal-side-card-preview .card {
-    transform: scale(1.1); /* Можно немного увеличить или уменьшить карту при необходимости */
+    transform: scale(1.1);
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
 }
 
@@ -781,24 +773,21 @@
     to { opacity: 1; transform: translateX(0); }
 }
 
-/* Контейнер для отдельно стоящей карты рядом с модальным окном */
 .separate-card-preview {
     flex-shrink: 0;
-    pointer-events: none; /* Карта просто для красоты, сквозь неё можно кликать на фон */
+    pointer-events: none;
     animation: scaleInCard 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
     z-index: 101;
 }
 
-/* Делаем саму карту чуть больше, добавляем красивое свечение */
 .separate-card-preview .card {
     width: 220px;
     height: auto;
     box-shadow: 0 25px 50px rgba(0, 0, 0, 0.8), 
                 0 0 40px rgba(255, 255, 255, 0.1);
-    pointer-events: auto; /* Позволяет предотвращать на ней нативный ПКМ */
+    pointer-events: auto;
 }
 
-/* Анимация плавного появления с легким увеличением */
 @keyframes scaleInCard {
     from {
         opacity: 0;
@@ -810,14 +799,13 @@
     }
 }
 
-/* --- КРАСИВЫЙ ЗОЛОТОЙ ТУМБЛЕР ОТОБРАЖЕНИЯ КОЛЛЕКЦИИ --- */
 .deck-toggle-wrapper {
     display: flex;
     align-items: center;
     gap: 12px;
     background: rgba(0, 0, 0, 0.4);
     padding: 8px 16px;
-    border-radius: 10px; /* Аккуратный плиточный радиус */
+    border-radius: 10px;
     border: 1px solid rgba(196, 154, 60, 0.15);
     user-select: none;
     display: inline-flex;
@@ -831,7 +819,6 @@
     letter-spacing: 1px;
 }
 
-/* Контейнер самого свитча */
 .gold-switch {
     position: relative;
     display: inline-block;
@@ -839,14 +826,12 @@
     height: 24px;
 }
 
-/* Прячем стандартный чекбокс */
 .gold-switch input {
     opacity: 0;
     width: 0;
     height: 0;
 }
 
-/* Дорожка (трек) тумблера */
 .gold-slider {
     position: absolute;
     cursor: pointer;
@@ -858,7 +843,6 @@
     box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5);
 }
 
-/* Кругляшок тумблера */
 .gold-slider::before {
     content: "";
     position: absolute;
@@ -872,21 +856,18 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
 }
 
-/* Состояние ВКЛЮЧЕНО (Когда нажали "Owned only") */
 .gold-switch input:checked + .gold-slider {
     background: linear-gradient(135deg, rgba(196, 154, 60, 0.2) 0%, rgba(139, 110, 43, 0.1) 100%);
     border-color: #c49a3c;
     box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3), 0 0 10px rgba(196, 154, 60, 0.25);
 }
 
-/* Смещение рычажка вправо и золотое свечение */
 .gold-switch input:checked + .gold-slider::before {
     transform: translateX(22px);
     background: linear-gradient(135deg, #f1c40f 0%, #c49a3c 100%);
     box-shadow: 0 0 8px rgba(241, 196, 15, 0.6), 0 2px 4px rgba(0, 0, 0, 0.4);
 }
 
-/* Наведение на переключатель */
 .gold-switch:hover .gold-slider {
     border-color: rgba(196, 154, 60, 0.6);
 }

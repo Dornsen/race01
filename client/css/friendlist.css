@@ -1,11 +1,11 @@
 .friendlist-sidebar {
     width: 300px;
-    background: rgba(12, 14, 18, 0.75); /* Чуть темнее и плотнее */
+    background: rgba(12, 14, 18, 0.75);
     backdrop-filter: blur(12px);
     padding: 24px;
     display: flex;
     flex-direction: column;
-    border-right: 1px solid rgba(99, 61, 61, 0.3); /* Цвет бордо вместо серого */
+    border-right: 1px solid rgba(99, 61, 61, 0.3);
     box-shadow: 5px 0 25px rgba(0, 0, 0, 0.5);
 }
 
@@ -14,7 +14,7 @@
     font-size: 1.1rem;
     font-weight: 600;
     margin-bottom: 20px;
-    color: #F4F1E1; /* Светлый благородный цвет */
+    color: #F4F1E1;
     text-transform: uppercase;
     letter-spacing: 2px;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
@@ -79,7 +79,7 @@
 .friend-item:hover { 
     background: rgba(99, 61, 61, 0.15); 
     border-color: rgba(99, 61, 61, 0.3);
-    padding-left: 12px; /* Эффект легкого сдвига при наведении */
+    padding-left: 12px;
 }
 
 .friend-info {
@@ -118,7 +118,6 @@
     border-color: #633D3D;
 }
 
-/* Hover на контейнере аватара в друзьях — такая же анимация как в бою */
 .friend-info .avatar-container:hover {
     transform: scale(1.1) translateY(-3px) !important;
     box-shadow:
@@ -126,8 +125,6 @@
         0 0 14px rgba(241, 196, 15, 0.4) !important;
 }
 
-/* Рамка точно поверх аватара — как в лобби и в режиме боя.
-   FIX: было top:-2px; left:-2px — рамка чуть уезжала */
 .friend-avatar-wrap .frame-overlay {
     position: absolute;
     top: 0;
@@ -151,7 +148,6 @@
     color: #F4F1E1;
 }
 
-/* Статус (Онлайн/В бою/Оффлайн) */
 .friend-status {
     font-size: 0.75rem;
     text-transform: uppercase;
@@ -176,7 +172,6 @@
     opacity: 0.6;
 }
 
-/* Стили для красивой модалки удаления */
 .confirmation-card {
     border: 1px solid #633D3D !important;
     box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.05);
@@ -213,7 +208,6 @@
     gap: 12px;
 }
 
-/* Кнопки внутри модалки */
 .modal-actions-alt .ctx-btn {
     width: 100%;
     padding: 12px;
@@ -228,7 +222,6 @@
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
 }
 
-/* Кнопка удаления (Бордово-красная) */
 .modal-actions-alt .danger-btn {
     background: linear-gradient(180deg, #8b3d3d 0%, #572d2d 100%);
     border: 1px solid #4a1f1f;
@@ -241,7 +234,6 @@
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
 }
 
-/* Кнопка отмены (Темная / Нейтральная) */
 .modal-actions-alt .cancel-btn {
     background: linear-gradient(180deg, #2c2f36 0%, #1a1c20 100%);
     border: 1px solid #141619;
@@ -254,15 +246,14 @@
     transform: translateY(-1px);
 }
 
-/* Обертка для карточки запроса прямо в сайдбаре */
 .friend-request-item {
     display: flex;
     flex-direction: column;
     gap: 8px;
     padding: 12px;
-    background: rgba(99, 61, 61, 0.04); /* Тонкий бордовый фон KIRI */
+    background: rgba(99, 61, 61, 0.04);
     border: 1px solid rgba(139, 126, 109, 0.15);
-    border-left: 3px solid #633D3D; /* Акцентная линия */
+    border-left: 3px solid #633D3D;
     border-radius: 6px;
     margin-bottom: 10px;
     transition: all 0.25s ease-in-out;
@@ -274,7 +265,6 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
-/* Верхняя часть: аватар, имя и тег */
 .friend-request-header {
     display: flex;
     align-items: center;
@@ -288,7 +278,6 @@
     gap: 10px;
 }
 
-/* Аккуратный тег "Request" */
 .friend-request-tag {
     font-size: 0.65rem;
     color: #8B7E6D;
@@ -300,7 +289,6 @@
     border: 1px solid rgba(139, 126, 109, 0.1);
 }
 
-/* Блок с кнопками действий */
 .friend-request-actions {
     display: flex;
     gap: 8px;
@@ -308,7 +296,6 @@
     margin-top: 4px;
 }
 
-/* Микро-кнопки под размер панели друзей */
 .friend-request-actions button {
     flex: 1;
     width: 100%;
@@ -325,7 +312,6 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-/* Кнопка Accept (Благородный приглушенный зеленый) */
 .friend-request-actions .btn-accept {
     background: linear-gradient(180deg, #2ecc71 0%, #219653 100%) !important;
     border: 1px solid #27ae60 !important;
@@ -337,7 +323,6 @@
     box-shadow: 0 4px 10px rgba(46, 204, 113, 0.3);
 }
 
-/* Кнопка Decline (Темная, подсвечивается бордовым) */
 .friend-request-actions .btn-decline {
     background: linear-gradient(180deg, #2c2f36 0%, #1a1c20 100%) !important;
     border: 1px solid #141619 !important;

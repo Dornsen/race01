@@ -1,7 +1,6 @@
-/* Затемнение экрана под модалкой */
 .invite-modal {
     position: fixed;
-    z-index: 10000; /* Выше всего интерфейса */
+    z-index: 10000; 
     left: 0;
     top: 0;
     width: 100%;
@@ -13,10 +12,9 @@
     align-items: center;
 }
 
-/* Сама карточка приглашения */
 .invite-card-alt {
     background: rgba(15, 18, 22, 0.98) !important;
-    border: 1px solid #633D3D !important; /* Наша фирменная бордовая рамка */
+    border: 1px solid #633D3D !important;
     border-radius: 12px;
     padding: 35px 30px !important;
     max-width: 380px;
@@ -30,7 +28,6 @@
     to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* Иконка мечей сверху */
 .invite-icon-wrap {
     font-size: 2.5rem;
     margin-bottom: 15px;
@@ -44,7 +41,6 @@
     100% { transform: scale(1); }
 }
 
-/* Заголовок окна */
 .invite-title-alt {
     font-family: 'Marcellus', serif !important;
     color: #F4F1E1;
@@ -56,7 +52,6 @@
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
 }
 
-/* Текст внутри */
 .invite-text-alt {
     color: #8B7E6D !important;
     font-size: 0.95rem !important;
@@ -64,13 +59,11 @@
     margin-bottom: 28px !important;
 }
 
-/* Контейнер кнопок */
 .invite-actions-alt {
     display: flex;
     gap: 14px;
 }
 
-/* Общие стили кнопок реквеста */
 .invite-btn {
     width: 100%;
     padding: 14px 20px !important;
@@ -86,7 +79,6 @@
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
 }
 
-/* Зелёная кнопка Accept (Принять вызов) */
 .invite-btn.accept-btn {
     background: linear-gradient(180deg, #2ecc71 0%, #219653 100%) !important;
     border: 1px solid #27ae60 !important;
@@ -99,7 +91,6 @@
     box-shadow: 0 6px 14px rgba(46, 204, 113, 0.4);
 }
 
-/* Бордово-темная кнопка Decline (Отклонить) */
 .invite-btn.decline-btn {
     background: linear-gradient(180deg, #2c2f36 0%, #1a1c20 100%) !important;
     border: 1px solid #141619 !important;

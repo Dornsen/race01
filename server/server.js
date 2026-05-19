@@ -14,7 +14,6 @@ app.use((req, res, next) => {
     next();
 });
 
-// Allow larger JSON payloads for base64 image uploads (emotes/news)
 app.use(express.json({ limit: '12mb' }));
 app.use(express.urlencoded({ extended: true, limit: '12mb' }));
 app.use(express.static(path.join(__dirname, '../client')));
@@ -108,6 +107,7 @@ app.post('/api/admin/emotes', adminController.checkAdmin, adminController.saveEm
 app.delete('/api/admin/emotes/:id', adminController.checkAdmin, adminController.deleteEmote);
 // Upload via base64 JSON (no multer required)
 app.post('/api/admin/emotes/upload-base64', adminController.checkAdmin, adminController.uploadEmoteBase64);
+app.post('/api/admin/assets/upload-image', adminController.checkAdmin, adminController.uploadAssetImageBase64);
 app.post('/api/admin/emotes/grant/:id', adminController.checkAdmin, adminController.grantEmoteToAll);
 
 // Admin news image upload (base64)

@@ -94,6 +94,7 @@ input[type="checkbox"]{width:20px;height:20px;margin:0;accent-color:var(--gold);
                     { id: 'defense', label: 'Defense Points', type: 'number', required: true },
                     { id: 'cost', label: 'Energy/Mana Cost', type: 'number', required: true },
                     { id: 'avatar_url', label: 'Asset Path (Image URL)', type: 'text', required: true, val: 'assets/cards/' },
+                    { id: 'avatar_file', label: 'Upload Card Image', type: 'file', required: false },
                     { id: 'ability_code', label: 'Ability Trigger Code', type: 'text', required: true },
                     { id: 'is_basic', label: 'Is Starter/Basic Card?', type: 'checkbox', val: false },
                     { id: 'description', label: 'Flavor Lore Text', type: 'textarea', required: true },
@@ -107,7 +108,8 @@ input[type="checkbox"]{width:20px;height:20px;margin:0;accent-color:var(--gold);
                     { id: 'id', label: 'Frame String ID (e.g. 7frame)', type: 'text', required: true, disableOnEdit: true },
                     { id: 'name', label: 'Visual Frame Name', type: 'text', required: true },
                     { id: 'price', label: 'In-Game Gold Price', type: 'number', required: true },
-                    { id: 'image_url', label: 'Asset Image URL Path', type: 'text', required: true, val: '/assets/avatar_frames/' }
+                    { id: 'image_url', label: 'Asset Image URL Path', type: 'text', required: true, val: '/assets/avatar_frames/' },
+                    { id: 'image_file', label: 'Upload Frame Image', type: 'file', required: false }
                 ]
             },
             emotes: {
@@ -166,7 +168,7 @@ input[type="checkbox"]{width:20px;height:20px;margin:0;accent-color:var(--gold);
 
             uiConfig[currentTab].fields.forEach((f) => {
                 let html = `<div class="form-group ${f.type === 'checkbox' ? 'checkbox-row' : ''}">`;
-                if (f.type !== 'checkbox' && f.type !== 'file') html += `<label for="inp-${f.id}">${f.label}</label>`;
+                if (f.type !== 'checkbox') html += `<label for="inp-${f.id}">${f.label}</label>`;
 
                 if (f.type === 'select') {
                     html += `<select id="inp-${f.id}">`;
@@ -178,7 +180,7 @@ input[type="checkbox"]{width:20px;height:20px;margin:0;accent-color:var(--gold);
                 } else if (f.type === 'textarea') {
                     html += `<textarea id="inp-${f.id}" rows="3" ${f.required ? 'required' : ''}>${f.val || ''}</textarea>`;
                 } else if (f.type === 'file') {
-                    html += `<input type="file" id="inp-${f.id}">`;
+                    html += `<input type="file" id="inp-${f.id}" accept="image/*">`;
                 } else if (f.type === 'checkbox') {
                     html += `<input type="checkbox" id="inp-${f.id}" ${f.val ? 'checked' : ''}> <label for="inp-${f.id}">${f.label}</label>`;
                 } else {
@@ -211,6 +213,28 @@ input[type="checkbox"]{width:20px;height:20px;margin:0;accent-color:var(--gold);
                 const el = document.getElementById(`inp-${id}`);
                 if (el) el.addEventListener('input', updateNewsPreview);
             });
+        }
+
+        async function uploadImageAsBase64(url, file, extras = {}) {
+            const base64 = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onerror = () => reject(new Error('File read error'));
+                reader.onload = () => resolve(reader.result);
+                reader.readAsDataURL(file);
+            });
+
+            const uploadRes = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ file_name: file.name, data: base64, ...extras })
+            });
+
+            if (!uploadRes.ok) {
+                const errPayload = await uploadRes.json().catch(() => ({}));
+                throw new Error(errPayload.error || 'Upload failed');
+            }
+
+            return uploadRes.json();
         }
 
         function updateNewsPreview() {
@@ -327,32 +351,18 @@ input[type="checkbox"]{width:20px;height:20px;margin:0;accent-color:var(--gold);
                 const hasFile = fileInput && fileInput.files && fileInput.files.length > 0;
                 if (hasFile) {
                     const file = fileInput.files[0];
-                    const base64 = await new Promise((resolve, reject) => {
-                        const reader = new FileReader();
-                        reader.onerror = () => reject('File read error');
-                        reader.onload = () => resolve(reader.result);
-                        reader.readAsDataURL(file);
-                    });
-
-                    const payloadUpload = {
-                        name: document.getElementById('inp-name') ? document.getElementById('inp-name').value : file.name,
-                        file_name: file.name,
-                        price: document.getElementById('inp-price') ? document.getElementById('inp-price').value : '',
-                        data: base64
-                    };
-
-                    const uploadRes = await fetch('/api/admin/emotes/upload-base64', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payloadUpload)
-                    });
-                    if (uploadRes.ok) {
+                    try {
+                        await uploadImageAsBase64('/api/admin/emotes/upload-base64', file, {
+                            name: document.getElementById('inp-name') ? document.getElementById('inp-name').value : file.name,
+                            price: document.getElementById('inp-price') ? document.getElementById('inp-price').value : ''
+                        });
                         clearForm();
                         fetchSystemData();
                         return;
+                    } catch (err) {
+                        alert(`🔴 ${err.message || 'Upload failed'}`);
+                        return;
                     }
-                    alert('🔴 Upload failed');
-                    return;
                 }
             }
 
@@ -362,31 +372,49 @@ input[type="checkbox"]{width:20px;height:20px;margin:0;accent-color:var(--gold);
                 payload[f.id] = f.type === 'checkbox' ? element.checked : element.value;
             });
 
+            if (currentTab === 'cards') {
+                const cardImageInput = document.getElementById('inp-avatar_file');
+                const hasCardImage = cardImageInput && cardImageInput.files && cardImageInput.files.length > 0;
+                if (hasCardImage) {
+                    try {
+                        const upload = await uploadImageAsBase64('/api/admin/assets/upload-image', cardImageInput.files[0], {
+                            target: 'cards'
+                        });
+                        if (upload && upload.file) payload.avatar_url = upload.file;
+                    } catch (err) {
+                        alert(`🔴 ${err.message || 'Card image upload failed'}`);
+                        return;
+                    }
+                }
+            }
+
+            if (currentTab === 'frames') {
+                const frameImageInput = document.getElementById('inp-image_file');
+                const hasFrameImage = frameImageInput && frameImageInput.files && frameImageInput.files.length > 0;
+                if (hasFrameImage) {
+                    try {
+                        const upload = await uploadImageAsBase64('/api/admin/assets/upload-image', frameImageInput.files[0], {
+                            target: 'frames'
+                        });
+                        if (upload && upload.file) payload.image_url = upload.file;
+                    } catch (err) {
+                        alert(`🔴 ${err.message || 'Frame image upload failed'}`);
+                        return;
+                    }
+                }
+            }
+
             // If a background image file was provided for news, upload it first and set background_value
             if (currentTab === 'news') {
                 const fileInput = document.getElementById('inp-background_file');
                 const hasFile = fileInput && fileInput.files && fileInput.files.length > 0;
                 if (hasFile) {
-                    const file = fileInput.files[0];
-                    const base64 = await new Promise((resolve, reject) => {
-                        const reader = new FileReader();
-                        reader.onerror = () => reject('File read error');
-                        reader.onload = () => resolve(reader.result);
-                        reader.readAsDataURL(file);
-                    });
-
-                    const uploadRes = await fetch('/api/admin/news/upload-image', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ file_name: file.name, data: base64 })
-                    });
-
-                    if (uploadRes.ok) {
-                        const up = await uploadRes.json().catch(() => ({}));
+                    try {
+                        const up = await uploadImageAsBase64('/api/admin/news/upload-image', fileInput.files[0]);
                         if (up && up.file) payload.background_value = up.file;
                         payload.background_type = 'image';
-                    } else {
-                        alert('🔴 Background image upload failed');
+                    } catch (err) {
+                        alert(`🔴 ${err.message || 'Background image upload failed'}`);
                         return;
                     }
                 }

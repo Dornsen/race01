@@ -18,12 +18,12 @@ const ensureUserQuests = async (userId) => {
                 `, [userId, q.id]);
             } catch (err) {
                 if (err.code !== 'ER_LOCK_DEADLOCK') {
-                    console.error(`Ошибка при выдаче квеста ${q.id}:`, err);
+                    console.error(`Error saving quest ${q.id}:`, err);
                 }
             }
         }
     } catch (error) {
-        console.error('Критическая ошибка в ensureUserQuests:', error);
+        console.error('Critical error in ensureUserQuests:', error);
     }
 };
 

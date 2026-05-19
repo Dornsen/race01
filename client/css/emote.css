@@ -7,7 +7,6 @@
 
 .emote-toggle-btn {
     font-size: 22px;
-    /* Оформляем кнопку в стиле кнопки End Turn */
     background: radial-gradient(circle, rgba(25, 30, 40, 0.95) 0%, rgba(10, 12, 18, 0.98) 100%);
     border: 2px solid #d4af37;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.8), inset 0 0 8px rgba(212, 175, 55, 0.3);
@@ -22,7 +21,7 @@
     color: #f5f5f5;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    z-index: 101; /* Поверх панели */
+    z-index: 101;
 }
 
 .emote-toggle-btn:hover {
@@ -35,20 +34,16 @@
     position: absolute;
     bottom: 70px;
     left: 0;
-    /* Убираем черный фон и зеленый бордер, добавляем мистику */
     background: rgba(15, 17, 20, 0.85);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(212, 175, 55, 0.5);
     box-shadow: 0 10px 25px rgba(0,0,0,0.8), inset 0 0 15px rgba(212, 175, 55, 0.1);
     border-radius: 12px;
     padding: 12px;
-    
-    /* Делаем сетку 4 в ряд для матча (или авто, зависит от количества) */
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 12px;
-    width: 220px; /* Слегка расширили под 4 колонки */
-    
+    width: 220px; 
     transform-origin: bottom left;
     animation: panelSlideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
@@ -90,7 +85,6 @@
     min-height: 56vh;
     padding: 32px 36px;
     border-radius: 12px;
-    /* Стилизация под магазин и лобби */
     background: rgba(15, 17, 20, 0.95); 
     box-shadow: 0 20px 50px rgba(0,0,0,0.6), 0 2px 6px rgba(0,0,0,0.3) inset;
     border: 1px solid rgba(187, 167, 141, 0.2);
@@ -192,7 +186,7 @@
 
 .emote-deck-container .emote-slot {
     width: 100%;
-    aspect-ratio: 1; /* Квадратные слоты */
+    aspect-ratio: 1;
     height: auto;
     font-size: 28px;
     border-radius: 12px;
@@ -332,7 +326,7 @@
     filter: drop-shadow(0 5px 10px rgba(241, 196, 15, 0.6));
     z-index: 10;
 }
-/* --- КНОПКА ОТКРЫТИЯ КОЛОДЫ ЭМОДЗИ (В ЛОББИ) --- */
+
 .btn-deck-emotes {
     background: linear-gradient(135deg, rgba(241, 196, 15, 0.1), rgba(241, 196, 15, 0.05)) !important;
     border: 1px solid #d4af37 !important;
@@ -360,15 +354,11 @@
     box-shadow: 0 0 15px rgba(212, 175, 55, 0.5) !important;
     transform: translateY(-2px) !important;
 }
-/* --- ФИКС РАЗМЕРОВ СЕТКИ И СЛОТОВ В РЕДАКТОРЕ --- */
-
-/* Перебиваем инлайн style="width:300px" из HTML */
 .emote-deck-body > div:nth-child(3) {
     width: auto !important;
     min-width: 340px;
 }
 
-/* Картинка внутри слота: идеально вписывается в квадрат */
 .emote-deck-container .emote-slot img {
     width: 80% !important;
     height: 80% !important;
@@ -377,13 +367,11 @@
     transition: transform 0.2s ease;
 }
 
-/* При наведении на картинку в слоте (чтобы удалить) */
 .emote-deck-container .emote-slot img:hover {
     transform: scale(1.1) rotate(-3deg);
-    filter: drop-shadow(0 0 8px rgba(231, 76, 60, 0.8)); /* Подсветка красным, намекающая на удаление */
+    filter: drop-shadow(0 0 8px rgba(231, 76, 60, 0.8));
 }
 
-/* Если слот пустой (без картинки) - делаем плюсик аккуратным */
 .emote-deck-container .emote-slot {
     display: flex;
     align-items: center;
@@ -391,7 +379,6 @@
     overflow: hidden;
 }
 
-/* Корректируем иконку кнопки в матче */
 .emote-toggle-btn svg {
     display: block;
     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));

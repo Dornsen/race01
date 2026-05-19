@@ -1,7 +1,6 @@
 module.exports = {
     name: '009_add_clean_banner_to_news',
     up: async (db) => {
-        // 1. Добавляем колонку если её нет
         const [cols] = await db.query(`
             SELECT COLUMN_NAME
             FROM INFORMATION_SCHEMA.COLUMNS
@@ -20,9 +19,6 @@ module.exports = {
         } else {
             console.log('[Migration 009] clean_banner already exists, skipping ALTER.');
         }
-
-        // 2. Помечаем DIVINE PRESENCE как clean_banner
-        //    (image-баннер с кнопкой на gacha — он один такой)
         const [updated] = await db.query(`
             UPDATE lobby_news
             SET clean_banner = 1

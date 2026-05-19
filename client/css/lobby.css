@@ -37,7 +37,6 @@
 
 .lobby-news-panel {
     position: absolute;
-    /* sidebar = 300px content + 24px*2 padding (content-box) + 1px border = 349px total */
     left: 358px;
     right: 360px;
     top: 18px;
@@ -95,7 +94,6 @@
 }
 
 .lobby-news-track {
-    /* Inherits full height from viewport (which now has min-height:0) */
     height: 100%;
     width: 100%;
     display: flex;
@@ -251,7 +249,6 @@
     border-color: #e8be86;
 }
 
-/* ── Чистый баннер: без затемнения, без текста, кнопка по центру снизу ── */
 .lobby-news-slide--clean::before,
 .lobby-news-slide--clean::after {
     display: none;
@@ -270,25 +267,22 @@
 
 .lobby-news-slide--clean .lobby-news-action {
     align-self: center !important;
-    margin: 0 0 28px; /* Оставляем аккуратный отступ от нижнего края */
-    padding: 12px 36px; /* Делаем кнопку более вытянутой и солидной */
+    margin: 0 0 28px;
+    padding: 12px 36px;
     font-size: 1rem;
-    font-family: 'Marcellus', serif; /* Твой фирменный шрифт из разметки лобби */
+    font-family: 'Marcellus', serif;
     letter-spacing: 2px;
     text-transform: uppercase;
     color: #F4F1E1 !important;
     
-    /* Эффект глубокого Liquid Glass (матовое багровое сукно) */
     background: linear-gradient(180deg, rgba(139, 35, 50, 0.5) 0%, rgba(94, 20, 31, 0.35) 100%) !important;
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     
-    /* Древне-золотая рамка с упором на нижнюю грань */
     border: 1px solid rgba(196, 164, 108, 0.35) !important;
     border-bottom: 3px solid #C4A46C !important;
     border-radius: 10px;
     
-    /* Объемные мягкие тени и внутренний свет */
     box-shadow: 
         0 12px 24px rgba(0, 0, 0, 0.55),
         inset 0 1px 1px rgba(255, 255, 255, 0.15);
@@ -318,7 +312,6 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
 
-/* Мягкий световой блик, пробегающий по стеклу при наведении */
 .lobby-news-slide--clean .lobby-news-action::before {
     content: '';
     position: absolute;
@@ -333,7 +326,6 @@
     left: 150%;
 }
 
-/* Hover-анимация аватара в лобби — такая же как в режиме боя */
 #lobby-avatar-btn:hover {
     transform: scale(1.06) translateY(-4px) !important;
     box-shadow:
@@ -511,11 +503,6 @@
 .ctx-btn:hover { background: #34495e; }
 .ctx-btn.danger:hover { background: #e74c3c; }
 
-/* ==========================================================================
-   Адаптивное модальное окно выбора аватарки и рамки
-   ========================================================================== */
-
-/* Задний фон-подложка модального окна */
 .modal {
     position: fixed;
     top: 0;
@@ -532,7 +519,6 @@
     box-sizing: border-box;
 }
 
-/* Контейнер модального окна */
 .modal-content {
     background: #14161a;
     border: 1px solid rgba(139, 126, 109, 0.25);
@@ -541,7 +527,6 @@
     width: 100%;
     max-width: 500px;
     
-    /* Окно подстраивается под высоту экрана, но не превышает 85% */
     max-height: 85vh; 
     overflow-y: auto; 
     
@@ -551,7 +536,6 @@
     box-sizing: border-box;
 }
 
-/* Заголовки разделов в модалке */
 .modal-content h3 {
     margin-top: 0;
     margin-bottom: 15px;
@@ -563,18 +547,15 @@
     padding-bottom: 8px;
 }
 
-/* Адаптивные сетки для аватарок и рамок */
 .avatar-grid, 
 .avatar-frame-grid {
     display: grid;
-    /* Колонки автоматически переносятся и масштабируются в зависимости от ширины */
     grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); 
     gap: 12px;
     margin-bottom: 25px;
     padding: 4px;
 }
 
-/* Стили элементов внутри сеток */
 .avatar-item {
     width: 100%;
     aspect-ratio: 1;
@@ -590,7 +571,6 @@
     box-shadow: 0 0 10px rgba(99, 61, 61, 0.5);
 }
 
-/* Кнопка Close */
 #close-modal {
     display: block;
     width: 100%;
@@ -612,7 +592,6 @@
     color: #FFF;
 }
 
-/* Кастомный тонкий скроллбар для контента окна */
 .modal-content::-webkit-scrollbar {
     width: 6px;
 }

@@ -263,6 +263,37 @@ const adminController = {
         } catch (err) {
             res.status(500).json({ error: err.message });
         }
+    },
+
+    uploadAssetImageBase64: async (req, res) => {
+        try {
+            const { data, file_name, target } = req.body || {};
+            if (!data) return res.status(400).json({ error: 'Missing file data' });
+
+            const targetToFolder = {
+                cards: 'cards',
+                frames: 'avatar_frames'
+            };
+
+            const folder = targetToFolder[String(target || '').toLowerCase()];
+            if (!folder) return res.status(400).json({ error: 'Invalid upload target' });
+
+            const targetDir = path.resolve(__dirname, '..', '..', 'client', 'assets', folder);
+            if (!fs.existsSync(targetDir)) fs.mkdirSync(targetDir, { recursive: true });
+
+            const rawName = String(file_name || `asset-${Date.now()}.png`).trim();
+            const sanitizedName = rawName.replace(/[^a-zA-Z0-9\.\-_]/g, '_');
+            const finalName = `${Date.now()}_${sanitizedName || 'image.png'}`;
+            const filePath = path.join(targetDir, finalName);
+
+            const base64 = String(data).replace(/^data:.*;base64,/, '');
+            const buffer = Buffer.from(base64, 'base64');
+            fs.writeFileSync(filePath, buffer);
+
+            res.json({ success: true, file: `/assets/${folder}/${finalName}` });
+        } catch (err) {
+            res.status(500).json({ error: err.message });
+        }
     }
 };
 

@@ -63,7 +63,6 @@ const newsController = {
             const buffer = Buffer.from(base64, 'base64');
             fs.writeFileSync(filePath, buffer);
 
-            // Return public path for client use
             const publicPath = `/assets/news/${safeName}`;
             res.json({ success: true, file: publicPath });
         } catch (err) {
