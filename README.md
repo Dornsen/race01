@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="client/assets/prewiew.png" width="700" />
+<img src="client/assets/preview.png" width="1920" />
 
 <br><br>
 
