@@ -43,10 +43,6 @@ cards via gacha (omamori), build custom decks, and fight in real-time pvp matche
 
 ---
 
-# 🎮 Card Battle Game
-
-A multiplayer online card game with real-time battle system, social features, and marketplace.
-
 ## 🚀 Quick Start
 
 ### Requirements
