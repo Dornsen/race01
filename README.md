@@ -1,3 +1,48 @@
+<div align="center">
+
+<img src="client/assets/prewiew.png" width="700" />
+
+<br><br>
+
+# ⋆ ˚｡⋆ [ k i r i ] ⋆｡˚ ⋆
+
+*japanese-themed multiplayer web card game* `real-time pvp` ⋆ `gacha mechanics` ⋆ `custom deck building`
+
+<br>
+
+### 🪷 ａｂｏｕｔ ｐｒｏｊｅｃｔ
+kiri is a multiplayer online card game featuring a real-time battle system, 
+social features, and a rich japanese mythology aesthetic. players can collect 
+cards via gacha (omamori), build custom decks, and fight in real-time pvp matches.
+
+<br>
+
+### 👥 ｔｅａｍ ＆ ｒｏｌｅｓ
+
+**[ nntrwx ]** ⋆ *Project Lead, UI/UX Designer & Front-End*
+* **UI & Front-end:** Designed and implemented the core visual experience, including the dynamic battlefield, deck builder, lobby, settings, friendlist, gacha (omamori) system, and event banners.
+* **Game Design & Management:** Designed the complete card roster (stats, abilities, lore) and managed task distribution for the entire team.
+
+**[ Dornsen ]** ⋆ *Back-End Developer & TechLead*
+* Completely responsible for the server architecture, real-time game logic (WebSockets), and database design (MySQL).
+
+**[ shrimp228 ]** ⋆ *Illustrator & Front-End*
+* Illustrated custom in-game emotes/stickers, prototyped card avatars, and implemented UI windows for the leaderboard, marketplace, quests, and match history.
+
+<br>
+
+### 💿 ｔｅｃｈ ｓｔａｃｋ
+
+<img src="https://img.shields.io/badge/javascript-151515?style=for-the-badge&logo=javascript&logoColor=white" />
+<img src="https://img.shields.io/badge/html5_/_css3-151515?style=for-the-badge&logo=html5&logoColor=white" />
+<img src="https://img.shields.io/badge/node.js-151515?style=for-the-badge&logo=nodedotjs&logoColor=white" />
+<img src="https://img.shields.io/badge/mysql-151515?style=for-the-badge&logo=mysql&logoColor=white" />
+
+<br><br>
+</div>
+
+---
+
 # 🎮 Card Battle Game
 
 A multiplayer online card game with real-time battle system, social features, and marketplace.
