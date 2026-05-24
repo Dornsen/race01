@@ -104,13 +104,10 @@ window.claimReward = async function(questId) {
                 window.refreshBalance();
             }
 
-            // ВМЕСТО ALERT: Вызываем наше красивое модальное окно награды!
             showQuestRewardModal(data.reward);
 
-            // Перезагружаем список квестов, чтобы кнопка обновилась
             document.getElementById('btn-quests').click(); 
         } else {
-            // Вместо алерта ошибки используем глобальное уведомление игры
             if (typeof showNotification === 'function') {
                 showNotification(data.error || 'Error claiming reward', true);
             } else {
@@ -125,7 +122,6 @@ window.claimReward = async function(questId) {
     }
 };
 
-// --- ФУНКЦИЯ КАСТОМНОГО ОКНА НАГРАДЫ (БЕЗ ЯПОНСКИХ СИМВОЛОВ) ---
 function showQuestRewardModal(amount) {
     let rewardOverlay = document.getElementById('quest-reward-overlay');
     if (!rewardOverlay) {

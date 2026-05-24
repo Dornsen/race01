@@ -565,11 +565,9 @@ const btnDeleteCancel = document.getElementById('btn-delete-cancel');
 
 if (btnRemove) {
     btnRemove.onclick = () => {
-        // Скрываем контекстное меню, чтобы оно не висело на экране
         const ctxMenu = document.getElementById('friend-context-menu');
         if (ctxMenu) ctxMenu.classList.add('hidden');
 
-        // Открываем кастомную модалку и подставляем имя друга
         if (deleteModal && deleteFriendNameSpan) {
             deleteFriendNameSpan.textContent = selectedTargetName || "этого игрока";
             deleteModal.classList.remove('hidden');
@@ -577,10 +575,8 @@ if (btnRemove) {
     };
 }
 
-// Клик по кнопке "Удалить" в кастомной модалке
 if (btnDeleteConfirm) {
     btnDeleteConfirm.onclick = async () => {
-        // Сразу прячем модалку
         if (deleteModal) deleteModal.classList.add('hidden');
 
         if (!selectedTargetId) return;
@@ -593,11 +589,9 @@ if (btnDeleteConfirm) {
             });
             const result = await res.json();
 
-            // Показываем красивую игровую нотификацию (is-success / is-error)
             const isSuccess = res.ok;
             showNotification(result.message || result.error, isSuccess ? 'success' : 'error');
             
-            // Перезагружаем список друзей, если удаление прошло успешно
             if (res.ok && typeof loadFriends === 'function') {
                 loadFriends();
             }
@@ -607,7 +601,6 @@ if (btnDeleteConfirm) {
     };
 }
 
-// Клик по кнопке "Отмена" в кастомной модалке
 if (btnDeleteCancel) {
     btnDeleteCancel.onclick = () => {
         if (deleteModal) deleteModal.classList.add('hidden');

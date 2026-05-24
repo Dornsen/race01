@@ -355,7 +355,6 @@ function startTimer() {
 function endTurn(force = false) {
     if (!battleState.inBattle) return;
     
-    // Если каким-то чудом клик прошел не в наш ход — просто игнорируем
     if (!force && battleState.turn !== 'player') return;
     
     const btnEndTurn = document.getElementById('btn-end-turn');
@@ -398,7 +397,6 @@ function renderBattle() {
     scheduleAutoEndTurn();
     
     if (typeof updateBoardArrows === 'function') {
-        // Небольшая задержка, чтобы DOM успел обновиться
         setTimeout(updateBoardArrows, 30);
     }
 }
@@ -444,17 +442,16 @@ function updateBattleHeader() {
     if (btnEndTurn) {
         if (battleState.turn === 'player') {
             btnEndTurn.classList.remove('disabled');
-            btnEndTurn.classList.add('my-turn-active'); // Кнопка горит и пульсирует
+            btnEndTurn.classList.add('my-turn-active'); 
             btnEndTurn.disabled = false;
-            btnEndTurn.style.pointerEvents = 'auto'; // Разрешаем клики
+            btnEndTurn.style.pointerEvents = 'auto'; 
         } else {
             btnEndTurn.classList.add('disabled');
-            btnEndTurn.classList.remove('my-turn-active'); // Тушим кнопку
+            btnEndTurn.classList.remove('my-turn-active'); 
             btnEndTurn.disabled = true;
-            btnEndTurn.style.pointerEvents = 'none'; // ПОЛНОСТЬЮ БЛОКИРУЕМ КЛИКИ
+            btnEndTurn.style.pointerEvents = 'none'; 
         }
     }
-    // Call new Visual Presentation Sub-routines
     renderManaArc();
     renderOpponentHandVisually();
     updateTurnCoin();
@@ -464,7 +461,6 @@ function updateTurnCoin() {
     const coin = document.getElementById('turn-coin');
     if (!coin) return;
 
-    // Заменяем SVG-стрелку кандзи (先 = первый / 後 = второй)
     const existingKanji = coin.querySelector('.turn-coin-kanji');
     if (!existingKanji) {
         coin.innerHTML = `<span class="turn-coin-kanji">${battleState.turn === 'player' ? '先' : '後'}</span>`;
@@ -489,9 +485,6 @@ function renderManaArc() {
     const totalMana = GAME_CONFIG.energyMax || 10;
     const currentMana = battleState.player.energy;
     
-    // ==========================================
-    // НАСТРОЙКИ ДУГИ
-    // ==========================================
     
     const startPercent = { x: 8, y: 60 };
     const endPercent = { x: 78, y: 105 };
@@ -504,9 +497,8 @@ function renderManaArc() {
     const verticalOffsetPx = rect.height * 0.18; 
     const rotateDeg = 165;
     
-    // Смещение ГОТОВОЙ дуги — адаптивно под высоту экрана
     const finalShiftX = -21;
-    const finalShiftY = window.innerHeight * 0.695; // ~675px при 1080px, масштабируется
+    const finalShiftY = window.innerHeight * 0.695; 
 
     const tStart = 0.38;
     const tEnd = 0.62;
@@ -583,17 +575,16 @@ function renderOpponentHandVisually() {
     handEl.innerHTML = '';
     
     const count = battleState.isOnline ? battleState.opponent.handCount : battleState.opponent.hand.length;
-    const displayCount = Math.min(count, 5); // Limit visual render overlap
+    const displayCount = Math.min(count, 5);
     
     for (let i = 0; i < displayCount; i++) {
         const cardEl = document.createElement('div');
         cardEl.className = 'opponent-card-back';
         cardEl.style.backgroundImage = "url('assets/card_back.png')";
         
-        const rot = (Math.random() * 14) - 7; // -7 to +7 degrees variance
+        const rot = (Math.random() * 14) - 7;
         cardEl.style.setProperty('--rot-offset', `${rot}deg`);
         cardEl.style.zIndex = i;
-        // Animation is handled entirely through the idle-float keyframes in CSS
         
         handEl.appendChild(cardEl);
     }
@@ -631,7 +622,6 @@ function renderBattleBoard(side) {
         }
     });
 
-    // Скролл к последней сыгранной карте оппонента (если есть overflow)
     if (side === 'opponent') {
         setTimeout(() => {
             boardEl.scrollTo({ left: boardEl.scrollWidth, behavior: 'smooth' });
@@ -646,8 +636,6 @@ function renderBattleHand() {
 
     const total = battleState.player.hand.length;
     
-    // === НАСТРОЙКИ ВЕЕРА ===
-    // Уменьшили угол, чтобы карты не так сильно наклонялись (было 18, стало 8)
     const maxAngle = 8; 
     const angleStep = total > 1 ? (maxAngle * 2) / (total - 1) : 0;
     const startAngle = -maxAngle;
@@ -659,12 +647,8 @@ function renderBattleHand() {
         if (!canPlay) cardEl.classList.add('disabled');
         cardEl.onclick = () => playCardFromHand(card.uid);
         
-        // Считаем угол для текущей карты
         const rotation = total > 1 ? startAngle + (index * angleStep) : 0;
         
-        // === ПЛОСКАЯ ДУГА ===
-        // Убрали сильное закругление. Теперь карты сдвигаются вниз совсем чуть-чуть.
-        // Если хочешь еще ровнее, поменяй 1.5 на 0.5 или 1.
         const yOffset = Math.abs(rotation) * 1.5; 
         
         cardEl.style.transform = `rotate(${rotation}deg) translateY(${yOffset}px)`;
@@ -714,7 +698,6 @@ function buildBattleCard(card) {
         </div>
     `;
 
-    // Правый клик — предпросмотр
     el.oncontextmenu = (e) => {
         e.preventDefault();
         if (typeof showBigCardPreview === 'function') showBigCardPreview(card);
@@ -726,34 +709,27 @@ function buildBattleCard(card) {
 function showBigCardPreview(card) {
     let overlay = document.getElementById('card-preview-overlay');
     
-    // Создаем оверлей, если его еще нет на странице
     if (!overlay) {
         overlay = document.createElement('div');
         overlay.id = 'card-preview-overlay';
         overlay.className = 'card-preview-overlay hidden';
         
-        // Закрываем окно на любой клик (ЛКМ или ПКМ)
         overlay.onclick = () => overlay.classList.add('hidden');
         overlay.oncontextmenu = (e) => { e.preventDefault(); overlay.classList.add('hidden'); };
         
         document.body.appendChild(overlay);
     }
     
-    overlay.innerHTML = ''; // Очищаем прошлую карту
+    overlay.innerHTML = ''; 
     
-    // Создаем "копию" данных карты, но подменяем базовую защиту (defense) 
-    // на текущее ХП в бою (currentHp), чтобы на большой карте отражался урон!
     const previewData = { ...card, defense: card.currentHp };
     
-    // Используем функцию из cards.js, которая рисует ИДЕАЛЬНЫЕ большие карты
     const bigCard = createCardElement(previewData, { owned: true });
     
-    // Отключаем лишние клики на самой карте и вешаем спец-класс
     bigCard.oncontextmenu = null;
     bigCard.onclick = null;
     bigCard.classList.add('preview-mode');
     
-    // Маленькая фишка: если карта ранена, делаем текст ХП на большой карте красным
     if (card.currentHp < card.defense) {
         const hpSpan = bigCard.querySelector('.card-def .card-stat-num');
         if (hpSpan) {
@@ -771,21 +747,21 @@ function showBigCardPreview(card) {
 function playCardFromHand(uid) {
     if (!battleState.inBattle) return;
 
-    // Если игрок пытается нажать на карту НЕ в свой ход — сразу пишем уведомление
     if (battleState.turn !== 'player') {
-        showNotification('Сейчас ход противника!', true);
+        showNotification("It's the opponent's turn!", true);
         return;
     }
     
-    // 1. Проверка для ОНЛАЙН режима
     if (battleState.isOnline) {
         const card = battleState.player.hand.find(c => c.uid === uid);
+        
         if (card && card.cost > battleState.player.energy) {
-            showNotification('Недостаточно маны!', true);
+            showNotification('Not enough mana!', true);
             return;
         }
+        
         if (battleState.player.board.length >= 5) {
-            showNotification('Доска заполнена! Максимум 5 карт.', true);
+            showNotification('Board is full! Maximum 5 cards.', true);
             return;
         }
         
@@ -793,25 +769,22 @@ function playCardFromHand(uid) {
         return;
     }
     
-    // 2. Логика для ЛОКАЛЬНОГО режима (Practice Match)
     const idx = battleState.player.hand.findIndex(card => card.uid === uid);
+    
     if (idx === -1) return;
     
     const card = battleState.player.hand[idx];
     
-    // Проверяем ману (energy)
     if (card.cost > battleState.player.energy) {
-        showNotification('Недостаточно маны!', true);
+        showNotification('Not enough mana!', true);
         return;
     }
 
-    // Проверяем лимит карт на столе
     if (battleState.player.board.length >= 5) {
-        showNotification('Доска заполнена! Максимум 5 карт.', true);
+        showNotification('Board is full! Maximum 5 cards.', true);
         return;
     }
 
-    // Разыгрываем карту
     battleState.player.energy -= card.cost;
     battleState.player.hand.splice(idx, 1);
     
@@ -821,7 +794,6 @@ function playCardFromHand(uid) {
     
     renderBattle();
     
-    // Принудительно обновляем стрелочки скролла
     if (typeof updateBoardArrows === 'function') updateBoardArrows();
 }
 
@@ -949,7 +921,7 @@ function runOpponentTurn() {
 
     checkWin();
     renderBattle();
-    if (typeof updateBoardArrows === 'function') updateBoardArrows(); // Обновляем стрелочки врага
+    if (typeof updateBoardArrows === 'function') updateBoardArrows();
     if (battleState.inBattle) endTurn(true);
 }
 
@@ -966,7 +938,6 @@ function checkWin() {
 function endBattle(winnerSide) {
     battleState.inBattle = false;
     
-    // Сбрасываем таймеры боя
     if (autoEndTurnId) {
         clearTimeout(autoEndTurnId);
         autoEndTurnId = null;
@@ -976,7 +947,6 @@ function endBattle(winnerSide) {
         battleState.timerId = null;
     }
 
-    // Ищем или создаем полноэкранный оверлей финала
     let endOverlay = document.getElementById('match-end-overlay');
     if (!endOverlay) {
         endOverlay = document.createElement('div');
@@ -985,11 +955,10 @@ function endBattle(winnerSide) {
     }
 
     endOverlay.className = 'match-end-overlay';
-    endOverlay.innerHTML = ''; // Очищаем старое содержимое
+    endOverlay.innerHTML = '';
 
     const contentCard = document.createElement('div');
     
-    // Определяем стили под результат матча (добавили обработку draw)
     let cardClass = 'is-defeat';
     let kanjiText = '敗北';
     let titleText = 'Defeated in Battle';
@@ -1001,8 +970,8 @@ function endBattle(winnerSide) {
         titleText = 'Victory Achieved';
         descText = 'You have dispelled the mist and claimed dominance over the battlefield.';
     } else if (winnerSide === 'draw') {
-        cardClass = 'is-victory'; // Ничья использует золотую рамку, но с другими кандзи
-        kanjiText = '引き分け'; // Кандзи для ничьей (Hikiwake)
+        cardClass = 'is-victory';
+        kanjiText = '引き分け';
         titleText = 'Tie Match';
         descText = 'A perfect balance of forces. Neither side could overcome the wanderer\'s spirit.';
     }
@@ -1017,21 +986,19 @@ function endBattle(winnerSide) {
 
     endOverlay.appendChild(contentCard);
 
-    // Кнопка возврата теперь принудительно вызывает exitBattle(true) для очистки сокетов и сцены
     const closeBtn = contentCard.querySelector('#btn-close-end-screen');
     closeBtn.onclick = () => {
         endOverlay.classList.remove('show');
         setTimeout(() => {
-            endOverlay.remove(); // Чистим DOM
+            endOverlay.remove();
             if (typeof exitBattle === 'function') {
-                exitBattle(true); // Закрываем экран матча и возвращаем лобби
+                exitBattle(true);
             } else {
                 setBattleScreenVisible(false);
             }
         }, 400);
     };
 
-    // Запускаем плавную анимацию появления
     setTimeout(() => {
         endOverlay.classList.add('show');
     }, 100);
@@ -1046,7 +1013,6 @@ function exitBattle(skipServer) {
         battleScreen.classList.remove('turn-player', 'turn-opponent');
     }
     
-    // ТАКЖЕ СБРАСЫВАЕМ СВЕЧЕНИЕ КНОПКИ ТУТ
     const btnEndTurn = document.getElementById('btn-end-turn');
     if (btnEndTurn) btnEndTurn.classList.remove('my-turn-active');
     
@@ -1070,12 +1036,10 @@ function exitBattle(skipServer) {
 
 // --- 8. SURRENDER CONFIRMATION OVERLAY ---
 
-// --- 8. SURRENDER CONFIRMATION OVERLAY ---
 
 function showSurrenderConfirmation() {
     let overlay = document.getElementById('surrender-confirm-overlay');
     
-    // Если оверлей ещё не создан, динамически генерируем его с красивой разметкой
     if (!overlay) {
         overlay = document.createElement('div');
         overlay.id = 'surrender-confirm-overlay';
@@ -1084,7 +1048,6 @@ function showSurrenderConfirmation() {
         const modal = document.createElement('div');
         modal.className = 'surrender-modal-card';
         
-        // Кандзи-заголовок "Сдача / Капитуляция"
         const kanjiTitle = document.createElement('div');
         kanjiTitle.className = 'surrender-kanji';
         kanjiTitle.innerHTML = '降伏';
@@ -1100,7 +1063,6 @@ function showSurrenderConfirmation() {
         const btnWrap = document.createElement('div');
         btnWrap.className = 'surrender-btn-wrap';
         
-        // КНОПКА ОТМЕНЫ (Продолжить бой)
         const btnCancel = document.createElement('button');
         btnCancel.innerText = 'Continue Fight';
         btnCancel.className = 'surrender-btn btn-cancel-fight';
@@ -1108,16 +1070,14 @@ function showSurrenderConfirmation() {
             overlay.classList.add('hidden');
         };
         
-        // КНОПКА ПОДТВЕРЖДЕНИЯ (Сдаться)
         const btnConfirm = document.createElement('button');
         btnConfirm.innerText = 'Accept Fate';
         btnConfirm.className = 'surrender-btn btn-surrender-confirm';
         btnConfirm.onclick = () => {
             overlay.classList.add('hidden');
-            exitBattle(); // Вызов оригинального метода выхода из игры
+            exitBattle(); 
         };
         
-        // Собираем структуру вместе
         btnWrap.appendChild(btnCancel);
         btnWrap.appendChild(btnConfirm);
         
@@ -1130,7 +1090,6 @@ function showSurrenderConfirmation() {
         document.body.appendChild(overlay);
     }
     
-    // Плавное отображение окна
     overlay.classList.remove('hidden');
 }
 
@@ -1172,13 +1131,7 @@ window.syncBattleAvatars = syncBattleAvatars;
 window.showCoinFlip = showCoinFlip;
 window.exitBattle = exitBattle;
 
-// Функция для проверки необходимости отображения стрелок прокрутки на досках
 function updateBoardArrows() {
-    // ФИКС: единая логика для обоих досок.
-    // Ранее оппонент использовал justify-content:flex-end → overflow уходил влево
-    // (scrollLeft не может быть < 0), стрелки вызывали scrollBy но ничего не происходило.
-    // Теперь оба борда — flex-start, overflow вправо, скролл работает корректно.
-    // Убрано лишнее условие children.length >= 3 — достаточно факта overflow.
     const checkBoard = (boardId, leftBtnId, rightBtnId) => {
         const board = document.getElementById(boardId);
         const leftBtn = document.getElementById(leftBtnId);
@@ -1205,7 +1158,7 @@ function initBoardScrollControls() {
 
         if (!board || !leftBtn || !rightBtn) return;
 
-        const scrollAmount = 260; // комфортный шаг (примерно ширина карты + gap)
+        const scrollAmount = 260;
 
         leftBtn.onclick = (e) => {
             e.preventDefault();
@@ -1219,7 +1172,6 @@ function initBoardScrollControls() {
             board.scrollBy({ left: scrollAmount, behavior: 'smooth' });
         };
 
-        // Автообновление при изменении содержимого
         const observer = new MutationObserver(() => {
             setTimeout(updateBoardArrows, 50);
         });
@@ -1231,7 +1183,6 @@ function initBoardScrollControls() {
 
     window.addEventListener('resize', updateBoardArrows);
 }
-// Запускаем инициализацию скролла при загрузке документа
 document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('player-board')) {
         initBoardScrollControls();

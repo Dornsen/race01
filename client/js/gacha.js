@@ -153,7 +153,6 @@ function buildGachaCard(card) {
         </div>
     `;
 
-    // Клик на саму карту больше ничего не делает, чтобы не ломать логику пака
     return cardEl;
 }
 
@@ -165,29 +164,24 @@ function chunkArray(array, size) {
     return chunks;
 }
 
-// Новая функция рендеринга 5 стопок (3 сверху, 2 снизу)
 function renderGachaCards(cards) {
     if (!gachaCards) return;
     gachaCards.innerHTML = '';
     
-    const isMulti = cards.length > 5; // Если карт больше 5 (например, 25), включаем режим 5 стопок
+    const isMulti = cards.length > 5;
     
     if (!isMulti) {
-        // Одиночный пак (1 пак из 5 карт) — рендерим как обычный красивый одиночный веер
         gachaCards.className = 'gacha-cards-grid-fan single-pack';
         renderSingleFan(cards, gachaCards, 0);
     } else {
-        // МУЛЬТИ-ПАК: Разбиваем 25 карт на 5 паков по 5 карт
         gachaCards.className = 'gacha-multi-packs-container';
         
         const packs = chunkArray(cards, 5);
         
         packs.forEach((packCards, packIndex) => {
-            // Создаем отдельный контейнер-стопку для каждого пака
             const packStack = document.createElement('div');
             packStack.className = `gacha-pack-stack pack-position-${packIndex}`;
             
-            // Рендерим 5 карт внутрь этого конкретного пака
             renderSingleFan(packCards, packStack, packIndex);
             
             gachaCards.appendChild(packStack);
@@ -217,25 +211,19 @@ function renderSingleFan(cards, container, packIndex) {
         container.appendChild(cardEl);
         generatedCards.push(cardEl);
         
-        // Вылет карт рубашкой вверх
         setTimeout(() => {
             cardEl.classList.add('fly-in');
         }, (packIndex * 120) + (index * 25));
     });
 
-    // Обозначаем, что стопка изначально закрыта
     container.classList.add('is-sealed');
 
-    // КЛИК ПО ВСЕЙ СТОПКЕ (ВЕЕРУ) ДЛЯ РАСКРЫТИЯ ПАКА
     container.onclick = (e) => {
-        // Если пак уже открыт — ничего не делаем
         if (!container.classList.contains('is-sealed')) return;
         
-        // Убираем состояние закрытого пака и добавляем импульс взрыва
         container.classList.remove('is-sealed');
         container.classList.add('pack-exploding');
         
-        // Каскадно переворачиваем только 5 карт этой конкретной стопки
         let currentDelay = 0;
         generatedCards.forEach((cardEl) => {
             const frontSide = cardEl.querySelector('.side-front');
@@ -254,7 +242,6 @@ function renderSingleFan(cards, container, packIndex) {
             }, currentDelay);
         });
         
-        // Убираем класс взрыва после завершения анимации
         setTimeout(() => {
             container.classList.remove('pack-exploding');
         }, 800);
@@ -294,7 +281,6 @@ function markOwnedCards(cards) {
 async function requestGachaOpen(count) {
     if (gachaState.opening) return;
     
-    // Пересчитываем стоимость под новые правила: х1 = 100, х5 = 450
     const totalCost = count >= 5 ? 450 : 100 * count;
     
     if (typeof currentMoney !== 'undefined' && currentMoney < totalCost) {
@@ -371,11 +357,9 @@ document.addEventListener('DOMContentLoaded', () => {
     btnGachaFlip.onclick = () => {
         if (!gachaCards) return;
         
-        // Находим вообще все карты на сцене Гачи
         const allCards = gachaCards.querySelectorAll('.gacha-card-item');
         
         allCards.forEach((card, index) => {
-            // Переворачиваем волнообразно (каждые 60мс новая карта), только если она закрыта
             setTimeout(() => {
                 if (!card.classList.contains('flipped') && !gachaStage.classList.contains('resetting')) {
                     card.classList.add('flipped');
@@ -389,7 +373,6 @@ document.addEventListener('DOMContentLoaded', () => {
         btnGachaReset.onclick = () => resetGachaUI();
     }
 
-    // Логика интерактивного вытягивания (Pull Down) Омамори за Золотой Узел
     if (omamoriKnot && omamori) {
         omamoriKnot.addEventListener('pointerdown', (event) => {
             if (gachaState.opening) return;
@@ -405,7 +388,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const delta = Math.max(0, event.clientY - gachaState.startY);
             const clamped = Math.min(delta, 140);
             
-            // Плавное натяжение и скейлинг амулета вниз
             omamori.style.transform = `translateY(${clamped}px) scaleX(${1 - clamped * 0.0008})`;
             
             if (delta > 85) {

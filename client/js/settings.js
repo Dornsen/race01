@@ -123,12 +123,10 @@ function switchMusicTrack(trackName) {
 
 window.switchMusicTrack = switchMusicTrack;
 
-// Инициализация звука при загрузке страницы
 document.addEventListener('DOMContentLoaded', () => {
     syncMusicControls();
 });
 
-// Открытие окна настроек
 async function toggleSettingsModal() {
     const modal = document.getElementById('settings-modal');
     modal.classList.toggle('hidden');
@@ -153,7 +151,6 @@ async function toggleSettingsModal() {
     }
 }
 
-// Загрузка и рендер аватарок
 async function loadAvatars() {
     try {
         const res = await fetch('/api/avatars');
@@ -179,11 +176,10 @@ async function loadAvatars() {
             avatarsLoaded = true;
         }
     } catch (err) {
-        console.error('Ошибка при загрузке списка аватаров:', err);
+        console.error('Error loading avatar list:', err);
     }
 }
 
-// Функция выбора аватара
 function selectAvatar(avatarName, targetElement) {
     selectedAvatarPath = avatarName;
     const avatars = document.querySelectorAll('.avatar-option');
@@ -191,9 +187,8 @@ function selectAvatar(avatarName, targetElement) {
     targetElement.classList.add('selected');
 }
 
-// Сохранение аватара
 async function saveAvatar() {
-    if (!selectedAvatarPath) return notify('Выберите аватар!', true); 
+    if (!selectedAvatarPath) return notify('Please select an avatar!', true); 
 
     return saveAvatarInternal(true, true);
 }
@@ -225,20 +220,19 @@ async function saveAvatarInternal(closeModal = true, showMessage = true) {
             return true;
         } else {
             if (showMessage) {
-                notify(data.error || 'Ошибка при смене аватара', true);
+                notify(data.error || 'Error changing avatar.', true);
             }
             return false;
         }
     } catch (err) {
         console.error(err);
         if (showMessage) {
-            notify('Ошибка при смене аватара', true);
+            notify('Error changing avatar.', true);
         }
         return false;
     }
 }
 
-// Переключатель музыки (Вкл/Выкл)
 function toggleMusic() {
     const music = document.getElementById('bg-music');
     const isChecked = document.getElementById('music-toggle').checked;
@@ -251,7 +245,6 @@ function toggleMusic() {
     }
 }
 
-// Ползунок громкости
 function changeVolume() {
     const music = document.getElementById('bg-music');
     const volumeSlider = document.getElementById('music-volume');
@@ -290,7 +283,7 @@ async function saveMusicSettings() {
 
     if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Ошибка при сохранении музыки');
+        throw new Error(data.error || 'Error saving music settings');
     }
 
     return true;
@@ -319,17 +312,17 @@ async function saveSettings() {
         if (modal) modal.classList.add('hidden');
     } catch (err) {
         console.error(err);
-        notify(err.message || 'Ошибка при сохранении настроек', true);
+        notify(err.message || 'Error saving settings.', true);
     }
 }
 
-// Смена пароля
 async function changePassword() {
     const oldPassword = document.getElementById('old-password').value.trim();
     const newPassword = document.getElementById('new-password').value.trim();
 
-    // ЗАМЕНЕНО: alert на notify
-    if (!oldPassword || !newPassword) return notify('Заполните оба поля!', true); 
+    if (!oldPassword || !newPassword) {
+    return notify('Please fill in both fields!', true);
+}
 
     try {
         const res = await fetch('/api/update-password', {
@@ -347,14 +340,12 @@ async function changePassword() {
         }
     } catch (err) {
         console.error(err);
-        notify('Ошибка при смене пароля', true);
+        notify('Error changing password.', true);
     }
 }
 
-// Удаление аккаунта
 let deleteStep = 1;
 
-// Вызывается при нажатии на кнопку "Delete Account" в настройках
 function deleteAccount() {
     deleteStep = 1;
     const modal = document.getElementById('account-delete-modal');
@@ -366,32 +357,26 @@ function deleteAccount() {
         return notify('Account deletion feature is temporarily unavailable.', true);
     }
 
-    // Шаг 1: Первое предупреждение
     title.innerText = "Warning";
     text.innerText = "Are you sure? This action will permanently delete your account, all cards, and your rating!";
     modal.classList.remove('hidden');
 
-    // Назначаем действие на кнопку согласия
     proceedBtn.onclick = handleDeleteClick;
 }
 
-// Управляет шагами внутри модального окна
 function handleDeleteClick() {
     const title = document.getElementById('delete-modal-title');
     const text = document.getElementById('delete-modal-text');
 
     if (deleteStep === 1) {
-        // Переходим к Шагу 2: Окончательное предупреждение
         deleteStep = 2;
         title.innerText = "Final Confirmation";
         text.innerText = "DELETE FOR SURE? There is no going back.";
     } else if (deleteStep === 2) {
-        // Если оба шага пройдены — отправляем запрос на сервер
         executeAccountDeletion();
     }
 }
 
-// Непосредственно удаление на бэкенде
 async function executeAccountDeletion() {
     try {
         const res = await fetch('/api/delete-account', { method: 'DELETE', credentials: 'same-origin' });
@@ -401,7 +386,6 @@ async function executeAccountDeletion() {
             closeDeleteAccountModal();
             notify(data.message || 'Account deleted. Farewell!');
             
-            // Небольшая задержка, чтобы игрок успел прочесть уведомление прощания
             setTimeout(() => {
                 window.location.href = '/'; 
             }, 1500);
@@ -416,14 +400,12 @@ async function executeAccountDeletion() {
     }
 }
 
-// Закрытие модального окна при отмене
 function closeDeleteAccountModal() {
     const modal = document.getElementById('account-delete-modal');
     if (modal) modal.classList.add('hidden');
-    deleteStep = 1; // Сбрасываем шаги
+    deleteStep = 1;
 }
 
-// --- ИНТЕРАКТИВНЫЙ РАЗВОРАЧИВАЮЩИЙСЯ СВИТОК ---
 document.addEventListener('DOMContentLoaded', () => {
     const handle = document.getElementById('scroll-drag-handle');
     const paper = document.getElementById('scroll-paper');
@@ -435,28 +417,22 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!handle || !paper || !container) return;
 
     let isDragging = false;
-    const maxScrollWidth = 200; // Максимальная ширина разворачивания холста в пикселях
+    const maxScrollWidth = 200;
 
     function updateScrollPosition(clientX) {
         const containerRect = container.getBoundingClientRect();
-        // Считаем, сколько пикселей протащили от левого края (где стоит левый валик)
         let width = clientX - containerRect.left;
 
-        // Зажимаем границы движения от 0 до максимума
         if (width < 0) width = 0;
         if (width > maxScrollWidth) width = maxScrollWidth;
 
-        // Рассчитываем процент громкости от 0.0 до 1.0
         const volume = width / maxScrollWidth;
 
-        // Физически меняем ширину пергамента на экране
         paper.style.width = `${width}px`;
         
-        // Меняем прозрачность текста внутри свитка в зависимости от раскрытия
         const glowText = paper.querySelector('.scroll-glow-text');
         if (glowText) glowText.style.opacity = volume;
 
-        // Синхронизируем со звуковой системой игры
         if (music) music.volume = volume;
         if (volumeInput) volumeInput.value = volume;
         if (volumeValue) volumeValue.innerText = `${Math.round(volume * 100)}%`;
@@ -464,7 +440,6 @@ document.addEventListener('DOMContentLoaded', () => {
         pendingMusicVolume = volume;
     }
 
-    // Слушатели событий мыши и сенсора
     handle.addEventListener('mousedown', () => isDragging = true);
     handle.addEventListener('touchstart', () => isDragging = true, { passive: true });
 
@@ -481,7 +456,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('mouseup', () => isDragging = false);
     document.addEventListener('touchend', () => isDragging = false);
 
-    // Поддержка синхронизации при открытии окна настроек
     const oldSyncControls = window.syncMusicControls;
     window.syncMusicControls = function() {
         if (typeof oldSyncControls === 'function') oldSyncControls();

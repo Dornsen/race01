@@ -140,7 +140,17 @@
 }
 
 #player-name {
-    display: none !important;
+    font-family: 'Marcellus', Georgia, serif !important;
+    font-size: 3vmin !important;
+    font-weight: 800 !important;
+    color: #d1c79e !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9), 0 0 10px rgba(241, 196, 15, 0.3) !important;
+    text-align: center !important;
+    margin: 0 !important;
+    bottom: 16vh !important;
+    right:31.4vw !important;
+    position: fixed !important;
+    z-index: 60 !important; 
 }
 
 .opponent-profile {
@@ -811,7 +821,11 @@
     font-size: 1.3vw !important;
     font-weight: 900 !important;
     color: #F4F1E1 !important;
-    text-shadow: 0 0 4px #000, 0 1px 3px #000, -1px 0 3px #000, 1px 0 3px #000 !important;
+    text-shadow:
+        0 0 4px #000,
+        0 1px 3px #000,
+        -1px 0 3px #000,
+        1px 0 3px #000 !important;
     transform: translate(0, 0.1vw) !important;
 }
 

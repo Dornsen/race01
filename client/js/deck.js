@@ -119,7 +119,6 @@ function renderDeckBuilder() {
         const isInDeck = myDeck.some(c => c.id === card.id);
         const cardDOM = createCardElement(card, { owned: card.owned, inDeck: isInDeck });
 
-        // Управляем кликом без pointer-events, чтобы не ломать ПКМ
         cardDOM.onclick = () => {
             if (card.owned && !isInDeck) {
                 addToDeck(card);
@@ -130,7 +129,6 @@ function renderDeckBuilder() {
             cardDOM.style.cursor = 'not-allowed';
         }
         
-        // Клик ПКМ на карту в коллекции
         cardDOM.oncontextmenu = (e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -146,7 +144,6 @@ function renderDeckBuilder() {
         
         cardDOM.onclick = () => removeFromDeck(index);
         
-        // Клик ПКМ на карту в вашей деке
         cardDOM.oncontextmenu = (e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -260,42 +257,34 @@ window.renderDeckBuilder = renderDeckBuilder;
 window.wireCollectionFilters = wireCollectionFilters;
 
 function showDeckCardPreview(card) {
-    // 1. Вызываем стандартное открытие текстового окна вашей игры
     if (typeof showCardDetails === 'function') {
         showCardDetails(card);
     }
 
-    // 2. Находим главный оверлей модалки (черный размытый фон)
     const modalOverlay = document.getElementById('card-detail-modal');
     if (!modalOverlay) return;
 
-    // Сделаем сам оверлей флекс-контейнером, чтобы центрировать текстовый блок и карту рядом
     modalOverlay.style.display = 'flex';
     modalOverlay.style.flexDirection = 'row';
     modalOverlay.style.justifyContent = 'center';
     modalOverlay.style.alignItems = 'center';
-    modalOverlay.style.gap = '40px'; // Расстояние между старым окном и картой
+    modalOverlay.style.gap = '40px'; 
 
-    // 3. Проверяем и удаляем старое превью карты, если оно висит в оверлее
     const oldSidePreview = modalOverlay.querySelector('.separate-card-preview');
     if (oldSidePreview) {
         oldSidePreview.remove();
     }
 
-    // 4. Создаем новый отдельный контейнер для визуальной карты
     const separatePreview = document.createElement('div');
     separatePreview.className = 'separate-card-preview';
 
-    // 5. Генерируем карту точно так же, как в бою
     const cardDOM = createCardElement(card, { owned: true });
-    cardDOM.onclick = null; // Отключаем обработку левого клика на превью
-    cardDOM.oncontextmenu = (e) => e.preventDefault(); // Отключаем стандартное меню хрома на превью
+    cardDOM.onclick = null;
+    cardDOM.oncontextmenu = (e) => e.preventDefault(); 
 
     separatePreview.appendChild(cardDOM);
 
-    // 6. Добавляем карту прямо в оверлей, она встанет справа от текстового блока
     modalOverlay.appendChild(separatePreview);
 }
 
-// Экспортируем функцию в глобальную видимость
 window.showDeckCardPreview = showDeckCardPreview;
